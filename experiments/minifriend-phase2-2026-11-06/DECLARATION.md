@@ -125,7 +125,27 @@ B10 s3 head, engine 226509ec. Seven trainers on 18 cores. Its leg
 `p2u-act10-s1` (= s1r) 08:31:14–08:33:23Z, 30 clean, worst 138 (905030,
 seat 4 Clementine, drink, mostly idle; trunk-s1 and act15-s1 rows there
 0, nohead-s1r 14). Still held: both s2 / s4 (entry 27, after the canary
-read + her word); the battery waits on the finals.**
+read + her word); the battery waits on the finals.** **ALL TRAINERS
+FINISHED 2026-11-08 (read 19:22Z): five clean plateaus — `p2-both-s1`
+09:08:44Z (u3900, largest streak 26), `p2-nohead-s4` 10:18:09Z (u3900,
+172), `p2-act15-s4` 10:49:03Z (u3900, 157), `p2-act15-s2` 10:50:44Z
+(u3900, 95), `p2-nohead-s2` 11:38:18Z (u4880 / 15,000,576, 126); TWO
+HALTED by the frozen stops, owner-routed, never resumed — `p2-act10-s2`
+probe-distress-stop at u1149 / 3,532,800 ticks (before the floor; world
+40,002, Pumpkin, 410, alone and searching, hap min 24.2) and
+`p2-act10-s4` f053-line-crossed at u3349 / 10,291,200 (world 40,001,
+ALL FIVE seats 1399–1614, eat + drink at 100, a five-cat pile with no
+chow in view; nash 0.7854) — deviations ENTRY 29, open to her (A)–(D).
+Chain-2 legs 19:23:55–19:30:30Z at 224cb1f1, all 30 / 30 clean: both-s1
+89, act15-s2 35, act15-s4 49, nohead-s2 109, nohead-s4 284 (905003,
+Pumpkin, eat, parked). Eight 20×20 uniform legs on record. CANARY
+READS DELIVERED 19:30:32Z (entry 27's grammar, `reads/canary-s1.md`):
+P46 MET (both − act15 +0.233 ≤ 0.326, 30/30 positive; both − trunk
++2.708); P47 UNDECIDABLE (no stratum at min-n); P45 lived UNDECIDABLE
+(grave rows under min-n; the bias where present POSITIVE, against the
+gate's −3.17), P45 leg NOT MET (visible INSUFFICIENT, all CLEAR, no
+SIGNATURE). Consequence HERS. The battery (entry 28 (4)) is BLOCKED:
+act10 has one final of three — entry 29.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

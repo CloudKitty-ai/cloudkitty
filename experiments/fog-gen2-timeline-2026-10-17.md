@@ -1052,6 +1052,20 @@ consent BC comparison ride the trunk.
   worst 138 (905030, Clementine, drink; comparators 0 / 0 / 14). Three
   legs on record. Still held: both s2 / s4 (after the canary read), the
   battery (on the finals).
+  All seven trainers finished by 13:35:40Z (read 19:22Z). Five clean
+  plateaus: both-s1 09:08Z, nohead-s4 10:18Z, act15-s4 10:49Z, act15-s2
+  10:50Z, nohead-s2 11:38Z (largest training streaks 26–172). TWO HALTS
+  → deviations entry 29: p2-act10-s2 probe-distress-stop u1149 /
+  3,532,800 ticks (before the floor; 40,002 × Pumpkin again, 410, alone,
+  searching) and p2-act10-s4 f053-line-crossed u3349 / 10,291,200
+  (40,001, all five seats 1399–1614, the F-060 pile shape inside a
+  training probe; first 1,000 crossing this generation). Owner-routed,
+  nothing resumed; act10 = one final of three, the battery BLOCKED on
+  her word ((A)–(D) in the entry). Chain-2 legs 19:23–19:30Z, five legs
+  30/30 clean (worst 89 / 35 / 49 / 109 / 284); eight on record. Canary
+  reads delivered 19:30Z: P46 MET (+0.233), P47 UNDECIDABLE, P45
+  UNDECIDABLE (lived) / NOT MET (leg, no signature; bias positive).
+  Consequence hers; both s2 / s4 held.
 
 ## Flagged follow-ups (owner's word to start)
 

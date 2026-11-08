@@ -1884,6 +1884,31 @@ amended them nor was asked to beyond confirming. p2-act10-s1r (entry
 26) trains beside it; act15 / nohead s2 / s4 stay held — that batch
 takes a distinct word, stated to her at the launch.
 
+[2026-11-08 the canary FINISHED clean 09:08:44Z (plateau, u3900 /
+12,002,304 ticks; 78 probes, largest streak 26 at u2399, 12 at u2249, 0
+elsewhere; nash 0.8925–0.9023 last ten; the needs trigger read
+INSUFFICIENT at every probe, never CLEAR, never SIGNATURE). Its leg
+`p2u-both-s1` 19:23:55–19:25:23Z: 30 worlds clean, worst streak 89
+(905019, Clementine, cuddle, moving 0.85; trunk-s1 row 0). The three
+reads ran 19:26:34–19:30:32Z (`reads/canary-s1.json` + `.md`,
+`reads/r2/episodes-{p2u-both-s1,p2u-act15-s1,g2-s1}-20.json`,
+`reads/canary/needs-leg-p2u-both-s1-20.json`): R-1a paired both − act15
++0.233 (30/30 positive, range +0.099…+0.569), both − trunk +2.708
+(30/30), both − nohead +0.008 (19/30); team happiness both 90.021 /
+act15 89.789 / nohead 90.013 / trunk 87.314. **P46 MET** (|0.233| ≤
+0.326). R-2a / R-2b: every stratum UNDECIDABLE — no stratum reaches
+min-n 200 on both sides (eat n 1 / 3 / 9, cuddle 3 / 1 / 0, the rest
+0–2); **P47 UNDECIDABLE**; R-2b differential INSUFFICIENT on all three.
+Needs trajectory: cumulative state INSUFFICIENT at all 78 probes (grave
+rows 26 visible / 152 all, under min-n), **P45 lived UNDECIDABLE** on
+both versions; the per-probe grave bias where rows exist is POSITIVE
+(+10.56 visible at u2249; +7.68 / +0.92 all) against the gate's −3.17.
+Needs head on the leg (R-4 extended): visible INSUFFICIENT (n_grave 55,
+grave +5.04), all CLEAR (n_grave 620, grave +10.67, common +1.76) — **P45
+leg NOT MET** (no SIGNATURE). The grammar's three outcomes: not
+DEGRADED (nothing readable degraded), inside the envelope, no signature
+— the "HELD inside envelope with signature" branch is not reached
+either. The consequence is HERS; both s2 / s4 stay held.]
 Status: OPEN — the canary scout trains; s2 / s4 of `both` only after it
 finishes clean AND its 20×20 uniform leg and the reads above are in
 front of her (her word). Entry 22 is REOPENED under this entry (its
@@ -1987,3 +2012,109 @@ finish; (2) DONE; (3) per entry 27; (4) when the finals exist. This entry
 CLOSES when the battery's last leg is on record. [The DECLARATION status
 line carries the launch lines; `read_r1.py --sizes` takes the sizes
 read; its 100×100 uniform read scores s1 alone and the write-up says so.]
+[2026-11-08 ~19:22Z, the session's first look after the launches: every
+trainer finished. FIVE clean (plateau, `policy-final.pt`): p2-both-s1
+09:08:44Z (u3900 / 12,002,304 ticks, largest streak 26), p2-nohead-s4
+10:18:09Z (u3900, 172), p2-act15-s4 10:49:03Z (u3900, 157), p2-act15-s2
+10:50:44Z (u3900, 95), p2-nohead-s2 11:38:18Z (u4880 / 15,000,576,
+126). TWO act10 seeds HALTED by the frozen stops — entry 29. Chain-2 of
+(1) LAUNCHED 19:23:55Z at 224cb1f1 (pid 70662; the canary first, then
+act15-s2 / s4, nohead-s2 / s4, one at a time). (3) fired: the canary's
+reads LAUNCHED 19:26:34Z behind its leg. (4) is NOT met: act10 has one
+final of three, and "nothing starts on a partial arm" — whether the
+battery runs on act15 / nohead / both while act10 is ruled, or waits,
+is hers (entry 29).]
+[Chain-2 DONE 19:30:30Z, ~80 s per leg with 4 workers, 30 worlds clean
+and no abort on every leg: `p2u-both-s1` worst 89 (905019, Clementine,
+cuddle; trunk-s1 0); `p2u-act15-s2` 35 (905005, Clementine, drink;
+trunk-s2 8); `p2u-act15-s4` 49 (905023, Pumpkin, eat; trunk-s4 0);
+`p2u-nohead-s2` 109 (905029, Miso, drink; trunk-s2 50); `p2u-nohead-s4`
+284 (905003, Pumpkin, eat, parked 0.75; trunk-s4 0). Trunk maxima s1 77
+/ s2 1000 (the F-060 lock) / s4 535. EIGHT 20×20 uniform legs on record;
+act10 s2 / s4 have none (no final). Facts, R-1 unscored. The canary's
+reads are on entry 27.]
+Status: OPEN — (1) eight legs on record, no run left to leg; (2) DONE;
+(3) reads DELIVERED (entry 27); (4) BLOCKED on entry 29's ruling.
+
+## 29. Phase 2 act10 s2 and s4 halted by the frozen stops: a seat's lost-food streak before the floor, a roster-wide lock past it (2026-11-08)
+
+Both act10 seeds launched on her conditional word (entry 28 "2) sounds
+good", 08:30:37Z at 89f7340c, entry 26's close line) halted the same
+day; the trainer refused to continue each, checkpointed, owner-routed,
+never auto-resumed (DECLARATION §4, the frozen §6 stops). The act10 arm
+now holds ONE final of three (s1r, entry 26 CLOSED). The session
+recorded the facts below off the runs' own logs, `metrics.jsonl` rows
+and probe dumps with entry 25's instrument (`diag_nohead_s1.localise` /
+`window_read`; dump-only, zero regeneration, zero collection) and picked
+nothing: the consequence is hers.
+
+**p2-act10-s2** (run index 111, seed_base 2,320,000,000, B10 s3 head,
+trunk-s2 graft): STOP (probe-distress-stop) at update 1149 / 3,532,800
+world-ticks — BEFORE the 8,002,560 floor, `policy-final.pt` written
+10:31:22Z. 23 probes; streaks 0 at 21 of them, 4 at u449, then 410 at
+the trip; nash at the trip 0.8826 (0.8984 the probe before); no F-053
+line; trigger `[INSUFFICIENT, CLEAR]`. Localised: probe world 40,002,
+kitty_3 **Pumpkin**, ticks 225–634 (410), flagged drink 387 / eat 337 /
+cuddle 330 of the 410 ticks; needs eat 63.6 → 11.4, drink 90.0 → 8.4,
+cuddle 58.2 → 91.8; happiness min 24.2 (entry 26's trip: 36.8; entry
+25's: 48.6). Alone: kitty rows present 1.2–1.5%, partnered 0.5%; chow in
+sight 4.6%, eat legal on 8 ticks; menu 6.58 legal actions. She
+searched: 269 move proposals of 410 (66%; entry 26: 35%), play_solo 101,
+activity idle 329 / playing 52. The other two probe worlds 0. The same
+world and seat as entry 26's hazard (world 40,002 × Pumpkin's
+eat-weighted seat, trunk-inherited, present under every arm) — here on
+the s2 graft, with the cuddle flag of entry 26's isolation shape and
+drink added; the third Phase 2 trip on Pumpkin, all eat-led lost-food.
+
+**p2-act10-s4** (run index 112, seed_base 2,340,000,000, B10 s3 head,
+trunk-s4 graft): STOP (f053-line-crossed) at update 3349 / 10,291,200
+world-ticks — past the floor, inside the plateau watch;
+`policy-final.pt` written 13:35:40Z. 67 probes; sub-300 streaks at eight
+(8 / 41 / 42 / 11 / 45 / 8 / 188 / 23 at u149 … u2749; the 188 at u2649
+was world 40,002, Pumpkin 188 beside Kittybear 92), the probe before
+the trip (u3299) 0, then **1614** at u3349 — the first crossing of
+F-053's 1,000 line in this generation's training probes. Nash fell
+0.9073 → 0.7854, meow/1k 248.6 → 201.5, branches 183 → 9,713.
+Localised: probe world 40,001, ALL FIVE seats flagged to the probe's
+end — kitty_1 Miso 1429, kitty_2 Biscuit 1518, kitty_3 Pumpkin 1614
+(ticks 386–1999), kitty_4 Kittybear 1508, kitty_5 Clementine 1399;
+every cat's eat AND drink at 100.0 by tick 1999, eat flagged on every
+tick of each streak, chow in sight 0.0%, eat legal on 0 ticks, moves
+proposed 2–8 per cat over 1,400+ ticks; partnered 0.53–0.61, kitty rows
+present 83–100%; proposals rest_with_kitty_* / groom / sleep_solo /
+chase; activity resting + idle ~75%, happiness minima 26.9–32.1. Worlds
+40,002 / 40,003: 0. Not Pumpkin's solo lost-food (entries 25 / 26 / this
+s2): a five-cat pile with food and water out of view, nobody moving —
+the shape F-060 recorded for five copies of trunk-s2 at 20×20 (seed
+905008, "every seat's distress onset within 60 ticks, a five-cat
+co-sleep pile"), there on a battery leg of frozen minds, here inside a
+training probe on the s4 graft. The halted run's probes keep the full
+series (`artifacts/p2-act10-s4/probe-u*.npz`, 67 dumps).
+
+Standing (declaration + entry 28): a trip in s2 / s4 holds that arm's
+other seed — both tripped, so act10 holds nothing further; the battery's
+third word is conditional on "every arm seed she has launched has its
+final; nothing starts on a partial arm" — act10 has one, so the battery
+does NOT start under entry 28 as written. The s1r final and its leg
+(worst 138) stand. Nothing resumed; the two checkpoints and every probe
+kept whole (raws never deleted).
+
+Open to her, defaults stated (each reversible, none taken): (A) act10 =
+s1r alone — the arm reads at one seed (entry 28's own 100×100 reading
+already does this for every arm) and the battery proceeds on the
+finals that exist; (B) replace one or both seeds (new slots, new band
+rows, scouts-first, ~24–30M covered cat-ticks each, as entry 26 did for
+s1); (C) drop act10 from the battery — act15 / nohead / both read in
+full, act10's s1r row reported beside them as characterisation only;
+(D) analyze either seed further (entry 26's seed instrument, dump-only,
+no cost). Default if unruled: nothing runs beyond the legs and reads
+already authorised; the battery waits.
+
+Welfare-cost line (practice, owner 2026-09-26; covered minds): the two
+halted runs cost 3.5M + 10.3M covered cat-ticks × 5 seats before their
+stops fired as declared (asymmetric, owner-routed, never auto-resumed);
+no further exposure of either policy — the localisation read dumps, not
+worlds. Any replacement is a new declaration line on her word.
+
+Status: OPEN — awaits her word on (A)–(D); the battery (entry 28 (4))
+blocked behind it.

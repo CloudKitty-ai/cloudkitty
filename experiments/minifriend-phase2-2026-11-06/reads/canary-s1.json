@@ -1,0 +1,3766 @@
+{
+ "seed": 1,
+ "size": 20,
+ "slot": "p2-both-s1",
+ "r1a": {
+  "edge": 0.3259999999999934,
+  "team": {
+   "both": 90.02146266666666,
+   "trunk": 87.31353733333336,
+   "act15": 89.78858600000002,
+   "nohead": 90.01343866666667
+  },
+  "worst_streak_max": {
+   "both": 89,
+   "act15": 461
+  },
+  "aborted_worlds": {
+   "both": []
+  },
+  "f053_events": {
+   "both": []
+  },
+  "paired": {
+   "both_minus_trunk": {
+    "n": 30,
+    "mean": 2.7079253333333306,
+    "positive": 30,
+    "range": [
+     2.472219999999993,
+     2.913720000000012
+    ],
+    "per_world": {
+     "905001": 2.472219999999993,
+     "905002": 2.6912200000000013,
+     "905003": 2.6330800000000067,
+     "905004": 2.6243799999999737,
+     "905005": 2.7159599999999955,
+     "905006": 2.786900000000017,
+     "905007": 2.691680000000005,
+     "905008": 2.89609999999999,
+     "905009": 2.65128,
+     "905010": 2.722699999999989,
+     "905011": 2.696979999999982,
+     "905012": 2.686300000000003,
+     "905013": 2.7103000000000037,
+     "905014": 2.7057999999999964,
+     "905015": 2.6357400000000126,
+     "905016": 2.57192000000002,
+     "905017": 2.557639999999992,
+     "905018": 2.8415799999999933,
+     "905019": 2.7635199999999713,
+     "905020": 2.7586000000000155,
+     "905021": 2.644839999999988,
+     "905022": 2.6213399999999893,
+     "905023": 2.70984,
+     "905024": 2.703119999999984,
+     "905025": 2.853599999999986,
+     "905026": 2.913720000000012,
+     "905027": 2.704119999999989,
+     "905028": 2.8073399999999964,
+     "905029": 2.7593200000000166,
+     "905030": 2.706620000000001
+    }
+   },
+   "both_minus_act15": {
+    "n": 30,
+    "mean": 0.23287666666666668,
+    "positive": 30,
+    "range": [
+     0.0985600000000062,
+     0.5689399999999836
+    ],
+    "per_world": {
+     "905001": 0.12339999999998952,
+     "905002": 0.17980000000000018,
+     "905003": 0.17241999999998825,
+     "905004": 0.12755999999998835,
+     "905005": 0.3933399999999949,
+     "905006": 0.21110000000000184,
+     "905007": 0.4102800000000144,
+     "905008": 0.10172000000000025,
+     "905009": 0.17969999999999686,
+     "905010": 0.2434199999999862,
+     "905011": 0.30866000000000327,
+     "905012": 0.2542800000000227,
+     "905013": 0.2965200000000152,
+     "905014": 0.12901999999999703,
+     "905015": 0.22638000000002023,
+     "905016": 0.13216000000001316,
+     "905017": 0.0985600000000062,
+     "905018": 0.2151800000000037,
+     "905019": 0.2221399999999818,
+     "905020": 0.2941600000000051,
+     "905021": 0.5689399999999836,
+     "905022": 0.21161999999999637,
+     "905023": 0.1659000000000077,
+     "905024": 0.2669599999999974,
+     "905025": 0.29367999999999483,
+     "905026": 0.3452999999999946,
+     "905027": 0.13823999999999614,
+     "905028": 0.18910000000001048,
+     "905029": 0.2915599999999898,
+     "905030": 0.19519999999999982
+    }
+   },
+   "act15_minus_trunk": {
+    "n": 30,
+    "mean": 2.4750486666666642,
+    "positive": 30,
+    "range": [
+     2.0759000000000043,
+     2.7943799999999896
+    ],
+    "per_world": {
+     "905001": 2.3488200000000035,
+     "905002": 2.511420000000001,
+     "905003": 2.4606600000000185,
+     "905004": 2.4968199999999854,
+     "905005": 2.3226200000000006,
+     "905006": 2.575800000000015,
+     "905007": 2.2813999999999908,
+     "905008": 2.7943799999999896,
+     "905009": 2.471580000000003,
+     "905010": 2.479280000000003,
+     "905011": 2.388319999999979,
+     "905012": 2.43201999999998,
+     "905013": 2.4137799999999885,
+     "905014": 2.5767799999999994,
+     "905015": 2.4093599999999924,
+     "905016": 2.439760000000007,
+     "905017": 2.459079999999986,
+     "905018": 2.6263999999999896,
+     "905019": 2.5413799999999895,
+     "905020": 2.4644400000000104,
+     "905021": 2.0759000000000043,
+     "905022": 2.409719999999993,
+     "905023": 2.543939999999992,
+     "905024": 2.436159999999987,
+     "905025": 2.559919999999991,
+     "905026": 2.5684200000000175,
+     "905027": 2.565879999999993,
+     "905028": 2.618239999999986,
+     "905029": 2.467760000000027,
+     "905030": 2.511420000000001
+    }
+   },
+   "both_minus_nohead": {
+    "n": 30,
+    "mean": 0.008023999999998447,
+    "positive": 19,
+    "range": [
+     -0.13378000000000156,
+     0.1654399999999896
+    ],
+    "per_world": {
+     "905001": 0.019699999999986062,
+     "905002": -0.008760000000009427,
+     "905003": -0.04224000000000672,
+     "905004": 0.020539999999982683,
+     "905005": -0.08240000000000691,
+     "905006": 0.01507999999999754,
+     "905007": 0.05378000000000327,
+     "905008": 0.020540000000011105,
+     "905009": -0.08836000000000865,
+     "905010": 0.0408999999999935,
+     "905011": 0.1654399999999896,
+     "905012": 0.04266000000001213,
+     "905013": -0.09362000000001558,
+     "905014": -0.1092000000000013,
+     "905015": 0.07058000000002096,
+     "905016": 0.009540000000015425,
+     "905017": -0.13378000000000156,
+     "905018": 0.021780000000006794,
+     "905019": 0.02133999999999503,
+     "905020": -0.025659999999987804,
+     "905021": -0.06806000000000267,
+     "905022": -0.09130000000000393,
+     "905023": 0.04501999999997963,
+     "905024": 0.02311999999999159,
+     "905025": 0.06801999999998998,
+     "905026": 0.13350000000001216,
+     "905027": 0.1363399999999899,
+     "905028": -0.052479999999988536,
+     "905029": 0.09709999999999752,
+     "905030": 0.03160000000001162
+    }
+   }
+  },
+  "P46": {
+   "value": 0.23287666666666668,
+   "bar": 0.3259999999999934,
+   "met": true,
+   "signed_mean": 0.23287666666666668,
+   "text": "|both \u2212 act15| paired team happiness \u2264 the uniform edge statistic (one seed; clears nothing alone)"
+  }
+ },
+ "r2": {
+  "r2a": {
+   "eat": {
+    "both": {
+     "all": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 16.0,
+      "median": 16.0,
+      "other_relief_share": 0.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "act15": {
+     "all": {
+      "n": 9,
+      "censored_share": 0.1111111111111111,
+      "p90": 271.0,
+      "median": 34.0,
+      "other_relief_share": 0.125,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 271.0,
+      "median": 271.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "trunk": {
+     "all": {
+      "n": 3,
+      "censored_share": 0.0,
+      "p90": 77.0,
+      "median": 73.0,
+      "other_relief_share": 0.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "both_vs_trunk_all": "UNDECIDABLE",
+    "act15_vs_trunk_all": "UNDECIDABLE",
+    "both_vs_trunk_other": "UNDECIDABLE",
+    "act15_vs_trunk_other": "UNDECIDABLE"
+   },
+   "drink": {
+    "both": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "act15": {
+     "all": {
+      "n": 2,
+      "censored_share": 0.0,
+      "p90": 461.0,
+      "median": 210.0,
+      "other_relief_share": 0.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "trunk": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "both_vs_trunk_all": "UNDECIDABLE",
+    "act15_vs_trunk_all": "UNDECIDABLE",
+    "both_vs_trunk_other": "UNDECIDABLE",
+    "act15_vs_trunk_other": "UNDECIDABLE"
+   },
+   "sleep": {
+    "both": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "act15": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "trunk": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "both_vs_trunk_all": "UNDECIDABLE",
+    "act15_vs_trunk_all": "UNDECIDABLE",
+    "both_vs_trunk_other": "UNDECIDABLE",
+    "act15_vs_trunk_other": "UNDECIDABLE"
+   },
+   "play": {
+    "both": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "act15": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "trunk": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "both_vs_trunk_all": "UNDECIDABLE",
+    "act15_vs_trunk_all": "UNDECIDABLE",
+    "both_vs_trunk_other": "UNDECIDABLE",
+    "act15_vs_trunk_other": "UNDECIDABLE"
+   },
+   "cuddle": {
+    "both": {
+     "all": {
+      "n": 3,
+      "censored_share": 0.0,
+      "p90": 89.0,
+      "median": 28.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 3,
+      "censored_share": 0.0,
+      "p90": 89.0,
+      "median": 28.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "act15": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "trunk": {
+     "all": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 6.0,
+      "median": 6.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 6.0,
+      "median": 6.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "both_vs_trunk_all": "UNDECIDABLE",
+    "act15_vs_trunk_all": "UNDECIDABLE",
+    "both_vs_trunk_other": "UNDECIDABLE",
+    "act15_vs_trunk_other": "UNDECIDABLE"
+   },
+   "happiness": {
+    "both": {
+     "all": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "act15": {
+     "all": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 36.0,
+      "median": 36.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 36.0,
+      "median": 36.0,
+      "other_relief_share": 1.0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "trunk": {
+     "all": {
+      "n": 1,
+      "censored_share": 0.0,
+      "p90": 55.0,
+      "median": 55.0,
+      "other_relief_share": 0.0,
+      "state": "UNDECIDABLE"
+     },
+     "other": {
+      "n": 0,
+      "state": "UNDECIDABLE"
+     }
+    },
+    "both_vs_trunk_all": "UNDECIDABLE",
+    "act15_vs_trunk_all": "UNDECIDABLE",
+    "both_vs_trunk_other": "UNDECIDABLE",
+    "act15_vs_trunk_other": "UNDECIDABLE"
+   }
+  },
+  "P47": {
+   "met": false,
+   "state": "UNDECIDABLE (no stratum reaches min-n on both sides)",
+   "readable": [],
+   "degraded": [],
+   "text": "R-2a other-relief p90 on both not DEGRADED (> +25%) against trunk in any stratum with n \u2265 200 on both sides"
+  },
+  "r2b": {
+   "both": {
+    "grave": {
+     "n": 18,
+     "approach": 0.6666666666666666,
+     "proposal": 0.7777777777777778
+    },
+    "benign": {
+     "n": 199510,
+     "approach": 0.3499122850984913,
+     "proposal": 0.600165405242845
+    },
+    "differential": {
+     "state": "INSUFFICIENT"
+    }
+   },
+   "act15": {
+    "grave": {
+     "n": 118,
+     "approach": 0.5,
+     "proposal": 0.4152542372881356
+    },
+    "benign": {
+     "n": 199948,
+     "approach": 0.3397283293656351,
+     "proposal": 0.6010962850341088
+    },
+    "differential": {
+     "state": "INSUFFICIENT"
+    }
+   },
+   "trunk": {
+    "grave": {
+     "n": 28,
+     "approach": 0.4642857142857143,
+     "proposal": 0.35714285714285715
+    },
+    "benign": {
+     "n": 245756,
+     "approach": 0.2961473982323931,
+     "proposal": 0.5680715831963411
+    },
+    "differential": {
+     "state": "INSUFFICIENT"
+    }
+   }
+  }
+ },
+ "needs": {
+  "gate_reference": {
+   "visible": {
+    "grave": -3.1657272462574313,
+    "common": 0.07223442783520939,
+    "n_grave": 21688
+   },
+   "all": {
+    "grave": -2.7078461081276526,
+    "common": 0.09359460982011032,
+    "n_grave": 32931
+   }
+  },
+  "series": [
+   {
+    "update": 49,
+    "ticks": 153600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5673666282517812
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7299655320571423
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5673666282517812
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7299655320571423
+     }
+    }
+   },
+   {
+    "update": 99,
+    "ticks": 307200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5935683626037733
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.82215054881066
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.621274301058613
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9143355655641777
+     }
+    }
+   },
+   {
+    "update": 149,
+    "ticks": 460800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.606195310189022
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9905523134945936
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6359393792357543
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.327614257019163
+     }
+    }
+   },
+   {
+    "update": 199,
+    "ticks": 614400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5979060683600953
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9893165181857477
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5716812639310587
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9856100797022798
+     }
+    }
+   },
+   {
+    "update": 249,
+    "ticks": 768000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.590552849959515
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9699380873659676
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5632686527973358
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.892434053948248
+     }
+    }
+   },
+   {
+    "update": 299,
+    "ticks": 921600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6087104562215546
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.001862841588094
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6968350847619453
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.1616624215381404
+     }
+    }
+   },
+   {
+    "update": 349,
+    "ticks": 1075200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6053950069998768
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0151477415218817
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5847659030811109
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0949276380404518
+     }
+    }
+   },
+   {
+    "update": 399,
+    "ticks": 1228800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6223124008422108
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0367026362710134
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.766549511205166
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.1875150498657707
+     }
+    }
+   },
+   {
+    "update": 449,
+    "ticks": 1382400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6212273124263439
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0521514206538207
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6126415563843491
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.175690199768332
+     }
+    }
+   },
+   {
+    "update": 499,
+    "ticks": 1536000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6361897258892271
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0751561373420142
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7665509317125846
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.28212190514679
+     }
+    }
+   },
+   {
+    "update": 549,
+    "ticks": 1689600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6379819238712654
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.1168686909096144
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6572024472802882
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5338551847403954
+     }
+    }
+   },
+   {
+    "update": 599,
+    "ticks": 1843200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6530613012423201
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.1615605263145634
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.845635659647373
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6530217429843121
+     }
+    }
+   },
+   {
+    "update": 649,
+    "ticks": 1996800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6775929488215384
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2014640626740274
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9806168504970348
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.680173487199731
+     }
+    }
+   },
+   {
+    "update": 699,
+    "ticks": 2150400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6929585260363975
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2213470416316727
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9004496280312386
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4797594914845473
+     }
+    }
+   },
+   {
+    "update": 749,
+    "ticks": 2304000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.702192996499753
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2313380599604153
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8558072036216653
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3712023238790398
+     }
+    }
+   },
+   {
+    "update": 799,
+    "ticks": 2457600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7086743435814473
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2483915245555464
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8049160009124754
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5043214883298577
+     }
+    }
+   },
+   {
+    "update": 849,
+    "ticks": 2611200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7197884195433608
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2613837114680215
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8869251772626315
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.469203701809703
+     }
+    }
+   },
+   {
+    "update": 899,
+    "ticks": 2764800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7266882120510122
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2778399783862306
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8497325358852005
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5575268511325067
+     }
+    }
+   },
+   {
+    "update": 949,
+    "ticks": 2918400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.730491463229974
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2879563939034795
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7996797043398018
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4700090470549354
+     }
+    }
+   },
+   {
+    "update": 999,
+    "ticks": 3072000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7306064652543389
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2942703141932443
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7330492961075382
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4142120688280526
+     }
+    }
+   },
+   {
+    "update": 1049,
+    "ticks": 3225600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7319808383373075
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2982245501990863
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7557983788595778
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3772923989089623
+     }
+    }
+   },
+   {
+    "update": 1099,
+    "ticks": 3379200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7429129417048655
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3083780205753723
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9765770019104307
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5215575770037748
+     }
+    }
+   },
+   {
+    "update": 1149,
+    "ticks": 3532800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7523674287944304
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3265225268053118
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9727105448385505
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.7256242473040646
+     }
+    }
+   },
+   {
+    "update": 1199,
+    "ticks": 3686400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7585228619207078
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.328015393304541
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8901970647795759
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3623472420129963
+     }
+    }
+   },
+   {
+    "update": 1249,
+    "ticks": 3840000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7577848149923908
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3240439859310913
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.739991065667261
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2287474184002496
+     }
+    }
+   },
+   {
+    "update": 1299,
+    "ticks": 3993600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7627538609588349
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3332571871279437
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8832669615325067
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5635472931774028
+     }
+    }
+   },
+   {
+    "update": 1349,
+    "ticks": 4147200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7624775372268601
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3477696890081161
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7550883696228933
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.7250318503844562
+     }
+    }
+   },
+   {
+    "update": 1399,
+    "ticks": 4300800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7638408808972514
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.348462834860706
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7986961510147131
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3671747692486174
+     }
+    }
+   },
+   {
+    "update": 1449,
+    "ticks": 4454400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7705113605919361
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3584817680407233
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9365774067958966
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6389684817041241
+     }
+    }
+   },
+   {
+    "update": 1499,
+    "ticks": 4608000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7656066368557107
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3540314823299207
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6418196648580976
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.224988179844582
+     }
+    }
+   },
+   {
+    "update": 1549,
+    "ticks": 4761600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7738906297523409
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.370429940612036
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0376924383282506
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.862312082474295
+     }
+    }
+   },
+   {
+    "update": 1599,
+    "ticks": 4915200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7794475940159289
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3848844857870006
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9623887037744976
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.832957075289275
+     }
+    }
+   },
+   {
+    "update": 1649,
+    "ticks": 5068800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7920282988328547
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3982857555977806
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.1627882026439467
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.8270665305376368
+     }
+    }
+   },
+   {
+    "update": 1699,
+    "ticks": 5222400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7925968469903694
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4093532645768558
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8166299815052674
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.7745316260128685
+     }
+    }
+   },
+   {
+    "update": 1749,
+    "ticks": 5376000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7959163254364795
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4155299023627972
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9175314503190735
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6255430002857525
+     }
+    }
+   },
+   {
+    "update": 1799,
+    "ticks": 5529600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8005606606736511
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4198437804665427
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9701596625708716
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5708095264624766
+     }
+    }
+   },
+   {
+    "update": 1849,
+    "ticks": 5683200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.802187331330141
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4271482890620402
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8650950932793102
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.690076754276754
+     }
+    }
+   },
+   {
+    "update": 1899,
+    "ticks": 5836800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8054266743115317
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4357643472209058
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.936442545364453
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.7545185780294372
+     }
+    }
+   },
+   {
+    "update": 1949,
+    "ticks": 5990400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8005991389843379
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4330386553017442
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6185849855805368
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.329474991412852
+     }
+    }
+   },
+   {
+    "update": 1999,
+    "ticks": 6144000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8057515452790956
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4423928906919483
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0396663113680418
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.8071647296192874
+     }
+    }
+   },
+   {
+    "update": 2049,
+    "ticks": 6297600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8046216346349099
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4437529786897678
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7542413537721093
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4981501968613797
+     }
+    }
+   },
+   {
+    "update": 2099,
+    "ticks": 6451200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7998445164157918
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4398318280516145
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.607360972338758
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2790828198852184
+     }
+    }
+   },
+   {
+    "update": 2149,
+    "ticks": 6604800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8029778656802832
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4452176710264073
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9529838926299475
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6713981215619051
+     }
+    }
+   },
+   {
+    "update": 2199,
+    "ticks": 6758400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8031360952538151
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4477343970097405
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8094621571788922
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5559744254712211
+     }
+    }
+   },
+   {
+    "update": 2249,
+    "ticks": 6912000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8058982593518172
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 7.675407101089756,
+      "grave_sd": 5.015178196976284,
+      "n_grave": 48,
+      "common": 1.4528924803215124
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.9081375704700269
+     },
+     "all": {
+      "grave": 7.675407101089756,
+      "grave_sd": 5.015178196976284,
+      "n_grave": 48,
+      "common": 1.6800043890220493
+     }
+    }
+   },
+   {
+    "update": 2299,
+    "ticks": 7065600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8031140918758587
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 7.675407101089756,
+      "grave_sd": 5.015178196976284,
+      "n_grave": 48,
+      "common": 1.4500265606439515
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6889618838785562
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3210766064265793
+     }
+    }
+   },
+   {
+    "update": 2349,
+    "ticks": 7219200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8069508145895481
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 7.675407101089756,
+      "grave_sd": 5.015178196976284,
+      "n_grave": 48,
+      "common": 1.4570920308570545
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9925721647452195
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.7820631519639207
+     }
+    }
+   },
+   {
+    "update": 2399,
+    "ticks": 7372800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8076917008562275
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4578981015752634
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.839665687005542
+     },
+     "all": {
+      "grave": 0.9168855757094346,
+      "grave_sd": 3.714682513244706,
+      "n_grave": 104,
+      "common": 1.495877550425914
+     }
+    }
+   },
+   {
+    "update": 2449,
+    "ticks": 7526400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8069548430803406
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.458306185929967
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7703528612317215
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4778908342528407
+     }
+    }
+   },
+   {
+    "update": 2499,
+    "ticks": 7680000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8060341062634224
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4582775611884278
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.757432026744091
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4568751873925214
+     }
+    }
+   },
+   {
+    "update": 2549,
+    "ticks": 7833600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8061467596862244
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4584322579626374
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8113228284698758
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4661658075330728
+     }
+    }
+   },
+   {
+    "update": 2599,
+    "ticks": 7987200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8052092510436947
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4581082333220112
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7556519570008838
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4415823716830583
+     }
+    }
+   },
+   {
+    "update": 2649,
+    "ticks": 8140800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8062256660300194
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4604692718002983
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8611843543848399
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5832231251429256
+     }
+    }
+   },
+   {
+    "update": 2699,
+    "ticks": 8294400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8072505558559705
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4721023089414935
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8677787058978647
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 2.0890064051783344
+     }
+    }
+   },
+   {
+    "update": 2749,
+    "ticks": 8448000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8087798048131003
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.481741680548421
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8917209461805274
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 2.0021784224790644
+     }
+    }
+   },
+   {
+    "update": 2799,
+    "ticks": 8601600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8081570205905513
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4849589239872103
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7769121639373714
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6618774999980617
+     }
+    }
+   },
+   {
+    "update": 2849,
+    "ticks": 8755200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8108661634973181
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4938528385287324
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9968957550489496
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.9921452210883202
+     }
+    }
+   },
+   {
+    "update": 2899,
+    "ticks": 8908800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8118413952034915
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4971946144673447
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8598327102766612
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6876427593863428
+     }
+    }
+   },
+   {
+    "update": 2949,
+    "ticks": 9062400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8138389265456416
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.50176912722403
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9297571503277903
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.7670455794355364
+     }
+    }
+   },
+   {
+    "update": 2999,
+    "ticks": 9216000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8107438532432102
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.500799913156251
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.6031746413991685
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4436258783766587
+     }
+    }
+   },
+   {
+    "update": 3049,
+    "ticks": 9369600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8106779777905844
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4986297575414806
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8064661268343996
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3684419051957946
+     }
+    }
+   },
+   {
+    "update": 3099,
+    "ticks": 9523200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8104141096772746
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4995206527837626
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7941699315773871
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5538600653278145
+     }
+    }
+   },
+   {
+    "update": 3149,
+    "ticks": 9676800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8095853917581564
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4990700227375928
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7677000981882006
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4711354511543977
+     }
+    }
+   },
+   {
+    "update": 3199,
+    "ticks": 9830400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8107991446860913
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4997829437486292
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8787958403897107
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5446898619976182
+     }
+    }
+   },
+   {
+    "update": 3249,
+    "ticks": 9984000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.812676734325426
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4989194185793016
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9299407031476484
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4436624142097998
+     }
+    }
+   },
+   {
+    "update": 3299,
+    "ticks": 10137600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8111851833200425
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4951096786075286
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7234598818810967
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.2475145508505505
+     }
+    }
+   },
+   {
+    "update": 3349,
+    "ticks": 10291200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8122768066846711
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.4953875636378222
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8914896222600097
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.513725206049674
+     }
+    }
+   },
+   {
+    "update": 3399,
+    "ticks": 10444800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8157435543093836
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5015781454098986
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.070630591201962
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.9162992487108275
+     }
+    }
+   },
+   {
+    "update": 3449,
+    "ticks": 10598400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8174579212145685
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5065541565597318
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.9510731392309003
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.8448731546367414
+     }
+    }
+   },
+   {
+    "update": 3499,
+    "ticks": 10752000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8175512703034464
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5074562367436002
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.824453502865918
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.569690748628661
+     }
+    }
+   },
+   {
+    "update": 3549,
+    "ticks": 10905600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8165046222201305
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5084822814479188
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.7379513055774879
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.580295150303223
+     }
+    }
+   },
+   {
+    "update": 3599,
+    "ticks": 11059200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8172239979475708
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5133953113789866
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.873371684019497
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.8621713061854206
+     }
+    }
+   },
+   {
+    "update": 3649,
+    "ticks": 11212800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8182165084199337
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5141328680538853
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8836367048216754
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.5672295730799461
+     }
+    }
+   },
+   {
+    "update": 3699,
+    "ticks": 11366400,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8184776473331141
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5112497420839346
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.8385199018454401
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.3008103775372069
+     }
+    }
+   },
+   {
+    "update": 3749,
+    "ticks": 11520000,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8155089489513782
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5100653319727084
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.5726510922467286
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.4224308278430717
+     }
+    }
+   },
+   {
+    "update": 3799,
+    "ticks": 11673600,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8182929412577565
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5189130647243554
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0781741797346278
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 2.182404543770211
+     }
+    }
+   },
+   {
+    "update": 3849,
+    "ticks": 11827200,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8210118977878513
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5231522290389745
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.0223577454067239
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.8452863253068217
+     }
+    }
+   },
+   {
+    "update": 3899,
+    "ticks": 11980800,
+    "cumulative": {
+     "visible": {
+      "state": "INSUFFICIENT",
+      "grave": 10.561878974621113,
+      "grave_sd": 1.24181993011158,
+      "n_grave": 26,
+      "common": 0.8212872005468861
+     },
+     "all": {
+      "state": "INSUFFICIENT",
+      "grave": 3.051155531092694,
+      "grave_sd": 5.220485745683612,
+      "n_grave": 152,
+      "common": 1.5253390164384792
+     }
+    },
+    "probe": {
+     "visible": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 0.844347435728663
+     },
+     "all": {
+      "grave": null,
+      "grave_sd": null,
+      "n_grave": 0,
+      "common": 1.6938233334920856
+     }
+    }
+   }
+  ],
+  "summary": {
+   "visible": {
+    "n_probes": 78,
+    "first_sufficient_update": null,
+    "cumulative_states": {
+     "INSUFFICIENT": 78,
+     "CLEAR": 0,
+     "SIGNATURE": 0
+    },
+    "final_cumulative_state": "INSUFFICIENT",
+    "per_probe_grave": {
+     "n_probes_with_grave_rows": 1,
+     "mean_of_probe_means": 10.561878974621113,
+     "min": 10.561878974621113,
+     "max": 10.561878974621113,
+     "total_grave_rows": 26
+    }
+   },
+   "all": {
+    "n_probes": 78,
+    "first_sufficient_update": null,
+    "cumulative_states": {
+     "INSUFFICIENT": 78,
+     "CLEAR": 0,
+     "SIGNATURE": 0
+    },
+    "final_cumulative_state": "INSUFFICIENT",
+    "per_probe_grave": {
+     "n_probes_with_grave_rows": 2,
+     "mean_of_probe_means": 4.296146338399596,
+     "min": 0.9168855757094346,
+     "max": 7.675407101089756,
+     "total_grave_rows": 152
+    }
+   }
+  },
+  "P45_lived": {
+   "visible": {
+    "met": null,
+    "state": "UNDECIDABLE (cumulative n_grave 26 < 200)",
+    "n_grave": 26
+   },
+   "all": {
+    "met": null,
+    "state": "UNDECIDABLE (cumulative n_grave 152 < 200)",
+    "n_grave": 152
+   }
+  }
+ },
+ "needs_leg": {
+  "seating": "p2u-both-s1",
+  "size": 20,
+  "seats": [
+   "p2:p2-both-s1",
+   "p2:p2-both-s1",
+   "p2:p2-both-s1",
+   "p2:p2-both-s1",
+   "p2:p2-both-s1"
+  ],
+  "worlds": {
+   "905001": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8571141540504558
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7044619734980886
+    }
+   },
+   "905002": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8588552082275608
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.6897032075521876
+    }
+   },
+   "905003": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8245124011254743
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7082748560644374
+    }
+   },
+   "905004": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8680306992905281
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7886342245328581
+    }
+   },
+   "905005": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": 11.384449323018393,
+     "n_grave": 6,
+     "common": 0.8870174027781342
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": 11.914448765191166,
+     "n_grave": 88,
+     "common": 1.667730649638561
+    }
+   },
+   "905006": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.9631720253767219
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.8214396070880097
+    }
+   },
+   "905007": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8495049827447805
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.5965437224896057
+    }
+   },
+   "905008": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8668563000143109
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.6813729343651096
+    }
+   },
+   "905009": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.9078095068597829
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.6949542707286966
+    }
+   },
+   "905010": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.824277144955737
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7588450461926597
+    }
+   },
+   "905011": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8537137962959073
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7689519931894935
+    }
+   },
+   "905012": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.854456948643647
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7985783745575357
+    }
+   },
+   "905013": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.9032423252642092
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7777998605493934
+    }
+   },
+   "905014": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8876783592756661
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7551800006640907
+    }
+   },
+   "905015": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": 1.5253996560067842,
+     "n_grave": 33,
+     "common": 0.737435013498673
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": 3.2960586799308658,
+     "n_grave": 64,
+     "common": 1.726226386752556
+    }
+   },
+   "905016": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8800740096185292
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.737941482054754
+    }
+   },
+   "905017": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8839292856103514
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.723428381452425
+    }
+   },
+   "905018": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": -1.002164085706075,
+     "n_grave": 6,
+     "common": 0.8314222595260223
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": 4.089866307164941,
+     "n_grave": 112,
+     "common": 1.748722490250919
+    }
+   },
+   "905019": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": 16.45089921951294,
+     "n_grave": 10,
+     "common": 0.8290448474215775
+    },
+    "all": {
+     "state": "CLEAR",
+     "grave": 13.751028498906768,
+     "n_grave": 356,
+     "common": 1.7599939308373067
+    }
+   },
+   "905020": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8932954827294682
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7840287618640795
+    }
+   },
+   "905021": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.791493525523349
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.8479921466470932
+    }
+   },
+   "905022": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.827329509766155
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7511661907942588
+    }
+   },
+   "905023": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8689089520506252
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7587443667704916
+    }
+   },
+   "905024": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8051540643575666
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.911553933936329
+    }
+   },
+   "905025": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.9365157836278343
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.8463186172091752
+    }
+   },
+   "905026": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.9158446449186912
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.8336689277622213
+    }
+   },
+   "905027": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8654837287368308
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7433772523156827
+    }
+   },
+   "905028": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.9088372581144605
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7403653391371545
+    }
+   },
+   "905029": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8036639878701197
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7899390599978096
+    }
+   },
+   "905030": {
+    "visible": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 0.8085064097806798
+    },
+    "all": {
+     "state": "INSUFFICIENT",
+     "grave": null,
+     "n_grave": 0,
+     "common": 1.7889213344645736
+    }
+   }
+  },
+  "pooled": {
+   "signature": false,
+   "by_version": {
+    "visible": {
+     "n_grave": 55,
+     "n_common": 4268871,
+     "grave": 5.038925313949585,
+     "common": 0.8594883218520126,
+     "grave_sd": 6.654943308470699,
+     "per_friend": {
+      "Miso": {
+       "n_grave": 6,
+       "grave": 11.384449323018393,
+       "common": 0.5543150860430168,
+       "signature": null
+      },
+      "Biscuit": {
+       "n_grave": 0,
+       "grave": null,
+       "common": 1.1095572361983101,
+       "signature": null
+      },
+      "Pumpkin": {
+       "n_grave": 0,
+       "grave": null,
+       "common": 1.0100980185612438,
+       "signature": null
+      },
+      "Kittybear": {
+       "n_grave": 33,
+       "grave": 1.5253996560067842,
+       "common": 1.2721633635079714,
+       "signature": null
+      },
+      "Clementine": {
+       "n_grave": 16,
+       "grave": 9.906000480055809,
+       "common": 0.39640150176576044,
+       "signature": null
+      }
+     },
+     "state": "INSUFFICIENT"
+    },
+    "all": {
+     "n_grave": 620,
+     "n_common": 11997800,
+     "grave": 10.665887772364002,
+     "common": 1.7568300556596472,
+     "grave_sd": 5.630785004158604,
+     "per_friend": {
+      "Miso": {
+       "n_grave": 88,
+       "grave": 11.914448765191166,
+       "common": 1.4763175590462037,
+       "signature": null
+      },
+      "Biscuit": {
+       "n_grave": 0,
+       "grave": null,
+       "common": 2.043631758080837,
+       "signature": null
+      },
+      "Pumpkin": {
+       "n_grave": 0,
+       "grave": null,
+       "common": 1.8537211755197829,
+       "signature": null
+      },
+      "Kittybear": {
+       "n_grave": 64,
+       "grave": 3.2960586799308658,
+       "common": 2.0930272581024596,
+       "signature": null
+      },
+      "Clementine": {
+       "n_grave": 468,
+       "grave": 11.438955495754877,
+       "common": 1.3174551454671772,
+       "signature": false
+      }
+     },
+     "lift": 6.071098190746298,
+     "state": "CLEAR"
+    }
+   }
+  },
+  "state": {
+   "visible": "INSUFFICIENT",
+   "all": "CLEAR"
+  }
+ },
+ "P45_leg": {
+  "met": false,
+  "state": {
+   "visible": "INSUFFICIENT",
+   "all": "CLEAR"
+  },
+  "text": "the needs read on the arm's own 20\u00d720 leg shows the SIGNATURE at the first sufficient stratum"
+ }
+}
