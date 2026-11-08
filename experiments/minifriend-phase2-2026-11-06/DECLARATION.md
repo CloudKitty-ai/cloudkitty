@@ -145,7 +145,20 @@ P46 MET (both − act15 +0.233 ≤ 0.326, 30/30 positive; both − trunk
 (grave rows under min-n; the bias where present POSITIVE, against the
 gate's −3.17), P45 leg NOT MET (visible INSUFFICIENT, all CLEAR, no
 SIGNATURE). Consequence HERS. The battery (entry 28 (4)) is BLOCKED:
-act10 has one final of three — entry 29.**
+act10 has one final of three — entry 29.** **ENTRY 29 RULED 2026-11-08,
+her "let's start with D. We can decide between A and C based on that,
+leaning C": (D) run and DELIVERED 20:21Z (`diag_act10_s2s4.py`,
+dump-only, fence green on all eight runs, its red CONFIRMED;
+`reads/diag-act10-s2s4.md`): both trips are act10-specific at their
+update — the same trunk seed under act15 / nohead is unflagged on the
+same world at the same probe; s2 = the known 40,002 × Pumpkin seat
+taken past 300, s4 = a five-seat lock on 40,001 (onset spread 215
+ticks, ate and drank early, then sat; F-060's family). (B) OFF by her
+word; A vs C is her next word; the battery waits on it. Main's history
+REWRITTEN on her "Rewrite now": the 99 MB episode blobs dropped (commit
+77e417f5 + 77dae325 → one commit, tree identical); the force-push waits
+on the branch-protection flip (hers; the session's API call was
+refused by its permission layer).**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

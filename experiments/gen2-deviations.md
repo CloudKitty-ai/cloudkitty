@@ -2125,4 +2125,39 @@ on the same trunk seed and the parent trunk, written to
 `reads/diag-act10-s2s4.{json,md}` and put in front of her. (B) is OFF
 the table by her word; (A) vs (C) is her next word after the read,
 leaning (C). The battery stays blocked until that word. Nothing runs.
-Status: OPEN — (D) in progress; awaits her A / C word on its read.
+[(D) READ 2026-11-08T20:21Z, `reads/diag-act10-s2s4.md`; the fence held
+at every probe of all eight runs (23 / 78 / 97 / 52 and 67 / 78 / 78 /
+52); its red on record (`results-raw/reds/p2-reds-diag29-fence.log`:
+the per-world maximum turned into a minimum → `p2-act10-s2 u449: streak
+did not reproduce: [0, 0, 0] vs recorded [4, 0, 0]`, the predicted first
+assertion, CONFIRMED, baseline == restored). What the read says, facts:
+**s2** — Pumpkin on 40,002 at u1149 is the only streak ≥ 10 the run ever
+landed; on the SAME world at the SAME update the siblings carry no flag
+(act15-s2 hap min 74.1, nohead-s2 73.7, trunk-s2 unflagged) with Pumpkin
+eating 88 / 91 ticks and seeing chow 45–50% of the probe against the
+halted run's 36%; across their whole histories the siblings landed
+Pumpkin streaks of 95 / 13 (act15) and 88 / 68 / 33 / 13 (nohead) and
+the trunk 86 / 64 / 20 / 14 / 10 — the seat is hot on every arm of this
+trunk seed, only act10 took it past 300. Proposals diverge from the
+clean probe before (u1099) from tick 2–22 on every seat (1,836–1,912 of
+2,000 ticks differ): the policy moved between the two probes, the world
+did not. **s4** — on 40,001 at u3349 all five seats flag with onset
+spread 215 ticks (first flags 386 / 482 / 492 / 571 / 601 — not
+F-060's "within 60 ticks"); each cat ate 3–13 and drank 16–32 ticks
+EARLY in the probe, then stopped: moves 38–87 per cat (siblings
+228–454), chow in sight 3–10% (siblings 40–55%), partnered 0.44–0.54
+(siblings 0.19–0.33), happiness minima 26.9–32.1 against 75.6–82.8 on
+act15-s4 / nohead-s4 at the same update and world. The siblings never
+flagged on 40,001 at u3349; across their histories act15-s4 landed
+157 / 134 / 67 / 43 / 29 / 15, nohead-s4 172 / 82 / 19 / 17 / 14, the
+trunk 217 / 202 / 172 / 58 …; act10-s4's own 40,001 history before the
+trip was Pumpkin 8 / 41 at u149 / u349 and nothing since. Divergence
+from u3299 from tick 19–36 on every seat. The lock is new to the arm's
+own history and to its siblings at that update; it is the F-060 family
+(a whole roster sitting on itself with food out of view) with a slower
+onset. Reading, labelled as the thread's: both trips are act10-specific
+at their update — the same trunk seed under act15 and nohead is clean
+on the same world at the same moment; one is the known Pumpkin seat
+taken over the line, the other a roster lock no other arm has shown.
+Nothing scored, nothing selected.]
+Status: OPEN — (D) DELIVERED; awaits her A / C word (leaning C).

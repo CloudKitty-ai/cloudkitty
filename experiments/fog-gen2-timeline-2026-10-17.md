@@ -1066,6 +1066,17 @@ consent BC comparison ride the trunk.
   reads delivered 19:30Z: P46 MET (+0.233), P47 UNDECIDABLE, P45
   UNDECIDABLE (lived) / NOT MET (leg, no signature; bias positive).
   Consequence hers; both s2 / s4 held.
+  Her "Rewrite now": the 99 MB read_r2 episode blobs committed by
+  mistake dropped from main's history (two commits → one, tree
+  identical); force-push pending her protection flip. Her entry-29
+  word "let's start with D. We can decide between A and C based on
+  that, leaning C": diag_act10_s2s4.py (dump-only; fence green on all
+  eight runs, red CONFIRMED) delivered 20:21Z — both act10 trips are
+  act10-specific at their update (siblings on the same trunk seed
+  unflagged on the same world at the same probe); s2 = the 40,002 ×
+  Pumpkin seat past 300, s4 = a five-seat lock on 40,001 (onset spread
+  215 ticks; ate and drank early, then sat; F-060's family). (B) off;
+  A vs C her next word; battery waits.
 
 ## Flagged follow-ups (owner's word to start)
 
