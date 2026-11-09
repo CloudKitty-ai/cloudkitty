@@ -52,6 +52,7 @@ def divergence_rows(seating, size, seed, root=None):
             trunks[i] = trunk
     assert actors, f"{seating} seats no p2 arm"
     out = {"regime": [], "entropy": [], "differ_row": [], "differ_tick": [], "observer": [], "friend_row": []}
+    ties = 0
     for a in actors.values():
         a.reset()
     for rec in RP.replay(RP.acts_path(seating, size, seed, root), C.LEG_TOML[size], want_obs=True, check_row=row):
@@ -63,9 +64,10 @@ def divergence_rows(seating, size, seed, root=None):
                 la = actor.policy(torch.from_numpy(x))[0, :N_ACT].numpy()
                 lt = trunks[i](torch.from_numpy(o))[0, :N_ACT].numpy()
             m = mask[i, :N_ACT]
-            a_arm = int(np.where(m, la, -np.inf).argmax())
+            ml = np.where(m, la, -np.inf)
             a_tr = int(np.where(m, lt, -np.inf).argmax())
-            assert a_arm == int(rec["acts"][i, 0]), f"the replayed arm act differs from the record at tick {rec['tick']} (seat {i})"
+            a_arm, tied = fence_act(ml, int(rec["acts"][i, 0]), rec["tick"], i)
+            ties += int(tied)
             differ = a_arm != a_tr
             blk = o[0, C.SELF_BLOCK:C.SELF_BLOCK + C.N_ROWS * C.KITTY_W].reshape(C.N_ROWS, C.KITTY_W)
             st = HO.row_states(blk)
@@ -73,7 +75,24 @@ def divergence_rows(seating, size, seed, root=None):
                 out["regime"].append(int(st[r])); out["entropy"].append(float(cells[0, r, ENT_COL]) if actor.heads.head is not None else float("nan"))
                 out["differ_row"].append(bool(differ)); out["observer"].append(i); out["friend_row"].append(r)
             out["differ_tick"].append(bool(differ))
-    return {k: np.asarray(v) for k, v in out.items()}, {"seating": seating, "size": size, "seed": seed, "arm_seats": sorted(actors)}
+    return {k: np.asarray(v) for k, v in out.items()}, {"seating": seating, "size": size, "seed": seed, "arm_seats": sorted(actors), "ties": ties}
+
+
+TIE_TOL = 1e-5
+
+
+def fence_act(masked_logits, a_rec, tick, seat):
+    """The replay fence on the arm's act: the RECORDED act must be a maximiser of the replayed masked logits within
+    TIE_TOL (the harness picks the argmax of a BATCHED forward over the seating's rows, the reader of a single-row
+    forward; the two agree to the last float bits and disagree only on ties — 2026-11-09, p2u-act15-s1 world 905015
+    tick 19,417 seat 3: acts 31 and 33 both at logit 9.468924, the record took 33, the replay's argmax 31). Returns
+    (the recorded act, tied) — the arm's act for the divergence read is what it DID; a recorded act that is not a
+    maximiser is a replay failure and raises."""
+    best = float(masked_logits.max())
+    gap = best - float(masked_logits[a_rec])
+    assert np.isfinite(gap) and gap <= TIE_TOL, (f"the replayed arm act differs from the record at tick {tick} (seat {seat}): "
+                                                 f"recorded {a_rec} at logit {float(masked_logits[a_rec]):.6f}, max {best:.6f}")
+    return a_rec, int(masked_logits.argmax()) != a_rec
 
 
 def bin_divergence(regime, entropy, differ, has_head=True):
@@ -112,15 +131,16 @@ def within_regime_ordering(binned):
 def read_leg(seating, size, root=None, seeds=None):
     rows, _h = RP.leg_rows(seating, size, root)
     acc = {k: [] for k in ("regime", "entropy", "differ_row", "differ_tick")}
-    meta = None
+    meta, ties = None, 0
     for seed in (sorted(rows) if seeds is None else seeds):
         d, meta = divergence_rows(seating, size, seed, root)
+        ties += meta["ties"]
         for k in acc:
             acc[k].append(d[k])
     acc = {k: np.concatenate(v) for k, v in acc.items()}
     has_head = not np.isnan(acc["entropy"]).all()
     binned = bin_divergence(acc["regime"], acc["entropy"], acc["differ_row"], has_head)
-    return {**meta, "worlds": len(rows) if seeds is None else len(seeds), "tick_divergence": float(acc["differ_tick"].mean()),
+    return {**meta, "ties": ties, "worlds": len(rows) if seeds is None else len(seeds), "tick_divergence": float(acc["differ_tick"].mean()),
             "binned": binned, "within_regime_low_gt_high": within_regime_ordering(binned) if has_head else None}
 
 

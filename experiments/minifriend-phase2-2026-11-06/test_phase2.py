@@ -501,6 +501,19 @@ def g8():
         assert "low" not in nb["seen"] and nb["seen"]["n"] == 300, "the no-head arm bins by regime only"
     finally:
         C.ARTS = saved
+    # the act fence (2026-11-09, world 905015 tick 19,417): the recorded act must be a maximiser within TIE_TOL; an
+    # exact or float-bit tie is reproduced (the record's act is kept, the tie counted); a real gap is a replay failure
+    ml = np.full(35, -np.inf); ml[31] = 9.468924; ml[33] = 9.468924; ml[2] = 1.0
+    assert R5.fence_act(ml, 33, 19417, 3) == (33, True), "an exact tie keeps the recorded act and counts the tie"
+    assert R5.fence_act(ml, 31, 19417, 3) == (31, False), "the argmax itself is no tie"
+    ml[33] = 9.468924 - 5e-6
+    assert R5.fence_act(ml, 33, 19417, 3) == (33, True), "a within-tolerance act is reproduced"
+    ml[33] = 9.468924 - 1e-3
+    try:
+        R5.fence_act(ml, 33, 19417, 3)
+        raise AssertionError("a recorded act 1e-3 under the maximum must fail the fence")
+    except AssertionError as e:
+        assert "differs from the record at tick 19417 (seat 3)" in str(e), str(e)
 
 
 def g11():
