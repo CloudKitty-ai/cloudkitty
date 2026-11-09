@@ -2006,3 +2006,60 @@ Lessons:
     idled" fails on "ate" alone (2 rows, pessimistic) even though the
     sentence's pooled figure is right; list the cases the rows support
     and say the list is partial.
+
+## 2026-11-09 — Phase 2 RESULTS (Experiments; the whole document, one section set)
+
+Eight rounds, PASS at round 8. Every reader-backed number matched from
+round 1: each reader regenerated fresh in the native checkout (r1 eight
+times; r2 episodes for all 26 recorded legs; r4 / r5 on one declared
+leg, p2u-act15-s1-20, 19.5 / 24.7 min, the other 20 legs each counted
+UNDECIDABLE-by-regeneration under the document's own rule; canary
+needs-leg + score; r6; both diag reads) and byte-identical to the
+recorded `reads/`. Rounds 1–7 FAILED on 24 hand-written sentences in
+all: round 1 ten CONTRADICTED (a mislabelled R-4 column, an unplaced-p90
+explanation, "not read" for a column the rows carried, "never
+recovering" when every run recovered for a few probes, ECE and R-5
+ranges quoted from one regime or one run short, a roster gap called
+inside an edge it exceeds, "beat its trunk by the most" with a one-seed
+arm above it) and six provenance (u3900 / u4880 written where the last
+training update was u3906 / u4882); round 2 three (the slip's own
+explanation wrong — those were ten-update log lines, not probes; "five of
+seven" where the set was eight; "the one column read" after the fill had
+added two); round 3 one count ("four of six" → five); round 4 one date
+(R-6 recorded 2026-11-07 local, written 11-06); round 5 one false
+"first recorded" (the trunk arc had printed the s6 / s7 hashes
+2026-10-20); round 6 one arithmetic ("~60M" not spent = one seed, two
+seeds = 80–120M) and one count (nohead "seven" legs → nine); round 7 one
+count (attempts before "four" guards → three). Each FAIL also surfaced
+WEAK items, all fixed before the next round. The subagents' reports
+came back as messages; the stamp is the thread's.
+
+Lessons:
+
+110. **Fill from the reader's own md, verbatim, and prose only what a
+    reader printed.** Every one of the 24 defects was a sentence the
+    thread composed; none was a number a reader wrote. A hand-written
+    range or count is a claim with no reader behind it and needs its own
+    recompute before it goes in.
+111. **Every count word is a check item.** "Five of seven", "four of
+    six", "seven legs", "four of them": each was wrong by one because
+    the set was enumerated from memory. Count the set in the data, in
+    the same breath as writing the word.
+112. **A correction is a new claim (lesson 106 again, twice over).** The
+    round-1 fix explained the u3900 slip wrongly; the round-2 fix of
+    that was right. The round-1 R-3 fill made the round-1 "one column
+    read" sentence stale two paragraphs later. Re-read every sentence
+    that cites the thing you changed.
+113. **"First recorded" and "no earlier value" are provenance claims
+    against the whole repo.** The s6 / s7 hashes had been printed three
+    weeks earlier in another arc's RESULTS; grep the repo for the value
+    before writing that nothing printed it.
+114. **"Not spent" is multiplied like "spent".** One seed's exposure was
+    written for two seeds because the figure was copied from the entry
+    rather than recomputed from seeds × seats × ticks.
+115. **A gate that reuses earlier rounds' fresh outputs stays a gate.**
+    Rounds 2–8 re-ran only the cheap readers and re-compared the long
+    replays' round-1 outputs against the record each time (`cmp`), so
+    each round still regenerated the cheap half and verified the
+    expensive half had not drifted; the 14-hour full replay was declared
+    in the document and run once.

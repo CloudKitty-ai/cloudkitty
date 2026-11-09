@@ -1045,7 +1045,7 @@ consent BC comparison ride the trunk.
   DONE 04:36:42Z: act15-s1's leg 30 clean, worst streak 461 (905005,
   Kittybear, drink, mostly moving; trunk 0 there, max 77); nohead-s1r's
   leg 30 clean, worst 113. Not scored; reported to her as facts.
-  p2-act10-s1r PLATEAU clean 08:13:30Z (u3900 / 12,002,304 ticks,
+  p2-act10-s1r PLATEAU clean 08:13:30Z (u3900 / 12,002,304 ticks [u3900 = the trainer's last 10-update log line, the last probe u3899; the last update is u3906, and u4880 below is u4882 — corrected 2026-11-09],
   largest streak 145, never 300): entry 26 CLOSED; entry 28 (2) fired —
   p2-act10-s2 / s4 LAUNCHED 08:30:37Z at 89f7340c (pids 58320 / 58329,
   idx 111 / 112); seven trainers run. Its leg (p2u-act10-s1) 30 clean,
@@ -1085,7 +1085,7 @@ consent BC comparison ride the trunk.
   measured at the first leg.
   Her "No" on the canary's consequence (after the roster-seating
   walk-through): entry 27 CLOSED, `both` a one-seed arm, p2r-both not
-  run, ~60M covered cat-ticks not spent. Battery: eleven legs (20×20
+  run, ~60M covered cat-ticks not spent [one seed's worth; two seeds = 80–120M, corrected 2026-11-09]. Battery: eleven legs (20×20
   rosters + all 40×40) clean by 22:53Z; 100×100 under way.
   Battery ON RECORD 23:00:03Z (entry 28 CLOSED): 14 legs in 33 min, all
   scouts clean, 40×40 no abort; 100×100 act15-s1 clean (646),
@@ -1093,6 +1093,14 @@ consent BC comparison ride the trunk.
   (Clementine cuddle). Chain held then resumed for both-s1 (thread's
   reading of entry 28, stated). Reads start with act10 excluded (C);
   the §8.1 demotion rule reads UNDECIDABLE by ruling.
+  2026-11-09: read suite done 13:56:39Z after three guarded reader fixes
+  (reds CONFIRMED); RESULTS.md filled and gated — PASS at accuracy-gate
+  run 8 (runs 1–7 FAILED on 24 hand-written sentences; every reader
+  number equal from run 1; TRIALS lessons 110–115). §8.1 UNDECIDABLE by
+  ruling (C); every arm beats its trunk 30/30 (+2.5…+3.5), nohead ≥
+  act15 everywhere (−0.431 at 40, beyond the edge, descriptive); P46
+  MET; P39/P40/P43/P44 NOT MET; P38/P45/P47 UNDECIDABLE; R-2 all
+  UNDECIDABLE (thin GRAVE). Open calls to her in RESULTS §Decision rules.
 
 ## Flagged follow-ups (owner's word to start)
 

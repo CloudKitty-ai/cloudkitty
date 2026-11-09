@@ -129,7 +129,7 @@ read + her word); the battery waits on the finals.** **ALL TRAINERS
 FINISHED 2026-11-08 (read 19:22Z): five clean plateaus — `p2-both-s1`
 09:08:44Z (u3900, largest streak 26), `p2-nohead-s4` 10:18:09Z (u3900,
 172), `p2-act15-s4` 10:49:03Z (u3900, 157), `p2-act15-s2` 10:50:44Z
-(u3900, 95), `p2-nohead-s2` 11:38:18Z (u4880 / 15,000,576, 126); TWO
+(u3900, 95), `p2-nohead-s2` 11:38:18Z (u4880 / 15,000,576, 126); [CORRECTION 2026-11-09, accuracy gate runs 1–2: the update numbers written at these stops are the trainer's last 10-update log line (u3900 / u4880; the last probes were u3899 / u4849); the runs' last training update per metrics.jsonl is u3906 (12,002,304 ticks) and u4882 (15,000,576). Ticks, times and streaks stand.] TWO
 HALTED by the frozen stops, owner-routed, never resumed — `p2-act10-s2`
 probe-distress-stop at u1149 / 3,532,800 ticks (before the floor; world
 40,002, Pumpkin, 410, alone and searching, hap min 24.2) and
@@ -189,7 +189,20 @@ the reader says so; R-4 / R-5 per leg); act10 excluded from scored
 cells per entry 29 (C): `P2_ARMS=act15,nohead P2_SKIP=act10
 run_reads.sh`. The §8.1 demotion rule needs act10's three paired seeds
 and therefore reads UNDECIDABLE by ruling, not by data — B15 stands
-undemoted for want of its comparator, stated in RESULTS.**
+undemoted for want of its comparator, stated in RESULTS.** **RESULTS FILLED AND GATED 2026-11-09: the read suite finished
+13:56:39Z (three reader fixes on the way, each guarded, reds CONFIRMED:
+read_r1's UNDECIDABLE cells, the s6 / s7 sha fence, read_r5's tie-aware
+act fence); RESULTS.md filled, accuracy gate PASS at run 8 (runs 1–7
+failed on 24 hand-written sentences, every reader-backed number equal
+from run 1; TRIALS.md lessons 110–115). Headline: §8.1 UNDECIDABLE by
+ruling; every arm with a final beats its trunk 30 / 30 at every size
+(+2.5 to +3.5 in the mean), the no-head arm above act15 at every seed
+and size (−0.431 at 40×40, beyond the edge, same sign in all three
+seeds — descriptive); P46 MET, P39 / P40 / P43 / P44 NOT MET, P38 /
+P45-lived / P47 UNDECIDABLE; R-2 UNDECIDABLE in every stratum (thin
+GRAVE); R-5: act15 diverges less from its trunk than nohead and
+departs where the head is least sure. Open calls to her are listed in
+RESULTS §Decision rules.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -964,7 +977,7 @@ green; the prediction written before each run):**
 | diag_seat_tail (the per-seat tail read behind gen3-roadmap-inputs addendum 4: 403 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED (`p2-reds-seat-tail.log`) |
 | g12 (entry 27's reading instrument `read_canary.py`, 2026-11-08, before any canary leg exists) | R-1a paired by position; P46 without `abs`; P47 met with no readable stratum; the trajectory series fed the cumulative bias; the leg bias's operands swapped | `R-1a must pair by world: {… 'positive': 1 …}`; `P46 must be NOT MET at -0.5`; `all-UNDECIDABLE is not a met P47`; `the trajectory must take the per-probe bias`; `bias convention: … [ 10. -10.]` | CONFIRMED (all five; `p2-reds-g12-{pair,p46,p47,series,bias}.log`) |
 | [g6 extended (entry 29 (C), 2026-11-08: `read_r1` scores what exists when act10 is absent)] | P38's UNDECIDABLE `met: None` turned into `False` with act10 absent | `AssertionError: {'value': None, 'bar': 0.326, 'met': False, 'reason': 'act10 absent (entry 29 (C)): no comparator', …}` on the predicted assertion | CONFIRMED (`results-raw/reds/p2-reds-g6-noact10.log`) |
-| [g10 extended (2026-11-08: the roster legs' trunk seats s6 / s7 join the sha fence, `TRUNK_ROSTER_SHA`)] | the fence's assertion disabled (`s == s`) | `AssertionError: a wrong recorded sha for trunk-s6 must refuse the final` | CONFIRMED (`results-raw/reds/p2-reds-g10-roster-sha.log`); a first mutant — `.get(k, s)` for the lookup — was VACUOUS because the test plants a wrong value under an EXISTING key, so the fallback never fires; lesson: mutate the assertion, not the lookup |
+| [g10 extended (2026-11-08: the roster legs' trunk seats s6 / s7 join the sha fence, `TRUNK_ROSTER_SHA`; the values equal the trunk arc's 2026-10-20 printed hashes — the first note here said no earlier record existed, corrected 2026-11-09)] | the fence's assertion disabled (`s == s`) | `AssertionError: a wrong recorded sha for trunk-s6 must refuse the final` | CONFIRMED (`results-raw/reds/p2-reds-g10-roster-sha.log`); a first mutant — `.get(k, s)` for the lookup — was VACUOUS because the test plants a wrong value under an EXISTING key, so the fallback never fires; lesson: mutate the assertion, not the lookup |
 | [g8 extended (2026-11-09: read_r5's act fence tie-aware, `fence_act` / `TIE_TOL`)] | the tolerance set to 0 | `the replayed arm act differs from the record at tick 19417 (seat 3): recorded 33 at logit 9.468919, max 9.468924` on the predicted assertion (the within-tolerance case) | CONFIRMED (`results-raw/reds/p2-reds-g8-tie-fence.log`) |
 
 ## 10. Blind spots (declared)

@@ -1,0 +1,59 @@
+{
+ "seating": "p2r-act15",
+ "size": 40,
+ "seed": 905030,
+ "arm_seats": [
+  0,
+  1,
+  4
+ ],
+ "ties": 0,
+ "worlds": 30,
+ "tick_divergence": 0.18049,
+ "binned": {
+  "seen": {
+   "n": 2326837,
+   "tercile_edges": [
+    0.0765419602394104,
+    0.4453609883785248
+   ],
+   "divergence": 0.17843965864390157,
+   "low": {
+    "n": 775613,
+    "divergence": 0.1414120186226894
+   },
+   "mid": {
+    "n": 775612,
+    "divergence": 0.18911259753588133
+   },
+   "high": {
+    "n": 775612,
+    "divergence": 0.20479440751303488
+   }
+  },
+  "heard": {
+   "n": 4866496,
+   "tercile_edges": [
+    0.5588280558586121,
+    0.6759294271469116
+   ],
+   "divergence": 0.18161732795013086,
+   "low": {
+    "n": 1622167,
+    "divergence": 0.1735967998362684
+   },
+   "mid": {
+    "n": 1622164,
+    "divergence": 0.18605147198433697
+   },
+   "high": {
+    "n": 1622165,
+    "divergence": 0.18520372465193122
+   }
+  }
+ },
+ "within_regime_low_gt_high": {
+  "seen": false,
+  "heard": false
+ }
+}

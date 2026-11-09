@@ -1686,7 +1686,7 @@ arm-set question RULED "iii" the same day, then SUPERSEDED by entry 27
 the floor) at update 3900 / 12,002,304 world-ticks; its 78 probes never
 crossed the 300 line (largest streak 145 at u2849; 55 / 86 / 10 / 46 at
 u649 / u899 / u2149 / u2249, 0 elsewhere); nash 0.8964–0.9022 over the
-last ten. The replacement never met the halted run's 378. On her
+last ten. [CORRECTION 2026-11-09, accuracy gate runs 1–2: the update numbers written at these stops are the trainer's last 10-update log line (u3900 / u4880; the last probes were u3899 / u4849); the runs' last training update per metrics.jsonl is u3906 (12,002,304 ticks) and u4882 (15,000,576). Ticks, times and streaks stand.] The replacement never met the halted run's 378. On her
 conditional word (entry 28, "2) sounds good") `p2-act10-s2` (pid 58320,
 idx 111, seed_base 2,320,000,000) and `p2-act10-s4` (pid 58329, idx 112,
 2,340,000,000) LAUNCHED 2026-11-08T08:30:37Z at 89f7340c, B10 s3 head,
@@ -1886,7 +1886,7 @@ takes a distinct word, stated to her at the launch.
 
 [2026-11-08 the canary FINISHED clean 09:08:44Z (plateau, u3900 /
 12,002,304 ticks; 78 probes, largest streak 26 at u2399, 12 at u2249, 0
-elsewhere; nash 0.8925–0.9023 last ten; the needs trigger read
+elsewhere; nash 0.8925–0.9023 last ten; [CORRECTION 2026-11-09, accuracy gate runs 1–2: the update numbers written at these stops are the trainer's last 10-update log line (u3900 / u4880; the last probes were u3899 / u4849); the runs' last training update per metrics.jsonl is u3906 (12,002,304 ticks) and u4882 (15,000,576). Ticks, times and streaks stand.] the needs trigger read
 INSUFFICIENT at every probe, never CLEAR, never SIGNATURE). Its leg
 `p2u-both-s1` 19:23:55–19:25:23Z: 30 worlds clean, worst streak 89
 (905019, Clementine, cuddle, moving 0.85; trunk-s1 row 0). The three
@@ -1919,7 +1919,7 @@ uniform s1 rows at 20 / 40 / 100 in the battery (entry 28 (4), running).
 The grammar's "held inside the envelope, no signature" outcome is
 recorded as what one seed showed; P45–P47 stand as read (P46 MET, P47
 UNDECIDABLE, P45 UNDECIDABLE lived / NOT MET leg). Welfare: ~60M
-covered cat-ticks of training not spent. Slots 118 / 119 (both-s2 / s4)
+covered cat-ticks of training not spent. [CORRECTION 2026-11-09, accuracy gate run 6: ~60M is one seed's exposure; two seeds × 5 seats = 80.0M at the floor, ≈ 120M at both-s1's own length.] Slots 118 / 119 (both-s2 / s4)
 and their claimed stripes stay unused inside the band.
 Status: CLOSED 2026-11-08 — ruled "No"; the canary is a one-seed read.
 [Superseded status text kept for the record: OPEN — the canary scout
@@ -2030,7 +2030,7 @@ trainer finished. FIVE clean (plateau, `policy-final.pt`): p2-both-s1
 09:08:44Z (u3900 / 12,002,304 ticks, largest streak 26), p2-nohead-s4
 10:18:09Z (u3900, 172), p2-act15-s4 10:49:03Z (u3900, 157), p2-act15-s2
 10:50:44Z (u3900, 95), p2-nohead-s2 11:38:18Z (u4880 / 15,000,576,
-126). TWO act10 seeds HALTED by the frozen stops — entry 29. Chain-2 of
+126). [CORRECTION 2026-11-09, accuracy gate runs 1–2: the update numbers written at these stops are the trainer's last 10-update log line (u3900 / u4880; the last probes were u3899 / u4849); the runs' last training update per metrics.jsonl is u3906 (12,002,304 ticks) and u4882 (15,000,576). Ticks, times and streaks stand.] TWO act10 seeds HALTED by the frozen stops — entry 29. Chain-2 of
 (1) LAUNCHED 19:23:55Z at 224cb1f1 (pid 70662; the canary first, then
 act15-s2 / s4, nohead-s2 / s4, one at a time). (3) fired: the canary's
 reads LAUNCHED 19:26:34Z behind its leg. (4) is NOT met: act10 has one

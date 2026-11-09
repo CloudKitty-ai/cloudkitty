@@ -1,0 +1,23 @@
+{
+ "seating": "p2r-nohead",
+ "size": 20,
+ "seed": 905030,
+ "arm_seats": [
+  0,
+  1,
+  4
+ ],
+ "worlds": 30,
+ "tick_divergence": 0.19755666666666666,
+ "binned": {
+  "seen": {
+   "n": 2928762,
+   "divergence": 0.20188530170768398
+  },
+  "heard": {
+   "n": 4262672,
+   "divergence": 0.1947400597559465
+  }
+ },
+ "within_regime_low_gt_high": null
+}

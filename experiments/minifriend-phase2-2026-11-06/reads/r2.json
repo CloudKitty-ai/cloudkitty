@@ -1,0 +1,1111 @@
+{
+ "20": {
+  "act15": {
+   "r2a": {
+    "eat": {
+     "arm": {
+      "1": {
+       "n": 9,
+       "censored_share": 0.1111111111111111,
+       "p90": 271.0,
+       "median": 34.0,
+       "other_relief_share": 0.125,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 14.0,
+       "median": 14.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 4,
+       "censored_share": 0.0,
+       "p90": 49.0,
+       "median": 6.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 3,
+       "censored_share": 0.0,
+       "p90": 77.0,
+       "median": 73.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 10,
+       "censored_share": 0.3,
+       "p90": null,
+       "median": 50.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 2,
+       "censored_share": 0.0,
+       "p90": 22.0,
+       "median": 11.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 271.0,
+        "median": 271.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "drink": {
+     "arm": {
+      "1": {
+       "n": 2,
+       "censored_share": 0.0,
+       "p90": 461.0,
+       "median": 210.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 35.0,
+       "median": 35.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 5,
+       "censored_share": 0.2,
+       "p90": null,
+       "median": 193.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 3,
+       "censored_share": 0.0,
+       "p90": 535.0,
+       "median": 468.0,
+       "other_relief_share": 0.3333333333333333,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 19.0,
+        "median": 19.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "sleep": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "play": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 3,
+       "censored_share": 0.3333333333333333,
+       "p90": null,
+       "median": 77.0,
+       "other_relief_share": 0.5,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 77.0,
+        "median": 77.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "cuddle": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 6.0,
+       "median": 6.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 5.0,
+       "median": 5.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 11.0,
+       "median": 11.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 6.0,
+        "median": 6.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 5.0,
+        "median": 5.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 11.0,
+        "median": 11.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "happiness": {
+     "arm": {
+      "1": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 36.0,
+       "median": 36.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 55.0,
+       "median": 55.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 36.0,
+        "median": 36.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    }
+   },
+   "r2b": {
+    "arm": {
+     "grave": {
+      "n": 128,
+      "approach": 0.4921875,
+      "proposal": 0.4140625
+     },
+     "benign": {
+      "n": 580157,
+      "approach": 0.34347254277721373,
+      "proposal": 0.5780314638968417
+     },
+     "differential": {
+      "state": "INSUFFICIENT"
+     }
+    },
+    "trunk": {
+     "grave": {
+      "n": 417,
+      "approach": 0.26618705035971224,
+      "proposal": 0.6498800959232613
+     },
+     "benign": {
+      "n": 725353,
+      "approach": 0.30159384465219,
+      "proposal": 0.5676973832051428
+     },
+     "differential": {
+      "state": "READ",
+      "lift_approach": 0.8826010712078348,
+      "clears": false,
+      "lift_proposal": 1.1447650018291893
+     }
+    }
+   },
+   "r2c": {
+    "validation": {
+     "arm": 0.07964922222222223,
+     "trunk": 0.13631641747732215,
+     "not_worse": true
+    },
+    "apply": {
+     "arm": 0.007225555555555555,
+     "trunk": 0.005464273506077717,
+     "not_worse": false
+    }
+   },
+   "r3_mix_entropy": {
+    "arm": 1.4289035961847638,
+    "trunk_seeds": {
+     "1": 1.3002960489143887,
+     "2": 1.3050346685077123,
+     "4": 1.315145789129175
+    }
+   }
+  },
+  "act10": {
+   "state": "legs incomplete"
+  },
+  "nohead": {
+   "r2a": {
+    "eat": {
+     "arm": {
+      "1": {
+       "n": 5,
+       "censored_share": 0.0,
+       "p90": 113.0,
+       "median": 36.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 2,
+       "censored_share": 0.0,
+       "p90": 75.0,
+       "median": 4.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 6,
+       "censored_share": 0.0,
+       "p90": 284.0,
+       "median": 74.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 3,
+       "censored_share": 0.0,
+       "p90": 77.0,
+       "median": 73.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 10,
+       "censored_share": 0.3,
+       "p90": null,
+       "median": 50.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 2,
+       "censored_share": 0.0,
+       "p90": 22.0,
+       "median": 11.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "drink": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 109.0,
+       "median": 109.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 5,
+       "censored_share": 0.2,
+       "p90": null,
+       "median": 193.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 3,
+       "censored_share": 0.0,
+       "p90": 535.0,
+       "median": 468.0,
+       "other_relief_share": 0.3333333333333333,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 19.0,
+        "median": 19.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "sleep": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 1.0,
+       "median": 1.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "play": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 3,
+       "censored_share": 0.3333333333333333,
+       "p90": null,
+       "median": 77.0,
+       "other_relief_share": 0.5,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 77.0,
+        "median": 77.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "cuddle": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 6.0,
+       "median": 6.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 5.0,
+       "median": 5.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 11.0,
+       "median": 11.0,
+       "other_relief_share": 1.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 6.0,
+        "median": 6.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 5.0,
+        "median": 5.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 1,
+        "censored_share": 0.0,
+        "p90": 11.0,
+        "median": 11.0,
+        "other_relief_share": 1.0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    },
+    "happiness": {
+     "arm": {
+      "1": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 107.0,
+       "median": 107.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "trunk": {
+      "1": {
+       "n": 1,
+       "censored_share": 0.0,
+       "p90": 55.0,
+       "median": 55.0,
+       "other_relief_share": 0.0,
+       "state": "UNDECIDABLE"
+      },
+      "2": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      },
+      "4": {
+       "n": 0,
+       "state": "UNDECIDABLE"
+      }
+     },
+     "held": {
+      "1": "UNDECIDABLE",
+      "2": "UNDECIDABLE",
+      "4": "UNDECIDABLE"
+     },
+     "beats": false,
+     "other_relief": {
+      "arm": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "trunk": {
+       "1": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "2": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       },
+       "4": {
+        "n": 0,
+        "state": "UNDECIDABLE"
+       }
+      },
+      "beats": false
+     }
+    }
+   },
+   "r2b": {
+    "arm": {
+     "grave": {
+      "n": 145,
+      "approach": 0.4068965517241379,
+      "proposal": 0.38620689655172413
+     },
+     "benign": {
+      "n": 572369,
+      "approach": 0.3409740918882749,
+      "proposal": 0.5954794896299416
+     },
+     "differential": {
+      "state": "INSUFFICIENT"
+     }
+    },
+    "trunk": {
+     "grave": {
+      "n": 417,
+      "approach": 0.26618705035971224,
+      "proposal": 0.6498800959232613
+     },
+     "benign": {
+      "n": 725353,
+      "approach": 0.30159384465219,
+      "proposal": 0.5676973832051428
+     },
+     "differential": {
+      "state": "READ",
+      "lift_approach": 0.8826010712078348,
+      "clears": false,
+      "lift_proposal": 1.1447650018291893
+     }
+    }
+   },
+   "r2c": {
+    "validation": {
+     "arm": 0.0816251111111111,
+     "trunk": 0.13631641747732215,
+     "not_worse": true
+    },
+    "apply": {
+     "arm": 0.007723444444444445,
+     "trunk": 0.005464273506077717,
+     "not_worse": false
+    }
+   },
+   "r3_mix_entropy": {
+    "arm": 1.434260393644801,
+    "trunk_seeds": {
+     "1": 1.3002960489143887,
+     "2": 1.3050346685077123,
+     "4": 1.315145789129175
+    }
+   }
+  }
+ },
+ "40": {
+  "state": "trunk uniform legs not re-recorded at 40 (replay needs the recorded acts; the battery rows carry none) \u2014 R-2 waits"
+ },
+ "100": {
+  "state": "trunk uniform legs not re-recorded at 100 (replay needs the recorded acts; the battery rows carry none) \u2014 R-2 waits"
+ }
+}

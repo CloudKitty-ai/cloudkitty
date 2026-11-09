@@ -41,8 +41,9 @@ TRUNK_FINAL_SHA = {1: "a22b8713f517f794dd441ffe59a07004953c3e7637166093dbf78dee1
 # The two trunk seeds the roster-shaped legs seat beside the arm seeds (`p2r-<arm>` = s2, s4, trunk-s6, trunk-s7,
 # s1; cert_harness_fog.SEATINGS). Their finals' sha256 were RECORDED 2026-11-08 off the trunk arc's artifacts
 # (gen2-trunk-training-2026-10-18/artifacts/ppo-g2-trunk-s{6,7}/policy-final.pt) when read_r4 first replayed a
-# roster leg — no earlier document printed them, so this pins against drift from that day, not against a declared
-# value (stated in the Phase 2 RESULTS). Only readers load them; no arm grafts from them.
+# roster leg. They equal the values the trunk arc printed 2026-10-20 (gen2-trunk-training-2026-10-18/RESULTS.md,
+# 844e51b9) and the cert battery's leg provenance carries (the first comment here said no earlier record existed —
+# corrected 2026-11-09 by the accuracy gate). Only readers load them; no arm grafts from them.
 TRUNK_ROSTER_SHA = {6: "c93a4424c9a708d3d36b426061ae8a60890b954de2339bdddb12157b03f2c809",
                     7: "8ca8a517a4ef96a02fff224e09d50acc42397bac85478242eccfc8b1b286c806"}
 TRUNK_PARAMS = 84_450

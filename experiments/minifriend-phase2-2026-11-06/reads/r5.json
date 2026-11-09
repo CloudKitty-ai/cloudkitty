@@ -1,0 +1,958 @@
+{
+ "p2r-act15-20": {
+  "seating": "p2r-act15",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   4
+  ],
+  "worlds": 30,
+  "tick_divergence": 0.176675,
+  "binned": {
+   "seen": {
+    "n": 2961506,
+    "tercile_edges": [
+     0.03374316046635308,
+     0.45183183749516787
+    ],
+    "divergence": 0.18198072197051096,
+    "low": {
+     "n": 987169,
+     "divergence": 0.15040585755833094
+    },
+    "mid": {
+     "n": 987168,
+     "divergence": 0.1923715112321307
+    },
+    "high": {
+     "n": 987169,
+     "divergence": 0.2031648076469176
+    }
+   },
+   "heard": {
+    "n": 4230303,
+    "tercile_edges": [
+     0.5474766095479329,
+     0.6506568392117817
+    ],
+    "divergence": 0.17312424192782408,
+    "low": {
+     "n": 1410101,
+     "divergence": 0.16263374042001247
+    },
+    "mid": {
+     "n": 1410101,
+     "divergence": 0.17545977203051413
+    },
+    "high": {
+     "n": 1410101,
+     "divergence": 0.18127921333294567
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2r-act15-40": {
+  "seating": "p2r-act15",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.18049,
+  "binned": {
+   "seen": {
+    "n": 2326837,
+    "tercile_edges": [
+     0.0765419602394104,
+     0.4453609883785248
+    ],
+    "divergence": 0.17843965864390157,
+    "low": {
+     "n": 775613,
+     "divergence": 0.1414120186226894
+    },
+    "mid": {
+     "n": 775612,
+     "divergence": 0.18911259753588133
+    },
+    "high": {
+     "n": 775612,
+     "divergence": 0.20479440751303488
+    }
+   },
+   "heard": {
+    "n": 4866496,
+    "tercile_edges": [
+     0.5588280558586121,
+     0.6759294271469116
+    ],
+    "divergence": 0.18161732795013086,
+    "low": {
+     "n": 1622167,
+     "divergence": 0.1735967998362684
+    },
+    "mid": {
+     "n": 1622164,
+     "divergence": 0.18605147198433697
+    },
+    "high": {
+     "n": 1622165,
+     "divergence": 0.18520372465193122
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2r-nohead-20": {
+  "seating": "p2r-nohead",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   4
+  ],
+  "worlds": 30,
+  "tick_divergence": 0.19755666666666666,
+  "binned": {
+   "seen": {
+    "n": 2928762,
+    "divergence": 0.20188530170768398
+   },
+   "heard": {
+    "n": 4262672,
+    "divergence": 0.1947400597559465
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2r-nohead-40": {
+  "seating": "p2r-nohead",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.20134222222222223,
+  "binned": {
+   "seen": {
+    "n": 2334950,
+    "divergence": 0.20025782136662457
+   },
+   "heard": {
+    "n": 4858588,
+    "divergence": 0.20200848476964914
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-act15-s1-100": {
+  "seating": "p2u-act15-s1",
+  "size": 100,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.17468666666666666,
+  "binned": {
+   "seen": {
+    "n": 2878340,
+    "tercile_edges": [
+     0.12208755065997438,
+     0.43017828464508057
+    ],
+    "divergence": 0.15983414051154485,
+    "low": {
+     "n": 959447,
+     "divergence": 0.11477757499893168
+    },
+    "mid": {
+     "n": 959447,
+     "divergence": 0.17118611033230602
+    },
+    "high": {
+     "n": 959446,
+     "divergence": 0.1935387713326232
+    }
+   },
+   "heard": {
+    "n": 9110523,
+    "tercile_edges": [
+     0.5856366753578186,
+     0.6945170760154724
+    ],
+    "divergence": 0.17941428829058442,
+    "low": {
+     "n": 3036842,
+     "divergence": 0.17339163512622652
+    },
+    "mid": {
+     "n": 3036841,
+     "divergence": 0.18520297901668215
+    },
+    "high": {
+     "n": 3036840,
+     "divergence": 0.1796482527890834
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-act15-s1-20": {
+  "seating": "p2u-act15-s1",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 2,
+  "worlds": 30,
+  "tick_divergence": 0.16337233333333334,
+  "binned": {
+   "seen": {
+    "n": 4648576,
+    "tercile_edges": [
+     0.024891871958971024,
+     0.41911160945892334
+    ],
+    "divergence": 0.1683958700470854,
+    "low": {
+     "n": 1549526,
+     "divergence": 0.13218042162571006
+    },
+    "mid": {
+     "n": 1549525,
+     "divergence": 0.1809548087317081
+    },
+    "high": {
+     "n": 1549525,
+     "divergence": 0.19205240315580582
+    }
+   },
+   "heard": {
+    "n": 7338448,
+    "tercile_edges": [
+     0.5450872182846069,
+     0.6426829695701599
+    ],
+    "divergence": 0.1603153691352722,
+    "low": {
+     "n": 2446150,
+     "divergence": 0.15069476524334158
+    },
+    "mid": {
+     "n": 2446154,
+     "divergence": 0.16349747399386955
+    },
+    "high": {
+     "n": 2446144,
+     "divergence": 0.16675387875775097
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-act15-s1-40": {
+  "seating": "p2u-act15-s1",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.15417266666666668,
+  "binned": {
+   "seen": {
+    "n": 3607384,
+    "tercile_edges": [
+     0.05326905474066734,
+     0.4105907082557678
+    ],
+    "divergence": 0.15638978273452453,
+    "low": {
+     "n": 1202462,
+     "divergence": 0.11494583612621438
+    },
+    "mid": {
+     "n": 1202461,
+     "divergence": 0.16985914719895281
+    },
+    "high": {
+     "n": 1202461,
+     "divergence": 0.18436439934434465
+    }
+   },
+   "heard": {
+    "n": 8381504,
+    "tercile_edges": [
+     0.5477321147918701,
+     0.6623913049697876
+    ],
+    "divergence": 0.153333816937867,
+    "low": {
+     "n": 2793836,
+     "divergence": 0.14663101198495546
+    },
+    "mid": {
+     "n": 2793834,
+     "divergence": 0.15699429529456654
+    },
+    "high": {
+     "n": 2793834,
+     "divergence": 0.15637614833236335
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-act15-s2-20": {
+  "seating": "p2u-act15-s2",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.17107433333333333,
+  "binned": {
+   "seen": {
+    "n": 4663534,
+    "tercile_edges": [
+     0.03167746961116791,
+     0.43200981616973877
+    ],
+    "divergence": 0.17707622588363245,
+    "low": {
+     "n": 1554512,
+     "divergence": 0.14810821659787765
+    },
+    "mid": {
+     "n": 1554511,
+     "divergence": 0.17982053520367497
+    },
+    "high": {
+     "n": 1554511,
+     "divergence": 0.20329994448414968
+    }
+   },
+   "heard": {
+    "n": 7324093,
+    "tercile_edges": [
+     0.5481672883033752,
+     0.6454553008079529
+    ],
+    "divergence": 0.16738564078855908,
+    "low": {
+     "n": 2441366,
+     "divergence": 0.15448810215264733
+    },
+    "mid": {
+     "n": 2441363,
+     "divergence": 0.17057397855214484
+    },
+    "high": {
+     "n": 2441364,
+     "divergence": 0.1770948535326973
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-act15-s2-40": {
+  "seating": "p2u-act15-s2",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.16985133333333333,
+  "binned": {
+   "seen": {
+    "n": 3533942,
+    "tercile_edges": [
+     0.06848180045684178,
+     0.42172282934188837
+    ],
+    "divergence": 0.1684990868554153,
+    "low": {
+     "n": 1177981,
+     "divergence": 0.13677555070922195
+    },
+    "mid": {
+     "n": 1177980,
+     "divergence": 0.16941374216879743
+    },
+    "high": {
+     "n": 1177981,
+     "divergence": 0.19930796846468662
+    }
+   },
+   "heard": {
+    "n": 8455649,
+    "tercile_edges": [
+     0.5497838854789734,
+     0.6658254067103068
+    ],
+    "divergence": 0.17053593402469758,
+    "low": {
+     "n": 2818551,
+     "divergence": 0.16184415325463333
+    },
+    "mid": {
+     "n": 2818548,
+     "divergence": 0.17500500257579435
+    },
+    "high": {
+     "n": 2818550,
+     "divergence": 0.17475865249862518
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-act15-s4-20": {
+  "seating": "p2u-act15-s4",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.17039866666666667,
+  "binned": {
+   "seen": {
+    "n": 4463652,
+    "tercile_edges": [
+     0.024437639862298965,
+     0.4115703205267587
+    ],
+    "divergence": 0.17758328830294118,
+    "low": {
+     "n": 1487884,
+     "divergence": 0.14519814716738672
+    },
+    "mid": {
+     "n": 1487884,
+     "divergence": 0.18826602073817583
+    },
+    "high": {
+     "n": 1487884,
+     "divergence": 0.19928569700326101
+    }
+   },
+   "heard": {
+    "n": 7522109,
+    "tercile_edges": [
+     0.5495317776997883,
+     0.6465492447217305
+    ],
+    "divergence": 0.16625350682900233,
+    "low": {
+     "n": 2507370,
+     "divergence": 0.15481360947925515
+    },
+    "mid": {
+     "n": 2507369,
+     "divergence": 0.16896236652842084
+    },
+    "high": {
+     "n": 2507370,
+     "divergence": 0.17498454555969004
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-act15-s4-40": {
+  "seating": "p2u-act15-s4",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.16779433333333332,
+  "binned": {
+   "seen": {
+    "n": 3418696,
+    "tercile_edges": [
+     0.04348749294877052,
+     0.3977526128292084
+    ],
+    "divergence": 0.16695985837875027,
+    "low": {
+     "n": 1139566,
+     "divergence": 0.1339878515154015
+    },
+    "mid": {
+     "n": 1139565,
+     "divergence": 0.1784970580879546
+    },
+    "high": {
+     "n": 1139565,
+     "divergence": 0.18839469446674828
+    }
+   },
+   "heard": {
+    "n": 8570005,
+    "tercile_edges": [
+     0.5531402230262756,
+     0.6686669588088989
+    ],
+    "divergence": 0.16823945843672203,
+    "low": {
+     "n": 2856670,
+     "divergence": 0.16058627702884828
+    },
+    "mid": {
+     "n": 2856667,
+     "divergence": 0.171924484022814
+    },
+    "high": {
+     "n": 2856668,
+     "divergence": 0.17220762090659467
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-both-s1-100": {
+  "seating": "p2u-both-s1",
+  "size": 100,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 1,
+  "worlds": 30,
+  "tick_divergence": 0.19167157227471174,
+  "binned": {
+   "seen": {
+    "n": 2505970,
+    "tercile_edges": [
+     0.08438177406787872,
+     0.40771225094795227
+    ],
+    "divergence": 0.15840053951164618,
+    "low": {
+     "n": 835324,
+     "divergence": 0.11153636193860107
+    },
+    "mid": {
+     "n": 835323,
+     "divergence": 0.17468931179914834
+    },
+    "high": {
+     "n": 835323,
+     "divergence": 0.18897600090025057
+    }
+   },
+   "heard": {
+    "n": 9071979,
+    "tercile_edges": [
+     0.5837411483128865,
+     0.6957172155380249
+    ],
+    "divergence": 0.20094380729937758,
+    "low": {
+     "n": 3023993,
+     "divergence": 0.19414628274602488
+    },
+    "mid": {
+     "n": 3023997,
+     "divergence": 0.20711627690106835
+    },
+    "high": {
+     "n": 3023989,
+     "divergence": 0.2015688549131627
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-both-s1-20": {
+  "seating": "p2u-both-s1",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 1,
+  "worlds": 30,
+  "tick_divergence": 0.16210933333333333,
+  "binned": {
+   "seen": {
+    "n": 4269408,
+    "tercile_edges": [
+     0.02458639132479826,
+     0.4092699189980824
+    ],
+    "divergence": 0.16326619521957142,
+    "low": {
+     "n": 1423136,
+     "divergence": 0.12803554965934388
+    },
+    "mid": {
+     "n": 1423136,
+     "divergence": 0.17881144177366043
+    },
+    "high": {
+     "n": 1423136,
+     "divergence": 0.18295159422570997
+    }
+   },
+   "heard": {
+    "n": 7717037,
+    "tercile_edges": [
+     0.5462376475334167,
+     0.6425465544064839
+    ],
+    "divergence": 0.16159595969281992,
+    "low": {
+     "n": 2572350,
+     "divergence": 0.14931638385134216
+    },
+    "mid": {
+     "n": 2572341,
+     "divergence": 0.16596594308452883
+    },
+    "high": {
+     "n": 2572346,
+     "divergence": 0.16950557973149802
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-both-s1-40": {
+  "seating": "p2u-both-s1",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.16793933333333333,
+  "binned": {
+   "seen": {
+    "n": 3226078,
+    "tercile_edges": [
+     0.04608464986085892,
+     0.39778366684913635
+    ],
+    "divergence": 0.1566053269635762,
+    "low": {
+     "n": 1075360,
+     "divergence": 0.11444539503050141
+    },
+    "mid": {
+     "n": 1075359,
+     "divergence": 0.1733653598472696
+    },
+    "high": {
+     "n": 1075359,
+     "divergence": 0.18200526521840613
+    }
+   },
+   "heard": {
+    "n": 8762661,
+    "tercile_edges": [
+     0.543153981367747,
+     0.6593899726867676
+    ],
+    "divergence": 0.17223968837776563,
+    "low": {
+     "n": 2920887,
+     "divergence": 0.16337708374202767
+    },
+    "mid": {
+     "n": 2920888,
+     "divergence": 0.17748917452500745
+    },
+    "high": {
+     "n": 2920886,
+     "divergence": 0.1758528063060318
+    }
+   }
+  },
+  "within_regime_low_gt_high": {
+   "seen": false,
+   "heard": false
+  }
+ },
+ "p2u-nohead-s1-100": {
+  "seating": "p2u-nohead-s1",
+  "size": 100,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.1911726471672195,
+  "binned": {
+   "seen": {
+    "n": 3127132,
+    "divergence": 0.16966025099036433
+   },
+   "heard": {
+    "n": 8804995,
+    "divergence": 0.19890323617446687
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-nohead-s1-20": {
+  "seating": "p2u-nohead-s1",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.18157366666666666,
+  "binned": {
+   "seen": {
+    "n": 4746754,
+    "divergence": 0.18080060605626497
+   },
+   "heard": {
+    "n": 7241171,
+    "divergence": 0.18223709949675265
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-nohead-s1-40": {
+  "seating": "p2u-nohead-s1",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.17461466666666667,
+  "binned": {
+   "seen": {
+    "n": 3743632,
+    "divergence": 0.16888919637400257
+   },
+   "heard": {
+    "n": 8245698,
+    "divergence": 0.17735333018502497
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-nohead-s2-20": {
+  "seating": "p2u-nohead-s2",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.194154,
+  "binned": {
+   "seen": {
+    "n": 4401404,
+    "divergence": 0.20777869970582113
+   },
+   "heard": {
+    "n": 7585597,
+    "divergence": 0.18638058415178133
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-nohead-s2-40": {
+  "seating": "p2u-nohead-s2",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 1,
+  "worlds": 30,
+  "tick_divergence": 0.200504,
+  "binned": {
+   "seen": {
+    "n": 3360222,
+    "divergence": 0.20551439756063736
+   },
+   "heard": {
+    "n": 8628811,
+    "divergence": 0.19867476527183178
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-nohead-s4-20": {
+  "seating": "p2u-nohead-s4",
+  "size": 20,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 0,
+  "worlds": 30,
+  "tick_divergence": 0.181332,
+  "binned": {
+   "seen": {
+    "n": 4516564,
+    "divergence": 0.18644084308337044
+   },
+   "heard": {
+    "n": 7469745,
+    "divergence": 0.17838547366744112
+   }
+  },
+  "within_regime_low_gt_high": null
+ },
+ "p2u-nohead-s4-40": {
+  "seating": "p2u-nohead-s4",
+  "size": 40,
+  "seed": 905030,
+  "arm_seats": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "ties": 1,
+  "worlds": 30,
+  "tick_divergence": 0.17523833333333333,
+  "binned": {
+   "seen": {
+    "n": 3541168,
+    "divergence": 0.17680635315805407
+   },
+   "heard": {
+    "n": 8448349,
+    "divergence": 0.17471389972170895
+   }
+  },
+  "within_regime_low_gt_high": null
+ }
+}
