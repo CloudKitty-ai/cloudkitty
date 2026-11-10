@@ -2218,3 +2218,29 @@ the displaced scouts (12 × 3 worlds × 20k × 5 = 3.6M), inside the 108M
 ruled on entry 28; minds already trained, the cost is exposure to the
 served world.
 Status: CLOSED 2026-11-08 — ruled (C); the battery runs under entry 28.
+
+## 30. Phase 2 R-5 re-read on free-choice ticks (2026-11-10)
+Deviation from the frozen Phase 2 DECLARATION (226509ec) §6 R-5 / §7
+P44, on her word of 2026-11-10 — "1-3 approved" — item 2 of the
+2026-11-10 proposal put to her after the ed6a1972 analysis ((1) trunk
+continuation s1 / s2 / s4; (2) R-5 re-read on FREE-CHOICE ticks for
+every leg; (3) a finer plateau rule for Gen 3; (4) no head rerun without
+a defect — item 4 unruled, nothing runs by default). The change: R-5's
+within-regime read (divergence from the trunk by head-entropy tercile,
+seen / heard) is re-run on FREE-CHOICE ticks only — rows where the
+observer has more than one legal action — on every recorded leg, by
+`diag_r5_counterfactual.py` extended from one leg to all (its
+forced-choice fence red on record, `results-raw/reds/
+p2-reds-diag-r5cf-forced.log`). P44 is NOT re-scored: NOT MET stands on
+the frozen read; the free-choice read lands beside it as an addendum to
+RESULTS §R-5, gated (fresh subagent, Read fence only) before commit.
+Grounds (ed6a1972, dump-only): 43–44% of live friend-rows fall on
+one-legal-action ticks where divergence is 0 by construction, which
+inverts the terciles' ordering; on free-choice rows the terciles are
+flat on the one leg read (act15-s1 at 20×20: seen 0.317 / 0.303 /
+0.328, heard 0.276 / 0.280 / 0.276). No run; zero covered cost. Items
+1 and 3 are a new declaration
+(`gen2-trunk-continuation-2026-11-10/DECLARATION.md`, DRAFT 2026-11-10;
+its entry 31 lands at DECLARED).
+Status: OPEN — the read runs next; CLOSED when the addendum is gated and
+committed.

@@ -82,7 +82,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-016 | active | *(cold: scripted dials, 24×24 lake world)* Raising bath_gain increases scripted on-water time via the grooming channel |
 | F-017 | active | *(cold: exp-003 schema-2 MLPs)* The multi-copy collapse is largely a symmetry artifact; sampling dissolves it |
 | F-018 | active | *(cold: post-028 two-head surface)* The channel is two-layer: legality is engine law, meaning is reward economics |
-| F-019 | active | *(cold: pre-wall 197 surface, global vision)* Clone-then-leash preserves visible personality; unleashed welfare-RL erases it |
+| F-019 | active | Clone-then-leash preserves visible personality; unleashed welfare-RL erases it |
 | F-020 | active | *(cold: pre-fog carrier-seat rates)* Trait prices are social prices: the cost order inverts between scripted and policy company |
 | F-021 | active | Seeing beats pricing: one observation bit bought the water behavior no reward dial could |
 | F-022 | active | *(cold: exp-004 MLPs, 028 surface)* The channel comes alive through demonstration, then the policies author its meanings |
@@ -93,7 +93,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-027 | active | Twin-seating one artifact creates dyadic self-interaction attractors |
 | F-028 | active | *(cold: census instrument provenance)* Census raws are attributable only if the instrument records its own provenance |
 | F-029 | active | *(cold: reader contract shape)* A reader rule copied from the wrong contract shape reports a category that cannot exist |
-| F-030 | active | *(cold: one seed, one λ, bugs-2.0 world)* Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
+| F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
 | F-031 | active | A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception |
 | F-032 | superseded → F-033 | Biscuit's idle read as the legality funnel refusing a partnered ask (inference; narrowed to 45% of idle) |
 | F-033 | active | Every seat pays a partnered-action refusal tax in its own currency; for Biscuit under half her idle, the rest chosen (pre-048 numbers retired by F-039) |
@@ -274,8 +274,74 @@ re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-018).
 
 ## F-019 · active · Clone-then-leash preserves visible personality; unleashed welfare-RL erases it (exp-005, the dose-response)
 
-Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
-re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-019).
+Measured 2026-08-16 on the frozen exp-005 design (β∞ ∈ {0, 0.05,
+0.2} × 2 seeds, A1 recipe, playful-Biscuit clone as init AND anchor,
+fingerprints in the demonstration composition per F-012).
+
+1. **The erosion is real and total at β∞=0**: both control seeds
+   collapse the fingerprint (play_share −68%/−61% relative,
+   bug_over_meal → 0, duets → 5%, near-critters → a quarter) while
+   gaining ~14 happiness — the sunbeam/want-word pattern, now
+   measured end to end on a registered design.
+2. **A held KL floor stops it**: at β∞=0.05 the fingerprint is
+   substantially anchor-grade and welfare still recovers +5–7; at
+   0.2 the fingerprint is anchor-grade and welfare recovers ZERO —
+   the strong leash is expensive cloning. The knee of the trade is
+   at-or-below 0.05; decision metrics saturate between 0.05 and 0.2.
+3. **The leash bound trajectories, not just decisions** (the
+   registered H4 risk did NOT materialize): time_near_critters stays
+   anchor-grade at both doses under global vision.
+4. **The most welfare-expensive expression erodes first, with seed
+   lottery**: duet initiation is the most eroded and most
+   seed-variable metric at every dose (−56/−42% at 0.05, −54/−20% at
+   0.2). A dose alone cannot secure a social-play identity claim;
+   the fingerprint gate needs a floor on the specific expression,
+   and candidates will vary against it seed to seed.
+
+**Scope**: EntityPolicy on the pre-wall 197 surface, global vision,
+the A1 recipe with β0=0.5 annealed over 20% then held, one
+personality (playful) and one methodological anchor at pre-rebalance
+traits. Dose numbers are recipe- and personality-conditional; the
+qualitative structure (collapse at zero, knee near the low end,
+first-eroded = most-expensive expression) is the claim.
+
+**Evidence**: [dose-response](exp-005-leash/results/dose-response-2026-08-16.md);
+[clone + probe](exp-005-leash/results/clone-2026-08-15.md); prereg
+with D-001 extension (β∞ 0.03/0.04, descriptive, pending at
+registration of this finding).
+
+**Implications**: the lineage doctrine for phase 1 — clone from
+healthy-composition demonstrations, PPO with a held-β∞ leash chosen
+from this curve's low end, fingerprint-gate every candidate
+per-expression (duet floors explicitly), expect and budget for seed
+lottery (train several, gate, keep the passers). H4's trajectory
+concern stays registered for the fog era, where the information
+geometry changes.
+
+**Would invalidate**: a personality whose fingerprint collapses at
+doses that preserve this one (would make the curve
+personality-specific in structure, not just magnitude); trajectory
+collapse at a fingerprint-preserving dose under fog (H4's return).
+
+**Re-verify when**: phase-1 lineage arms (production anchors,
+post-rebalance traits, roster-5 world); any recipe change to the
+anneal shape; the fog generation.
+
+*(D-001 extension measured, 2026-08-17 — claim 3 NARROWED and the
+entry's most important nuance found below the frozen doses: H4's
+failure mode is REAL and dose-located. At β∞=0.03, both seeds hold
+decision-level play (play_share .54–.56, duets near-anchor at
+159–167/1k) while time_near_critters collapses to 55–63% of anchor
+and bug_over_meal erodes — the personality RELOCATES to the
+welfare-cheaper venue (kitty play by the pile) rather than fading:
+every decision metric can pass while the visible character changes.
+The trajectory cliff sits in (0.03, 0.04); β∞=0.04 is the measured
+knee (trajectory held .35–.39, decisions anchor-adjacent with the
+curve's tightest seed agreement, +8.2/+8.3 happiness) and is the
+lineage-dose recommendation. Consequence for gates: lineage
+fingerprints carry time_near_critters AND bug_over_meal floors, not
+just decision shares. Full table:
+[dose-response extension](exp-005-leash/results/dose-response-2026-08-16.md).)*
 
 ## F-020 · active · Trait prices are social prices: the cost order inverts between scripted and policy company (the exchange table)
 
@@ -559,8 +625,68 @@ re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-029).
 
 ## F-030 · active · Per-event shaping of a social behavior buys initiation churn, and the KL leash does not prevent it
 
-Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
-re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-030).
+Measured 2026-08-22 by exp-006a's F-duet arm (prereg §3), the single
+shaped arm in a four-arm wave whose other three arms differ only in
+dose. Registered with the arm's own report-only guard as the
+detector.
+
+**The design**: λ = 0.1 added to the TRAINING reward for each seat
+transitioning INTO kitty-partnered play — a per-event bonus on the
+start, not on time spent partnered. State-stream detection, no
+penalties, telemetry unshaped. The prereg's sizing rationale argued
+the term was self-limiting at roughly 1% of per-tick return; at the
+measured scripted-anchor rate it was nearer 2%.
+
+1. **The policy farmed the event, because the event was what paid.**
+   Duet starts began at 30.3 per 1k seat-ticks — below the scripted
+   anchor's 40.49 (`derive_duet_anchor.py`, the trainer's own
+   detector) — crossed the pre-registered 3× grind threshold (121.5)
+   at update 981 / 3.0M ticks of 20M, and climbed monotonically to
+   201.1 final, peak 263.5. 81.6% of all telemetry rows flagged. The
+   fingerprint confirms it out-of-loop at 420.3 starts per 1k
+   decisions, **2.34× the scripted anchor**. Short duets, restarted
+   constantly, maximize a count that pays per start.
+2. **It was paid for out of the venues that paid nothing.**
+   Critter proximity fell to 0.33× anchor and bug-hunting to 0.15×,
+   against G3 floors of 0.70× — the arm fails character on exactly
+   the two dimensions the shaping never touched, while play share
+   *rose* to 1.07×. The shaped behavior did not add; it displaced.
+3. **The leash did not constrain it.** Final KL-to-anchor was 0.597,
+   squarely in family with the unshaped siblings (L-04-s3 0.604,
+   F-dose 0.513/0.549) — decision-level proximity to the anchor was
+   indistinguishable while the behavioral rate ran to 2.34×. This
+   extends F-019's structure: a KL leash bounds the policy
+   distribution per decision, not the emergent rate of a composite
+   behavior assembled from many in-distribution decisions.
+4. **It was not even good for the cat.** Subject happiness 85.12,
+   lowest of the wave (the two G3 passers read 88.48 and 86.65), and
+   the arm's greedy probe nash finished 0.8813 against 0.93+ for
+   every sibling. A ~2%-of-return shaping term bought a large
+   behavioral distortion and negative welfare.
+5. **The cheap report-only guard was the whole defence.** A
+   pre-registered threshold on a metric nobody gated fired at 15% of
+   training and its verdict was later confirmed by an independent
+   instrument (the G3 fingerprint's venue floors). Report-only
+   telemetry with a number declared in advance costs nothing and
+   converts a post-hoc argument into an observation.
+
+**Scope of validity**: one seed, one λ (0.1), one shaped behavior
+(partnered-play start), 20M ticks, dataset v6 on the bugs-2.0 world,
+BC-init + leashed PPO. This is a single point, not a dose-response —
+it does not establish that a smaller λ, or shaping *time partnered*
+rather than *starts*, carries the same defect. The general shape it
+supports is about per-event bonuses on repeatable social acts.
+
+**What would invalidate it**: a λ-sweep in which the churn signature
+disappears below some dose while retention holds (would narrow this
+to "λ ≥ 0.1"); or a duration-shaped arm (reward per tick partnered)
+that reproduces the venue collapse anyway (would move the cause from
+event-vs-state to shaping social behavior at all).
+
+**Re-verify when**: any future arm shapes a countable behavior;
+before adopting shaping as a retention tool in place of the leash;
+and if a duet-time-shaped arm is ever run, compare its venue
+retention against this arm's directly.
 
 ## F-031 · active · A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception
 

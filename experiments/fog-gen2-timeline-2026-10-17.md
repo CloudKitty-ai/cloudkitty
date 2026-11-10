@@ -1119,6 +1119,28 @@ consent BC comparison ride the trunk.
   8M floor still climbing 0.002 return / 1M bin under a 0.005 plateau
   rule; the arms trained 4–7M more. Trunk-continuation run proposed,
   hers to declare.
+  2026-11-10, her word on the four-item proposal, verbatim: "1-3
+  approved. If there is no measurable use of the heads, why are we seeing
+  a negative impact on welfare on the headed arms?" → item 2 landed as
+  deviations entry 30 (R-5 free-choice re-read, zero cost, runs next);
+  items 1 + 3 drafted: `gen2-trunk-continuation-2026-11-10/
+  DECLARATION.md` (DRAFT; nothing runs) — the trunk seeds s1 / s2 / s4
+  resumed from their own checkpoints under their own anchor (the BC
+  clone), schedule, critic and optimiser state, ONE delta: Phase 2's
+  8,002,560-tick floor before the plateau rule may fire; read against
+  the trunk (LONGER) and the no-head arm (DIFFERENT); R-3 replays
+  candidate plateau rules on every recorded bin series for the Gen 3
+  freeze (item 3). Two corrections put to her in its §2.4 before her
+  word to declare: cost 146–208M covered cat-ticks (the proposal said
+  ~105M: it omitted the floor), and the recorded bins lean DIFFERENT —
+  the trunk climbed ~0.001 return / 1M bin (not ~0.002) while the
+  no-head arm STEPPED +0.011–0.015 in its first bin after the restart
+  (anchor moved from the clone to the trunk itself; critic, Adam and
+  entropy schedule reset) and then climbed at the trunk's own rate. Her
+  head question answered from the dumps (draft §2.3): the heads are used
+  on 5–7% of decisions; the welfare gap is a battery (transfer) gap,
+  not a training-return gap; a cells-in-use-by-size read proposed.
+  F-019 and F-030 moved back from FINDINGS-COLD (cited by the draft).
 
 ## Flagged follow-ups (owner's word to start)
 

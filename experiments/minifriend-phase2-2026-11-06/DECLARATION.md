@@ -227,6 +227,19 @@ floor made every arm train 4–7M more and the no-head arm went 0.885 →
 0.905 return (+2.7 happiness), evenly over the five seats — the trunk
 was undertrained; "longer" vs "different" (the new cell, the leash)
 waits on a trunk-continuation run, hers to declare.**
+**HER WORD 2026-11-10: "1-3 approved. If there is no measurable use of the
+heads, why are we seeing a negative impact on welfare on the headed
+arms?"** — item 2 = deviations entry 30 (R-5 re-read on free-choice
+ticks, every leg; P44 not re-scored; addendum to RESULTS §R-5, gated);
+items 1 and 3 = `gen2-trunk-continuation-2026-11-10/DECLARATION.md`
+(DRAFT 2026-11-10, her word to declare asked again on its §2.4
+corrections); item 4 unruled, nothing runs. Her question answered from
+the dumps (that draft's §2.3): the heads ARE used — cells-in-use 0.052–
+0.072 on act15 at stop, head columns at 35–43% of a trunk column's
+norm — and the gap is a battery gap (training-world returns equal),
+inside the edge at 20, beyond it at 40; the act arms trained 2–3M fewer
+ticks on two seeds and sat nearer the trunk (KL 0.36–0.39 vs
+0.38–0.42); a cells-in-use-by-size read is proposed there (call 3).
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
