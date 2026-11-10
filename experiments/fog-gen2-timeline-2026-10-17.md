@@ -1101,6 +1101,24 @@ consent BC comparison ride the trunk.
   act15 everywhere (−0.431 at 40, beyond the edge, descriptive); P46
   MET; P39/P40/P43/P44 NOT MET; P38/P45/P47 UNDECIDABLE; R-2 all
   UNDECIDABLE (thin GRAVE). Open calls to her in RESULTS §Decision rules.
+  Her word on the gated RESULTS 2026-11-09: "B10 vs b15 is not important
+  at this point if both underperform nohead" (open call 1 RETIRED);
+  "I'd like to dig into that [R-5's deviation at low certainty] and see
+  if we can figure out why that's happening, fix it, and evaluate that
+  version (both act only and act+needs) against nohead. Also, what is
+  driving the improvement in nohead, and is that really the optimal
+  architecture?" → analysis first (dump-only), then a declaration on her
+  word.
+  2026-11-10 analysis (diag_r5_counterfactual, dump-only, red CONFIRMED):
+  P44's inversion = composition — 43–44% of rows sit on one-legal-action
+  ticks (zero divergence by construction); on free-choice ticks the
+  head-entropy terciles are flat; the no-head arm shows the same ordering
+  under a shadow head; divergence follows the TRUNK's own entropy
+  (0 / 0.10 / 0.45), head entropy near-independent (Spearman 0.06).
+  Nothing to fix in the policy. Nohead's gain: the trunk stopped at the
+  8M floor still climbing 0.002 return / 1M bin under a 0.005 plateau
+  rule; the arms trained 4–7M more. Trunk-continuation run proposed,
+  hers to declare.
 
 ## Flagged follow-ups (owner's word to start)
 

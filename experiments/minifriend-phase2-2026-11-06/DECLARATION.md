@@ -202,7 +202,31 @@ seeds — descriptive); P46 MET, P39 / P40 / P43 / P44 NOT MET, P38 /
 P45-lived / P47 UNDECIDABLE; R-2 UNDECIDABLE in every stratum (thin
 GRAVE); R-5: act15 diverges less from its trunk than nohead and
 departs where the head is least sure. Open calls to her are listed in
-RESULTS §Decision rules.**
+RESULTS §Decision rules.** **HER WORD ON THE RESULTS 2026-11-09: "B10 vs b15 is not
+important at this point if both underperform nohead" (open call 1
+RETIRED); dig into R-5's inversion (deviation at low certainty), fix it,
+evaluate the fixed version — act only and act+needs — against nohead;
+and: what drives nohead's improvement, is it the optimal architecture.
+Analysis first, dump-only; any run is a new declaration on her word.** **ANALYSIS READ 2026-11-10 (`diag_r5_counterfactual.py`, `reads/r5cf/`;
+30 worlds, both arms, s1 at 20×20): (i) P44's inversion is a COMPOSITION
+effect — 43–44% of live friend-rows fall on ticks where the observer has
+ONE legal action, which cannot diverge (divergence 0 by construction, the
+fence); on free-choice ticks the head-entropy terciles are flat (act15
+seen 0.317 / 0.303 / 0.328, heard 0.276 / 0.280 / 0.276); (ii) the
+no-head arm shows the SAME low < high ordering under a shadow B15 head
+(seen 0.142 / 0.190 / 0.211) although its policy never saw a head — the
+ordering is about situations, not about how the arm uses the head; (iii)
+divergence is driven by the TRUNK's own action entropy (0 / 0.10 / 0.45
+by tercile on act15), with head entropy near-independent of it (Spearman
+0.06) and changing divergence by ≤ 0.011 within a trunk tercile; the act
+arm diverges less than the no-head arm in every cell (0.163 vs 0.182
+overall). Nothing in the policy to fix: the head is not steering choices.
+NOHEAD'S GAIN: the trunk stopped at 8,002,560 ticks on its plateau rule
+(< 0.005 return per 1M bin) while still climbing ~0.002 / bin; Phase 2's
+floor made every arm train 4–7M more and the no-head arm went 0.885 →
+0.905 return (+2.7 happiness), evenly over the five seats — the trunk
+was undertrained; "longer" vs "different" (the new cell, the leash)
+waits on a trunk-continuation run, hers to declare.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -979,6 +1003,7 @@ green; the prediction written before each run):**
 | [g6 extended (entry 29 (C), 2026-11-08: `read_r1` scores what exists when act10 is absent)] | P38's UNDECIDABLE `met: None` turned into `False` with act10 absent | `AssertionError: {'value': None, 'bar': 0.326, 'met': False, 'reason': 'act10 absent (entry 29 (C)): no comparator', …}` on the predicted assertion | CONFIRMED (`results-raw/reds/p2-reds-g6-noact10.log`) |
 | [g10 extended (2026-11-08: the roster legs' trunk seats s6 / s7 join the sha fence, `TRUNK_ROSTER_SHA`; the values equal the trunk arc's 2026-10-20 printed hashes — the first note here said no earlier record existed, corrected 2026-11-09)] | the fence's assertion disabled (`s == s`) | `AssertionError: a wrong recorded sha for trunk-s6 must refuse the final` | CONFIRMED (`results-raw/reds/p2-reds-g10-roster-sha.log`); a first mutant — `.get(k, s)` for the lookup — was VACUOUS because the test plants a wrong value under an EXISTING key, so the fallback never fires; lesson: mutate the assertion, not the lookup |
 | [g8 extended (2026-11-09: read_r5's act fence tie-aware, `fence_act` / `TIE_TOL`)] | the tolerance set to 0 | `the replayed arm act differs from the record at tick 19417 (seat 3): recorded 33 at logit 9.468919, max 9.468924` on the predicted assertion (the within-tolerance case) | CONFIRMED (`results-raw/reds/p2-reds-g8-tie-fence.log`) |
+| [diag_r5_counterfactual (2026-11-09, her "dig into that"; dump-only)] | forced-choice rows marked as diverging | `AssertionError: forced-choice rows must not diverge (one legal action for arm and trunk alike)` | CONFIRMED (`results-raw/reds/p2-reds-diag-r5cf-forced.log`, one world) |
 
 ## 10. Blind spots (declared)
 
