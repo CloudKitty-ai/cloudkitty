@@ -303,6 +303,90 @@ READ): on the nine act15 legs seen and heard divergence are within 0.02
 of each other; the canary at 100 (0.158 vs 0.201) and two no-head legs
 (nohead-s1r-100 0.170 vs 0.199, nohead-s2-20 0.208 vs 0.186) are not.
 
+### R-5 addendum — the within-regime read on free-choice ticks, every recorded leg (deviations entry 30; `reads/r5cf/table.md`; 2026-11-11)
+
+Her word 2026-11-10, "1-3 approved", item 2 of the proposal put to her
+that day: R-5's within-regime half re-read on FREE-CHOICE ticks (the
+observer has more than one legal act) on every recorded leg. P44 is not
+re-scored: NOT MET stands on the frozen read above. A tick with one
+legal act cannot diverge (arm and trunk take the same act), and such
+ticks hold 0.351–0.452 of the live friend-rows on the 21 legs read: 12
+act15 / both legs in mode B (the arm's own B15 head) and 9 no-head legs
+in mode A (a B15 shadow head stepped over the observations of a policy
+that never saw it). The act10 legs are left out (arm dropped by ruling
+(C)). `diag_r5_counterfactual.py` per leg through `run_r5cf.sh`;
+`read_r5cf_table.py` over its files. Terciles low / mid / high of the
+head's entropy, fitted within regime. The divergence column is this
+reader's `tick_divergence_live_rows`, not the frozen table's
+`tick_divergence`: the two print the same value on 20 of the 21 legs
+(p2r-act15-40 prints 0.181 here against 0.180 above).
+
+| leg | mode | forced-choice share | divergence | seen, all rows | seen, free-choice | heard, all rows | heard, free-choice | seen by trunk entropy | Spearman head~trunk entropy | ties |
+|---|---|---|---|---|---|---|---|---|---|---|
+| p2u-act15-s1-20 | B | 0.439 | 0.163 | 0.132 / 0.181 / 0.192 | 0.317 / 0.303 / 0.328 | 0.151 / 0.163 / 0.167 | 0.276 / 0.280 / 0.276 | 0.000 / 0.100 / 0.445 | +0.056 | 2 |
+| p2u-act15-s1-40 | B | 0.396 | 0.154 | 0.115 / 0.170 / 0.184 | 0.264 / 0.268 / 0.286 | 0.147 / 0.157 / 0.156 | 0.245 / 0.253 / 0.248 | 0.000 / 0.093 / 0.402 | +0.048 | 0 |
+| p2u-act15-s1-100 | B | 0.351 | 0.175 | 0.115 / 0.171 / 0.194 | 0.246 / 0.266 / 0.280 | 0.173 / 0.185 / 0.180 | 0.264 / 0.277 / 0.270 | 0.000 / 0.095 / 0.402 | +0.050 | 0 |
+| p2u-act15-s2-20 | B | 0.429 | 0.171 | 0.148 / 0.180 / 0.203 | 0.336 / 0.298 / 0.344 | 0.154 / 0.171 / 0.177 | 0.276 / 0.287 / 0.289 | 0.000 / 0.115 / 0.459 | +0.046 | 0 |
+| p2u-act15-s2-40 | B | 0.385 | 0.170 | 0.137 / 0.169 / 0.199 | 0.289 / 0.270 / 0.309 | 0.162 / 0.175 / 0.175 | 0.265 / 0.275 / 0.273 | 0.000 / 0.105 / 0.427 | +0.040 | 0 |
+| p2u-act15-s4-20 | B | 0.452 | 0.170 | 0.145 / 0.188 / 0.199 | 0.358 / 0.329 / 0.359 | 0.155 / 0.169 / 0.175 | 0.286 / 0.294 / 0.294 | 0.000 / 0.104 / 0.478 | +0.042 | 0 |
+| p2u-act15-s4-40 | B | 0.408 | 0.168 | 0.134 / 0.178 / 0.188 | 0.311 / 0.291 / 0.309 | 0.161 / 0.172 / 0.172 | 0.270 / 0.280 / 0.278 | 0.000 / 0.104 / 0.434 | +0.036 | 0 |
+| p2r-act15-20 | B | 0.448 | 0.177 | 0.150 / 0.192 / 0.203 | 0.351 / 0.337 / 0.359 | 0.163 / 0.175 / 0.181 | 0.297 / 0.304 / 0.305 | 0.000 / 0.119 / 0.479 | +0.046 | 0 |
+| p2r-act15-40 | B | 0.403 | 0.181 | 0.141 / 0.189 / 0.205 | 0.309 / 0.312 / 0.331 | 0.174 / 0.186 / 0.185 | 0.289 / 0.300 / 0.298 | 0.000 / 0.124 / 0.451 | +0.039 | 0 |
+| p2u-both-s1-20 | B | 0.441 | 0.162 | 0.128 / 0.179 / 0.183 | 0.318 / 0.295 / 0.313 | 0.149 / 0.166 / 0.170 | 0.276 / 0.285 / 0.282 | 0.000 / 0.104 / 0.429 | +0.057 | 1 |
+| p2u-both-s1-40 | B | 0.399 | 0.168 | 0.114 / 0.173 / 0.182 | 0.277 / 0.271 / 0.285 | 0.163 / 0.177 / 0.176 | 0.276 / 0.285 / 0.280 | 0.000 / 0.103 / 0.399 | +0.055 | 0 |
+| p2u-both-s1-100 | B | 0.359 | 0.192 | 0.112 / 0.175 / 0.189 | 0.264 / 0.266 / 0.277 | 0.194 / 0.207 / 0.202 | 0.300 / 0.313 / 0.306 | 0.000 / 0.106 / 0.394 | +0.058 | 1 |
+| p2u-nohead-s1-20 | A | 0.434 | 0.182 | 0.142 / 0.190 / 0.211 | 0.342 / 0.312 / 0.359 | 0.168 / 0.185 / 0.194 | 0.302 / 0.313 / 0.317 | 0.000 / 0.126 / 0.466 | +0.055 | 0 |
+| p2u-nohead-s1-40 | A | 0.395 | 0.175 | 0.126 / 0.178 / 0.202 | 0.296 / 0.277 / 0.319 | 0.167 / 0.180 / 0.185 | 0.278 / 0.288 / 0.290 | 0.000 / 0.110 / 0.429 | +0.053 | 0 |
+| p2u-nohead-s1-100 | A | 0.352 | 0.191 | 0.124 / 0.177 / 0.208 | 0.275 / 0.272 / 0.309 | 0.192 / 0.203 / 0.201 | 0.291 / 0.303 / 0.301 | 0.000 / 0.109 / 0.423 | +0.054 | 0 |
+| p2u-nohead-s2-20 | A | 0.438 | 0.194 | 0.173 / 0.207 / 0.244 | 0.394 / 0.365 / 0.421 | 0.175 / 0.188 / 0.195 | 0.318 / 0.321 / 0.322 | 0.000 / 0.132 / 0.546 | +0.055 | 0 |
+| p2u-nohead-s2-40 | A | 0.394 | 0.201 | 0.165 / 0.203 / 0.248 | 0.354 / 0.343 / 0.392 | 0.189 / 0.203 / 0.204 | 0.312 / 0.324 / 0.323 | 0.000 / 0.132 / 0.524 | +0.045 | 1 |
+| p2u-nohead-s4-20 | A | 0.450 | 0.181 | 0.152 / 0.197 / 0.210 | 0.374 / 0.334 / 0.371 | 0.166 / 0.180 / 0.189 | 0.308 / 0.314 / 0.319 | 0.000 / 0.124 / 0.491 | +0.042 | 0 |
+| p2u-nohead-s4-40 | A | 0.416 | 0.175 | 0.141 / 0.188 / 0.202 | 0.338 / 0.300 / 0.332 | 0.166 / 0.178 / 0.180 | 0.285 / 0.295 / 0.295 | 0.000 / 0.125 / 0.451 | +0.036 | 1 |
+| p2r-nohead-20 | A | 0.450 | 0.198 | 0.165 / 0.212 / 0.229 | 0.389 / 0.372 / 0.407 | 0.184 / 0.196 / 0.205 | 0.336 / 0.341 / 0.345 | 0.000 / 0.147 / 0.524 | +0.044 | 0 |
+| p2r-nohead-40 | A | 0.408 | 0.201 | 0.159 / 0.209 / 0.232 | 0.355 / 0.350 / 0.380 | 0.194 / 0.205 / 0.207 | 0.324 / 0.334 / 0.335 | 0.000 / 0.151 / 0.501 | +0.040 | 0 |
+
+Four facts, each from the table's summary lines.
+
+(i) On all rows (the frozen read's binning) the low-entropy tercile
+diverges less than the high one in every leg and both regimes (high
+minus low: seen +0.053 to +0.084, heard +0.006 to +0.027), the no-head
+legs under the shadow head included.
+
+(ii) On free-choice rows the gap's range is seen −0.007 to +0.038,
+heard +0.001 to +0.015. Leg by leg the free-choice gap is −0.11 to
++0.46 of the all-rows gap in the seen regime (median +0.25, smaller on
+every leg) and +0.05 to +1.10 in the heard regime (median +0.55, not
+smaller on p2u-act15-s1-100 and p2u-nohead-s1-100). Low sits above high
+(P44's direction) in four seen legs (p2u-act15-s4-40, p2u-both-s1-20,
+p2u-nohead-s4-20, p2u-nohead-s4-40) and in no heard leg; the seen gap
+is positive on the other 17 legs. By size, over all the legs of that
+size, the seen free-choice gap is −0.006 to +0.027 at 20×20, −0.007 to
++0.038 at 40×40 and +0.013 to +0.034 at 100×100. Entry 30's grounds
+called the free-choice terciles "flat" on act15-s1 at 20×20, which
+they name "the one leg read"; two legs had been read at ed6a1972, that
+one in mode B and p2u-nohead-s1 at 20×20 in mode A. Over the 21 legs,
+on the median leg the free-choice gap is a quarter of the all-rows gap
+when the friend is seen and a little over half when heard, and a
+residual remains.
+
+(iii) The residual does not need the arm to see a head: the no-head
+legs show it under a shadow head (mode A, −0.007 to +0.038), a range
+0.001 wider at the bottom and 0.004 wider at the top than the head
+arms' under their own (mode B, −0.006 to +0.034).
+
+(iv) Divergence follows the trunk's own uncertainty: by the trunk's
+action-entropy tercile the seen divergence is 0.000 in the low tercile,
+0.093–0.151 in the mid and 0.394–0.546 in the high (range over legs),
+and the head's entropy barely tracks the trunk's (Spearman +0.036 to
++0.058).
+
+Guards: the forced-choice fence (a one-legal-act row never diverges;
+red CONFIRMED 2026-11-09, `results-raw/reds/p2-reds-diag-r5cf-forced.log`)
+ran on every leg; the table refuses a partial leg file and a misnamed
+one (reds CONFIRMED 2026-11-11, `results-raw/reds/p2-reds-r5cf-table-partial.log`
+with 29 worlds and `results-raw/reds/p2-reds-r5cf-table-misnamed.log`
+with the file's size changed from 20 to 40).
+
 ## R-6 — the row-only act head beside B10 / B15 (`reads/r6.md`; side read, ruled "run it")
 
 On record since 2026-11-07 (07:03Z, commit 9d1c38e1; zero collection, no
@@ -600,3 +684,26 @@ false "first recorded"), none a reader's number — the record is the
 skill's TRIALS.md. Raw-dir hashes (`scripts/rawdir-hash.sh`):
 artifacts **v1:24b49c55f0e9b5df**, results-raw **v1:e98ca4419ef1d96f**
 (computed 2026-11-09T14:05Z; no raw changed after).
+
+```
+### Read (R-5 addendum, entry 30; fresh outputs to the gate's scratchpad, never over A/reads/; env inline; runtime declared)
+OMP_NUM_THREADS=1 VIRTUAL_ENV=A/.venv A/.venv/bin/python3 -B A/diag_r5_counterfactual.py <seating> <size> <A|B> --out <scratch>/r5cf/<A|B>-<seating>-<size>.json --md   # 20–40 min per leg (30 world replays, arm, trunk and head forwards; measured 2026-11-11 with nine legs at once, `A/run_r5cf.sh 9`); the 21 legs are A/run_r5cf.sh's list — mode B: p2u-act15-s1 (20, 40, 100), p2u-act15-s2 (20, 40), p2u-act15-s4 (20, 40), p2r-act15 (20, 40), p2u-both-s1 (20, 40, 100); mode A: p2u-nohead-s1 (20, 40, 100), p2u-nohead-s2 (20, 40), p2u-nohead-s4 (20, 40), p2r-nohead (20, 40); a gate that regenerates a declared subset says which legs it re-ran and copy-checks the rest (UNDECIDABLE-by-regeneration, never PASS)
+VIRTUAL_ENV=A/.venv A/.venv/bin/python3 -B A/read_r5cf_table.py --dir A/reads/r5cf --out <scratch>/r5cf-table.json --md   # seconds; reads the 21 committed leg files in A/reads/r5cf/
+```
+Accuracy gate stamp, R-5 addendum: **PASS**, 2026-11-11 local
+(2026-11-12T05:25Z), run 4 of 4, fresh subagents in the native checkout,
+Read fence only. Run 1 regenerated two legs fresh (p2r-act15 20 B,
+p2u-nohead-s2 40 A), byte-identical to `A/reads/r5cf/`; every run
+regenerated the table, byte-identical to `A/reads/r5cf/table.{json,md}`;
+runs 2–4 copy-checked all 21 leg files (UNDECIDABLE-by-regeneration).
+Run 4's counts: 263 arithmetic (0 CONTRADICTED, 0 ROUNDING), 1 threshold
+(sourced), 6 characterisation (5 SUPPORTED, 1 WEAK and left as gated:
+"Four facts, each from the table's summary lines" — fact (ii)'s entry-30
+sentence and fact (iii)'s two widths are not summary lines), 15
+provenance (0 misses), 21 UNDECIDABLE. Run 1 passed with three WEAK
+sentences, rewritten; runs 2 and 3 FAILED on one provenance sentence
+each (the record is the skill's TRIALS.md). Raw-dir hashes
+(`scripts/rawdir-hash.sh`): artifacts **v1:24b49c55f0e9b5df** (unchanged
+from the fill), results-raw **v1:f2eadbe149a2372f** (the fill's raws plus
+three red logs under `reds/`: `p2-reds-diag-r5cf-forced.log`,
+`p2-reds-r5cf-table-partial.log`, `p2-reds-r5cf-table-misnamed.log`).

@@ -7,7 +7,7 @@
 set -u
 A="$(cd "$(dirname "$0")" && pwd)"
 W="${1:-8}"
-LOGS="$A/results-raw/r5cf-logs"; mkdir -p "$LOGS" "$A/reads/r5cf"
+LOGS="$A/reads/r5cf/logs"; mkdir -p "$LOGS" "$A/reads/r5cf"   # ignored; never under results-raw (its raw-dir hash is stamped)
 LEGS="B p2u-act15-s1 20
 B p2u-act15-s1 40
 B p2u-act15-s1 100

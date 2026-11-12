@@ -1169,6 +1169,17 @@ consent BC comparison ride the trunk.
   recorded with it (draft §2.3): "act15 sat nearer the trunk with lower
   entropy" rested on single final-update values and is withdrawn (bin
   means show no contrast).
+  2026-11-11, entry 30 CLOSED: R-5 on free-choice ticks read on 21
+  recorded legs (`minifriend-phase2-2026-11-06/reads/r5cf/table.md`;
+  addendum in RESULTS §R-5, gated). Forced-choice ticks hold
+  0.351–0.452 of live friend-rows; the high-minus-low gap falls from
+  +0.053 to +0.084 (seen, all rows) to −0.007 to +0.038 on free-choice
+  rows (heard: +0.006 to +0.027 → +0.001 to +0.015); the no-head legs
+  show a residual over a similar range under a shadow head (−0.007 to
+  +0.038 against the head arms' −0.006 to +0.034; it does not need the
+  arm to see a head). Leg by leg the free-choice gap is −0.11 to +0.46 of
+  the all-rows gap when seen (median +0.25) and +0.05 to +1.10 when
+  heard (median +0.55): a residual remains. P44 not re-scored.
 
 ## Flagged follow-ups (owner's word to start)
 

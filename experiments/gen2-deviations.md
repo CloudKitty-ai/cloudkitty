@@ -2242,5 +2242,18 @@ flat on the one leg read (act15-s1 at 20×20: seen 0.317 / 0.303 /
 1 and 3 are a new declaration
 (`gen2-trunk-continuation-2026-11-10/DECLARATION.md`, DRAFT 2026-11-10;
 its entry 31 lands at DECLARED).
-Status: OPEN — the read runs next; CLOSED when the addendum is gated and
-committed.
+Status: CLOSED 2026-11-11 — read on 21 recorded legs (12 act15 / both
+in mode B, 9 no-head in mode A under a B15 shadow head; act10 left out,
+ruling (C)) by `run_r5cf.sh`; tabulated by `read_r5cf_table.py`
+(`minifriend-phase2-2026-11-06/reads/r5cf/table.md`); addendum in
+RESULTS §R-5, gated. What it found against these grounds: forced-choice
+ticks hold 0.351–0.452 of live friend-rows; on free-choice rows the
+high-minus-low gap is −0.007 to +0.038 (seen) and +0.001 to +0.015
+(heard) against +0.053 to +0.084 and +0.006 to +0.027 on all rows —
+leg by leg the free-choice gap is −0.11 to +0.46 of the all-rows gap
+when seen (median +0.25) and +0.05 to +1.10 when heard (median +0.55):
+a residual remains, and the no-head legs show it under a shadow head.
+P44 not re-scored. CORRECTION 2026-11-11 (accuracy gate run 2): the
+grounds above say "the one leg read"; two legs had been read at
+ed6a1972 — p2u-act15-s1 at 20×20 in mode B, whose figures the grounds
+quote, and p2u-nohead-s1 at 20×20 in mode A.

@@ -7,6 +7,7 @@ never tabulated. P44 is NOT re-scored (entry 30): the ordering column is reporte
 """
 import argparse
 import json
+import statistics
 from pathlib import Path
 
 WORLDS = 30
@@ -47,7 +48,19 @@ def table(d):
         "free_choice_spread_max": {g: max(v["free_choice_spread"][g] for v in L) for g in REGIMES},
         "all_rows_high_minus_low_range": {g: [min(v["all_rows_high_minus_low"][g] for v in L), max(v["all_rows_high_minus_low"][g] for v in L)] for g in REGIMES},
         "free_choice_high_minus_low_range": {g: [min(v["free_choice_high_minus_low"][g] for v in L), max(v["free_choice_high_minus_low"][g] for v in L)] for g in REGIMES},
-        "spearman_head_vs_trunk_entropy_range": [min(v["spearman_head_vs_trunk_entropy"] for v in L), max(v["spearman_head_vs_trunk_entropy"] for v in L)]}
+        "spearman_head_vs_trunk_entropy_range": [min(v["spearman_head_vs_trunk_entropy"] for v in L), max(v["spearman_head_vs_trunk_entropy"] for v in L)],
+        "free_choice_low_gt_high_seen_legs": [f"{v['seating']}-{v['size']}" for v in L if v["low_gt_high_free_choice"]["seen"]],
+        "free_choice_high_minus_low_seen_by_size": {str(z): [min(v["free_choice_high_minus_low"]["seen"] for v in L if v["size"] == z),
+                                                             max(v["free_choice_high_minus_low"]["seen"] for v in L if v["size"] == z)] for z in (20, 40, 100)},
+        "free_choice_high_minus_low_seen_by_mode": {m: [min(v["free_choice_high_minus_low"]["seen"] for v in L if v["mode"] == m),
+                                                        max(v["free_choice_high_minus_low"]["seen"] for v in L if v["mode"] == m)] for m in ("B", "A")},
+        "seen_by_trunk_entropy_range": {t: [min(v["by_trunk_entropy"]["seen"][t] for v in L), max(v["by_trunk_entropy"]["seen"][t] for v in L)] for t in TERCILES},
+        # the free-choice gap as a fraction of the all-rows gap (high minus low), leg by leg
+        "free_over_all_gap": {g: {"min": min(v["free_choice_high_minus_low"][g] / v["all_rows_high_minus_low"][g] for v in L),
+                                  "median": statistics.median(v["free_choice_high_minus_low"][g] / v["all_rows_high_minus_low"][g] for v in L),
+                                  "max": max(v["free_choice_high_minus_low"][g] / v["all_rows_high_minus_low"][g] for v in L),
+                                  "legs_free_gap_not_smaller": [f"{v['seating']}-{v['size']}" for v in L
+                                                                if v["free_choice_high_minus_low"][g] >= v["all_rows_high_minus_low"][g]]} for g in REGIMES}}
     return out
 
 
@@ -72,7 +85,15 @@ def md(out):
           f"free-choice: seen {s['free_choice_high_minus_low_range']['seen'][0]:+.3f} to {s['free_choice_high_minus_low_range']['seen'][1]:+.3f}, "
           f"heard {s['free_choice_high_minus_low_range']['heard'][0]:+.3f} to {s['free_choice_high_minus_low_range']['heard'][1]:+.3f}; "
           f"largest free-choice tercile spread {s['free_choice_spread_max']['seen']:.3f} (seen) / {s['free_choice_spread_max']['heard']:.3f} (heard); "
-          f"Spearman head ~ trunk entropy {s['spearman_head_vs_trunk_entropy_range'][0]:+.3f} to {s['spearman_head_vs_trunk_entropy_range'][1]:+.3f}."]
+          f"Spearman head ~ trunk entropy {s['spearman_head_vs_trunk_entropy_range'][0]:+.3f} to {s['spearman_head_vs_trunk_entropy_range'][1]:+.3f}.", "",
+          "Free-choice seen legs with low above high: " + ", ".join(s["free_choice_low_gt_high_seen_legs"]) + ". Free-choice seen high minus low by size: "
+          + "; ".join(f"{z}×{z} {r[0]:+.3f} to {r[1]:+.3f}" for z, r in s["free_choice_high_minus_low_seen_by_size"].items())
+          + "; by mode: " + "; ".join(f"{m} {r[0]:+.3f} to {r[1]:+.3f}" for m, r in s["free_choice_high_minus_low_seen_by_mode"].items())
+          + ". Seen divergence by the trunk's own action-entropy tercile, range over legs: "
+          + "; ".join(f"{t} {r[0]:.3f}–{r[1]:.3f}" for t, r in s["seen_by_trunk_entropy_range"].items()) + ".", "",
+          "Free-choice gap as a fraction of the all-rows gap (high minus low), leg by leg: "
+          + "; ".join(f"{g} {r['min']:+.2f} to {r['max']:+.2f}, median {r['median']:+.2f}, not smaller on "
+                      f"{', '.join(r['legs_free_gap_not_smaller']) or 'no leg'}" for g, r in s["free_over_all_gap"].items()) + "."]
     return "\n".join(L) + "\n"
 
 

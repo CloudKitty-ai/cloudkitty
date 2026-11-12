@@ -2063,3 +2063,58 @@ Lessons:
     each round still regenerated the cheap half and verified the
     expensive half had not drifted; the 14-hour full replay was declared
     in the document and run once.
+
+## 2026-11-11 — Phase 2 RESULTS §R-5 addendum, deviations entry 30 (Experiments)
+
+Four rounds, PASS at round 4; fresh subagent each round, native
+checkout, Read fence only. Same-commit copy checks: entry 30's `Status:
+CLOSED` paragraph and the timeline paragraph. Every reader-backed number
+matched from round 1: round 1 regenerated two of the 21 legs fresh
+(p2r-act15 20 B, p2u-nohead-s2 40 A; byte-identical to `reads/r5cf/`)
+and the table; rounds 2–4 regenerated the table only (byte-identical
+each time) and copy-checked the 21 leg files, each round re-deriving
+every prose range, median, count and leg list with its own script from
+the leg JSONs.
+
+- Round 1: PASS, three WEAK characterisations, all hand-written: "the
+  gap shrinks" (the heard gap does not on two 100×100 legs); a by-size
+  range placed after "the other 17 legs" that covered all 21; "mostly
+  composition" (true for seen, about half for heard). The subagent also
+  noticed the addendum's divergence column is a different field from the
+  frozen table's (one leg prints 0.181 against 0.180) and that a
+  timeline sentence had no backing in the addendum. All rewritten on
+  ratios added to the reader's summary; the changed text was re-gated.
+- Round 2: FAIL, one provenance CONTRADICTED: "the one leg then read" —
+  the cited commit held two legs (one per mode). The slip was copied
+  from entry 30's own grounds; the closure carries a dated CORRECTION.
+- Round 3: FAIL, one provenance miss: a red dated by its commit day
+  (2026-11-10) where its log ran 2026-11-09 and the sibling red in the
+  same sentence was dated by run day. Two WEAK: "over the same range"
+  for two ranges 0.001 / 0.004 apart; "refuses a partial or misnamed leg
+  file (red …)" where only the partial half had a red — the misnamed
+  half was redded through mutate.sh before round 4.
+- Round 4: PASS; 263 arithmetic, 1 threshold, 6 characterisation (1
+  WEAK, left as gated: "each from the table's summary lines" over two
+  facts that also carry a non-summary sentence), 15 provenance, 21
+  UNDECIDABLE-by-regeneration.
+
+Lessons:
+
+116. **A PASS with WEAK sentences that you then rewrite is not a gated
+    text.** Round 1 passed; fixing its three WEAK sentences produced the
+    two sentences that failed rounds 2 and 3. Re-gate after any edit,
+    including edits the gate itself prompted (lesson 112 once more).
+117. **Quoting a record does not verify it.** "The one leg read" was
+    entry 30's wording, quoted faithfully and false: check a quoted
+    count against the commit it describes, and correct the source with a
+    dated note.
+118. **One date convention per sentence.** A red has a run day and a
+    commit day; say which, and use the same one for every red named
+    beside it.
+119. **An assert with two halves owes two reds.** `a and b` redded
+    through `a` alone says nothing about `b`; the write-up's "partial or
+    misnamed" claimed both.
+120. **Point the fresh subagent at git history and file mtimes for
+    provenance, not only at current text.** Rounds 2–3 found what round
+    1 could not because the brief said so.
+

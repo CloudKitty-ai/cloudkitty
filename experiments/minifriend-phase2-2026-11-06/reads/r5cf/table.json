@@ -1,0 +1,1473 @@
+{
+ "legs": {
+  "B-p2u-act15-s1-20": {
+   "mode": "B",
+   "seating": "p2u-act15-s1",
+   "size": 20,
+   "ties": 2,
+   "forced_choice_share": 0.4393016148128176,
+   "tick_divergence": 0.16344899284426226,
+   "spearman_head_vs_trunk_entropy": 0.05577668191443494,
+   "all_rows": {
+    "seen": {
+     "low": 0.13218042162571006,
+     "mid": 0.1809548087317081,
+     "high": 0.19205240315580582
+    },
+    "heard": {
+     "low": 0.15069476524334158,
+     "mid": 0.16349747399386955,
+     "high": 0.16675387875775097
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3174426648155619,
+     "mid": 0.3029455377175172,
+     "high": 0.3279415399078323
+    },
+    "heard": {
+     "low": 0.27553296450107284,
+     "mid": 0.2796312433874213,
+     "high": 0.27630988433934195
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.10044743767215884,
+     "high": 0.44510636814918647
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.09263321062671558,
+     "high": 0.4128350317172012
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.024996002190315114,
+    "heard": 0.00409827888634845
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.059871981530095764,
+    "heard": 0.01605911351440939
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.010498875092270432,
+    "heard": 0.0007769198382691078
+   }
+  },
+  "B-p2u-act15-s1-40": {
+   "mode": "B",
+   "seating": "p2u-act15-s1",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.3962253213142036,
+   "tick_divergence": 0.15425333859153575,
+   "spearman_head_vs_trunk_entropy": 0.048214666652674716,
+   "all_rows": {
+    "seen": {
+     "low": 0.11494583612621438,
+     "mid": 0.16985914719895281,
+     "high": 0.18436439934434465
+    },
+    "heard": {
+     "low": 0.14663101198495546,
+     "mid": 0.15699429529456654,
+     "high": 0.15637614833236335
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.26356098606396905,
+     "mid": 0.26771293240638705,
+     "high": 0.2856553294023609
+    },
+    "heard": {
+     "low": 0.24542583087535128,
+     "mid": 0.2525302259741029,
+     "high": 0.2482460739520136
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.09342671211366504,
+     "high": 0.4016291602215458
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.08708754266218795,
+     "high": 0.38603202124106917
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.02209434333839183,
+    "heard": 0.007104395098751631
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06941856321813027,
+    "heard": 0.009745136347407896
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.02209434333839183,
+    "heard": 0.0028202430766623154
+   }
+  },
+  "B-p2u-act15-s1-100": {
+   "mode": "B",
+   "seating": "p2u-act15-s1",
+   "size": 100,
+   "ties": 0,
+   "forced_choice_share": 0.350651767394456,
+   "tick_divergence": 0.1747133985933445,
+   "spearman_head_vs_trunk_entropy": 0.049770613381828886,
+   "all_rows": {
+    "seen": {
+     "low": 0.11477757499893168,
+     "mid": 0.17118611033230602,
+     "high": 0.1935387713326232
+    },
+    "heard": {
+     "low": 0.17339163512622652,
+     "mid": 0.18520297901668215,
+     "high": 0.1796482527890834
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.245776922335312,
+     "mid": 0.2663762901240413,
+     "high": 0.27988052095617666
+    },
+    "heard": {
+     "low": 0.2638295442697343,
+     "mid": 0.27749306647151173,
+     "high": 0.27022404269844225
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.09502375114924916,
+     "high": 0.4019423709098792
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.10351084996373364,
+     "high": 0.4357989107760334
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.03410359862086465,
+    "heard": 0.013663522201777412
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.07876119633369152,
+    "heard": 0.006256617662856873
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.03410359862086465,
+    "heard": 0.006394498428707929
+   }
+  },
+  "B-p2u-act15-s2-20": {
+   "mode": "B",
+   "seating": "p2u-act15-s2",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.4285889943022084,
+   "tick_divergence": 0.17115555897760248,
+   "spearman_head_vs_trunk_entropy": 0.045872009894358294,
+   "all_rows": {
+    "seen": {
+     "low": 0.14810821659787765,
+     "mid": 0.17982053520367497,
+     "high": 0.20329994448414968
+    },
+    "heard": {
+     "low": 0.15448810215264733,
+     "mid": 0.17057397855214484,
+     "high": 0.1770948535326973
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3357120426603466,
+     "mid": 0.2983794993334321,
+     "high": 0.3444905939860761
+    },
+    "heard": {
+     "low": 0.2763277278114566,
+     "mid": 0.2865213618625952,
+     "high": 0.28885128093971707
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.11459154203091963,
+     "high": 0.4592003530370644
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.10461656169596983,
+     "high": 0.421729819887571
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.046111094652644014,
+    "heard": 0.012523553128260478
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.055191727886272024,
+    "heard": 0.022606751380049972
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.008778551325729522,
+    "heard": 0.012523553128260478
+   }
+  },
+  "B-p2u-act15-s2-40": {
+   "mode": "B",
+   "seating": "p2u-act15-s2",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.38468401465904883,
+   "tick_divergence": 0.16993557161374395,
+   "spearman_head_vs_trunk_entropy": 0.040353665258616216,
+   "all_rows": {
+    "seen": {
+     "low": 0.13677555070922195,
+     "mid": 0.16941374216879743,
+     "high": 0.19930796846468662
+    },
+    "heard": {
+     "low": 0.16184415325463333,
+     "mid": 0.17500500257579435,
+     "high": 0.17475865249862518
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.288694887467204,
+     "mid": 0.2697092837871876,
+     "high": 0.30858404154794333
+    },
+    "heard": {
+     "low": 0.265485457380997,
+     "mid": 0.27488942390971327,
+     "high": 0.2732490890399288
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.1051068405850311,
+     "high": 0.42675645872047174
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.10623185070295692,
+     "high": 0.41744366248153303
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.03887475776075572,
+    "heard": 0.009403966528716279
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06253241775546467,
+    "heard": 0.01291449924399185
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.019889154080739324,
+    "heard": 0.007763631658931791
+   }
+  },
+  "B-p2u-act15-s4-20": {
+   "mode": "B",
+   "seating": "p2u-act15-s4",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.45240273020628397,
+   "tick_divergence": 0.17047286359205727,
+   "spearman_head_vs_trunk_entropy": 0.041621028070223116,
+   "all_rows": {
+    "seen": {
+     "low": 0.14519814716738672,
+     "mid": 0.18826602073817583,
+     "high": 0.19928569700326101
+    },
+    "heard": {
+     "low": 0.15481360947925515,
+     "mid": 0.16896236652842084,
+     "high": 0.17498454555969004
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.35838300625119646,
+     "mid": 0.32905496571408954,
+     "high": 0.35905367315550096
+    },
+    "heard": {
+     "low": 0.28598874670007607,
+     "mid": 0.29388360069494207,
+     "high": 0.2944519990072256
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.1035499903758026,
+     "high": 0.47815386021615947
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.09797733507434528,
+     "high": 0.42906369186186794
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.02999870744141142,
+    "heard": 0.008463252307149505
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.0540875498358743,
+    "heard": 0.02017093608043488
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.0006706669043045066,
+    "heard": 0.008463252307149505
+   }
+  },
+  "B-p2u-act15-s4-40": {
+   "mode": "B",
+   "seating": "p2u-act15-s4",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.40785861620871183,
+   "tick_divergence": 0.16787456789522068,
+   "spearman_head_vs_trunk_entropy": 0.035720294917503594,
+   "all_rows": {
+    "seen": {
+     "low": 0.1339878515154015,
+     "mid": 0.1784970580879546,
+     "high": 0.18839469446674828
+    },
+    "heard": {
+     "low": 0.16058627702884828,
+     "mid": 0.171924484022814,
+     "high": 0.17220762090659467
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.31127426330081465,
+     "mid": 0.2913692034584488,
+     "high": 0.30855878507492707
+    },
+    "heard": {
+     "low": 0.2703762859016499,
+     "mid": 0.27995140025989596,
+     "high": 0.27833540047105454
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.10377186305618384,
+     "high": 0.4335241956360541
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.10620905559742594,
+     "high": 0.41685957796270967
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": true,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.019905059842365846,
+    "heard": 0.00957511435824604
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.05440684295134679,
+    "heard": 0.011621343877746382
+   },
+   "free_choice_high_minus_low": {
+    "seen": -0.00271547822588758,
+    "heard": 0.007959114569404624
+   }
+  },
+  "B-p2r-act15-20": {
+   "mode": "B",
+   "seating": "p2r-act15",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.44799451709576826,
+   "tick_divergence": 0.1767712407267768,
+   "spearman_head_vs_trunk_entropy": 0.04583088092483941,
+   "all_rows": {
+    "seen": {
+     "low": 0.15040585755833094,
+     "mid": 0.1923715112321307,
+     "high": 0.2031648076469176
+    },
+    "heard": {
+     "low": 0.16263374042001247,
+     "mid": 0.17545977203051413,
+     "high": 0.18127921333294567
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.35106027263042483,
+     "mid": 0.33737886254726424,
+     "high": 0.359270599442063
+    },
+    "heard": {
+     "low": 0.296708785020849,
+     "mid": 0.3041574464402715,
+     "high": 0.3045093959656872
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.11862026049516383,
+     "high": 0.47913019870984475
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.11005653963282683,
+     "high": 0.44002623927381035
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.021891736894798786,
+    "heard": 0.007800610944838193
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.052758950088586665,
+    "heard": 0.018645472912933198
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.008210326811638191,
+    "heard": 0.007800610944838193
+   }
+  },
+  "B-p2r-act15-40": {
+   "mode": "B",
+   "seating": "p2r-act15",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.4027363949368116,
+   "tick_divergence": 0.18058944303009467,
+   "spearman_head_vs_trunk_entropy": 0.039364742037102794,
+   "all_rows": {
+    "seen": {
+     "low": 0.1414120186226894,
+     "mid": 0.18911259753588133,
+     "high": 0.20479440751303488
+    },
+    "heard": {
+     "low": 0.1735967998362684,
+     "mid": 0.18605147198433697,
+     "high": 0.18520372465193122
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.30943050571973635,
+     "mid": 0.3124753211691567,
+     "high": 0.33127025959834344
+    },
+    "heard": {
+     "low": 0.2890655497029135,
+     "mid": 0.29997752150509577,
+     "high": 0.29789324320527283
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.12374782793682708,
+     "high": 0.45057064614781617
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.12380993475027095,
+     "high": 0.44048971590436237
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.021839753878607093,
+    "heard": 0.010911971802182285
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06338238889034548,
+    "heard": 0.011606924815662806
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.021839753878607093,
+    "heard": 0.008827693502359346
+   }
+  },
+  "B-p2u-both-s1-20": {
+   "mode": "B",
+   "seating": "p2u-both-s1",
+   "size": 20,
+   "ties": 1,
+   "forced_choice_share": 0.4411724243510065,
+   "tick_divergence": 0.162190874775632,
+   "spearman_head_vs_trunk_entropy": 0.05706826015575376,
+   "all_rows": {
+    "seen": {
+     "low": 0.12803554965934388,
+     "mid": 0.17881144177366043,
+     "high": 0.18295159422570997
+    },
+    "heard": {
+     "low": 0.14931638385134216,
+     "mid": 0.16596594308452883,
+     "high": 0.16950557973149802
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3182970345434111,
+     "mid": 0.29510862417351175,
+     "high": 0.3126190659648694
+    },
+    "heard": {
+     "low": 0.27592949436911673,
+     "mid": 0.28494220807255966,
+     "high": 0.28169483234372844
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.10414638381443361,
+     "high": 0.4286877712319834
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.09869039212211514,
+     "high": 0.41312787092239606
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": true,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.023188410369899326,
+    "heard": 0.00901271370344292
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.05491604456636609,
+    "heard": 0.020189195880155858
+   },
+   "free_choice_high_minus_low": {
+    "seen": -0.005677968578541692,
+    "heard": 0.005765337974611706
+   }
+  },
+  "B-p2u-both-s1-40": {
+   "mode": "B",
+   "seating": "p2u-both-s1",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.39887247524531144,
+   "tick_divergence": 0.16803260126023262,
+   "spearman_head_vs_trunk_entropy": 0.0550880417464282,
+   "all_rows": {
+    "seen": {
+     "low": 0.11444539503050141,
+     "mid": 0.1733653598472696,
+     "high": 0.18200526521840613
+    },
+    "heard": {
+     "low": 0.16337708374202767,
+     "mid": 0.17748917452500745,
+     "high": 0.1758528063060318
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.27675774200831593,
+     "mid": 0.2711066651065366,
+     "high": 0.2847523101187072
+    },
+    "heard": {
+     "low": 0.27605130030237257,
+     "mid": 0.2846291714797161,
+     "high": 0.2799243873599459
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.10261435188851588,
+     "high": 0.3987258196805157
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.10827199045391364,
+     "high": 0.42532696403524
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.013645645012170637,
+    "heard": 0.008577871177343543
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06755987018790471,
+    "heard": 0.012475722564004144
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.007994568110391287,
+    "heard": 0.0038730870575733323
+   }
+  },
+  "B-p2u-both-s1-100": {
+   "mode": "B",
+   "seating": "p2u-both-s1",
+   "size": 100,
+   "ties": 1,
+   "forced_choice_share": 0.35900045854408236,
+   "tick_divergence": 0.19173560014817823,
+   "spearman_head_vs_trunk_entropy": 0.05826515809685107,
+   "all_rows": {
+    "seen": {
+     "low": 0.11153636193860107,
+     "mid": 0.17468931179914834,
+     "high": 0.18897600090025057
+    },
+    "heard": {
+     "low": 0.19414628274602488,
+     "mid": 0.20711627690106835,
+     "high": 0.2015688549131627
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.2642511408647368,
+     "mid": 0.26646366534091603,
+     "high": 0.2772474322910518
+    },
+    "heard": {
+     "low": 0.3003752281810033,
+     "mid": 0.31300891539829256,
+     "high": 0.3061286459799266
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.10640050488678415,
+     "high": 0.3938644093362687
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.12933358918342433,
+     "high": 0.477792427292277
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.012996291426315032,
+    "heard": 0.012633687217289247
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.0774396389616495,
+    "heard": 0.00742257216713782
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.012996291426315032,
+    "heard": 0.005753417798923299
+   }
+  },
+  "A-p2u-nohead-s1-20": {
+   "mode": "A",
+   "seating": "p2u-nohead-s1",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.4340247373920007,
+   "tick_divergence": 0.18166830373062895,
+   "spearman_head_vs_trunk_entropy": 0.05494150024946622,
+   "all_rows": {
+    "seen": {
+     "low": 0.14159375371306215,
+     "mid": 0.19005075680154412,
+     "high": 0.2107573324333497
+    },
+    "heard": {
+     "low": 0.16764875866140508,
+     "mid": 0.18482948740575758,
+     "high": 0.1942330606150496
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3418332274242356,
+     "mid": 0.3123924420973806,
+     "high": 0.3594503901908374
+    },
+    "heard": {
+     "low": 0.3024475153817776,
+     "mid": 0.3129941306798305,
+     "high": 0.31715437467225827
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.1263190979698474,
+     "high": 0.4659472270500869
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.11980657862043921,
+     "high": 0.4558171985009044
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.047057948093456814,
+    "heard": 0.014706859290480656
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06916357872028756,
+    "heard": 0.02658430195364453
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.0176171627666018,
+    "heard": 0.014706859290480656
+   }
+  },
+  "A-p2u-nohead-s1-40": {
+   "mode": "A",
+   "seating": "p2u-nohead-s1",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.39530757765446445,
+   "tick_divergence": 0.1747104300240297,
+   "spearman_head_vs_trunk_entropy": 0.05308058879312396,
+   "all_rows": {
+    "seen": {
+     "low": 0.126337670830001,
+     "mid": 0.1784294445686554,
+     "high": 0.2019005078224857
+    },
+    "heard": {
+     "low": 0.16708640069039637,
+     "mid": 0.18035130280520517,
+     "high": 0.18462229172116484
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.2961558612489179,
+     "mid": 0.2773242274934792,
+     "high": 0.3193935465466865
+    },
+    "heard": {
+     "low": 0.2776560987344469,
+     "mid": 0.2880740764586583,
+     "high": 0.2902255137404236
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.1100624661285262,
+     "high": 0.42936317390509954
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.11058957265259312,
+     "high": 0.4364231649690529
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.04206931905320732,
+    "heard": 0.012569415005976692
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.0755628369924847,
+    "heard": 0.01753589103076847
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.023237685297768595,
+    "heard": 0.012569415005976692
+   }
+  },
+  "A-p2u-nohead-s1-100": {
+   "mode": "A",
+   "seating": "p2u-nohead-s1",
+   "size": 100,
+   "ties": 0,
+   "forced_choice_share": 0.3523448082642768,
+   "tick_divergence": 0.19123933226657744,
+   "spearman_head_vs_trunk_entropy": 0.05444666738564021,
+   "all_rows": {
+    "seen": {
+     "low": 0.12355306808086894,
+     "mid": 0.17738591699548245,
+     "high": 0.20804181212747402
+    },
+    "heard": {
+     "low": 0.19196463099305996,
+     "mid": 0.20345124596337033,
+     "high": 0.20129383393106232
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.2751219244713381,
+     "mid": 0.27186781817741973,
+     "high": 0.308659217877095
+    },
+    "heard": {
+     "low": 0.2910303270135226,
+     "mid": 0.30308060894355165,
+     "high": 0.3012983201698236
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.10947064649848984,
+     "high": 0.42309644207422076
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.12836600870380896,
+     "high": 0.4684425679336068
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.036791399699675265,
+    "heard": 0.01205028193002905
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.08448874404660509,
+    "heard": 0.009329202938002351
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.033537293405756896,
+    "heard": 0.010267993156301003
+   }
+  },
+  "A-p2u-nohead-s2-20": {
+   "mode": "A",
+   "seating": "p2u-nohead-s2",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.43787474448362856,
+   "tick_divergence": 0.19423757451926466,
+   "spearman_head_vs_trunk_entropy": 0.05476379397794917,
+   "all_rows": {
+    "seen": {
+     "low": 0.1725362696684354,
+     "mid": 0.20686862958666352,
+     "high": 0.2439311992420602
+    },
+    "heard": {
+     "low": 0.17537718511089237,
+     "mid": 0.18848194250106978,
+     "high": 0.19528263457423878
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3940171282060546,
+     "mid": 0.36498584475946416,
+     "high": 0.4210532428017311
+    },
+    "heard": {
+     "low": 0.3181144283104942,
+     "mid": 0.3211149306601173,
+     "high": 0.32183412673757567
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.13172052725515593,
+     "high": 0.5463222854899417
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.12087997797030767,
+     "high": 0.4690397432185948
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.05606739804226696,
+    "heard": 0.003719698427081475
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.07139492957362478,
+    "heard": 0.01990544946334641
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.027036114595676508,
+    "heard": 0.003719698427081475
+   }
+  },
+  "A-p2u-nohead-s2-40": {
+   "mode": "A",
+   "seating": "p2u-nohead-s2",
+   "size": 40,
+   "ties": 1,
+   "forced_choice_share": 0.3940752352587569,
+   "tick_divergence": 0.2005917408017811,
+   "spearman_head_vs_trunk_entropy": 0.04528044457171705,
+   "all_rows": {
+    "seen": {
+     "low": 0.16530157828857736,
+     "mid": 0.2032097879247264,
+     "high": 0.24803182646860833
+    },
+    "heard": {
+     "low": 0.18893860214242528,
+     "mid": 0.20342645400220008,
+     "high": 0.20365925312992175
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.354042165263734,
+     "mid": 0.34343435936583244,
+     "high": 0.39170825263237585
+    },
+    "heard": {
+     "low": 0.3121304108963679,
+     "mid": 0.3235853901694813,
+     "high": 0.32337205691891546
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.13232755423815942,
+     "high": 0.5241560579641826
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.13359323180613483,
+     "high": 0.4805536201772575
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.04827389326654341,
+    "heard": 0.011454979273113397
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.08273024818003097,
+    "heard": 0.014720650987496475
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.037666087368641854,
+    "heard": 0.011241646022547569
+   }
+  },
+  "A-p2u-nohead-s4-20": {
+   "mode": "A",
+   "seating": "p2u-nohead-s4",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.45026621623053437,
+   "tick_divergence": 0.1814208193698327,
+   "spearman_head_vs_trunk_entropy": 0.04192513785977299,
+   "all_rows": {
+    "seen": {
+     "low": 0.15248996693505643,
+     "mid": 0.19690725004832213,
+     "high": 0.20992533481764786
+    },
+    "heard": {
+     "low": 0.166409563049692,
+     "mid": 0.179623472939226,
+     "high": 0.18912339944271167
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3735896835181323,
+     "mid": 0.3335859626842551,
+     "high": 0.3708581801981263
+    },
+    "heard": {
+     "low": 0.3082742413665435,
+     "mid": 0.31449196923920447,
+     "high": 0.31872073075259943
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.12356699453473648,
+     "high": 0.4905574028341076
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.11867465522710278,
+     "high": 0.45146155709054897
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": true,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.04000372083387721,
+    "heard": 0.010446489386055913
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.05743536788259143,
+    "heard": 0.02271383639301966
+   },
+   "free_choice_high_minus_low": {
+    "seen": -0.0027315033200060457,
+    "heard": 0.010446489386055913
+   }
+  },
+  "A-p2u-nohead-s4-40": {
+   "mode": "A",
+   "seating": "p2u-nohead-s4",
+   "size": 40,
+   "ties": 1,
+   "forced_choice_share": 0.416071973541553,
+   "tick_divergence": 0.175331917040528,
+   "spearman_head_vs_trunk_entropy": 0.03552691055801589,
+   "all_rows": {
+    "seen": {
+     "low": 0.14054422690805582,
+     "mid": 0.18770676446493487,
+     "high": 0.20216809882165965
+    },
+    "heard": {
+     "low": 0.16621219928007253,
+     "mid": 0.1782376862316751,
+     "high": 0.1796918166723246
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3384050497260499,
+     "mid": 0.299657600540158,
+     "high": 0.3315281608456694
+    },
+    "heard": {
+     "low": 0.28508147529377614,
+     "mid": 0.29473308790509584,
+     "high": 0.29465310847462045
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.12463548280113051,
+     "high": 0.45050741747000356
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.12013010702553023,
+     "high": 0.42825985444486464
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": true,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.0387474491858919,
+    "heard": 0.009651612611319693
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06162387191360383,
+    "heard": 0.013479617392252063
+   },
+   "free_choice_high_minus_low": {
+    "seen": -0.006876888880380516,
+    "heard": 0.009571633180844308
+   }
+  },
+  "A-p2r-nohead-20": {
+   "mode": "A",
+   "seating": "p2r-nohead",
+   "size": 20,
+   "ties": 0,
+   "forced_choice_share": 0.45001761818296604,
+   "tick_divergence": 0.19765000971989732,
+   "spearman_head_vs_trunk_entropy": 0.04365150955572103,
+   "all_rows": {
+    "seen": {
+     "low": 0.1647696193818412,
+     "mid": 0.21180860718624456,
+     "high": 0.22907767855496622
+    },
+    "heard": {
+     "low": 0.183726138228662,
+     "mid": 0.19586822052954173,
+     "high": 0.20462582984901728
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.38883589199694263,
+     "mid": 0.3722739464131238,
+     "high": 0.4066811766518275
+    },
+    "heard": {
+     "low": 0.33590002819957415,
+     "mid": 0.34096568029849644,
+     "high": 0.3453540836481674
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.1473168466614213,
+     "high": 0.5237622585925384
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.13937729731433365,
+     "high": 0.48462619581656863
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.034407230238703734,
+    "heard": 0.009454055448593235
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.06430805917312502,
+    "heard": 0.020899691620355293
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.017845284654884885,
+    "heard": 0.009454055448593235
+   }
+  },
+  "A-p2r-nohead-40": {
+   "mode": "A",
+   "seating": "p2r-nohead",
+   "size": 40,
+   "ties": 0,
+   "forced_choice_share": 0.4083068720843624,
+   "tick_divergence": 0.2014402370572033,
+   "spearman_head_vs_trunk_entropy": 0.04032106096691152,
+   "all_rows": {
+    "seen": {
+     "low": 0.1590637233929106,
+     "mid": 0.20926975675689566,
+     "high": 0.2324399955288141
+    },
+    "heard": {
+     "low": 0.19351169783826172,
+     "mid": 0.2054560307348618,
+     "high": 0.20705773098227942
+    }
+   },
+   "free_choice": {
+    "seen": {
+     "low": 0.3549485995405286,
+     "mid": 0.3503384548266652,
+     "high": 0.37979110247859854
+    },
+    "heard": {
+     "low": 0.32398011864029314,
+     "mid": 0.33412359456157203,
+     "high": 0.33543417083392385
+    }
+   },
+   "by_trunk_entropy": {
+    "seen": {
+     "low": 0.0,
+     "mid": 0.15117382025136353,
+     "high": 0.5008479868022417
+    },
+    "heard": {
+     "low": 0.0,
+     "mid": 0.15132163883662153,
+     "high": 0.48044368482669025
+    }
+   },
+   "low_gt_high_all_rows": {
+    "seen": false,
+    "heard": false
+   },
+   "low_gt_high_free_choice": {
+    "seen": false,
+    "heard": false
+   },
+   "free_choice_spread": {
+    "seen": 0.02945264765193334,
+    "heard": 0.011454052193630715
+   },
+   "all_rows_high_minus_low": {
+    "seen": 0.07337627213590348,
+    "heard": 0.0135460331440177
+   },
+   "free_choice_high_minus_low": {
+    "seen": 0.024842502938069944,
+    "heard": 0.011454052193630715
+   }
+  }
+ },
+ "summary": {
+  "legs": 21,
+  "forced_choice_share_range": [
+   0.350651767394456,
+   0.45240273020628397
+  ],
+  "all_rows_low_gt_high": {
+   "seen": 0,
+   "heard": 0
+  },
+  "free_choice_low_gt_high": {
+   "seen": 4,
+   "heard": 0
+  },
+  "free_choice_spread_max": {
+   "seen": 0.05606739804226696,
+   "heard": 0.014706859290480656
+  },
+  "all_rows_high_minus_low_range": {
+   "seen": [
+    0.052758950088586665,
+    0.08448874404660509
+   ],
+   "heard": [
+    0.006256617662856873,
+    0.02658430195364453
+   ]
+  },
+  "free_choice_high_minus_low_range": {
+   "seen": [
+    -0.006876888880380516,
+    0.037666087368641854
+   ],
+   "heard": [
+    0.0007769198382691078,
+    0.014706859290480656
+   ]
+  },
+  "spearman_head_vs_trunk_entropy_range": [
+   0.03552691055801589,
+   0.05826515809685107
+  ],
+  "free_choice_low_gt_high_seen_legs": [
+   "p2u-act15-s4-40",
+   "p2u-both-s1-20",
+   "p2u-nohead-s4-20",
+   "p2u-nohead-s4-40"
+  ],
+  "free_choice_high_minus_low_seen_by_size": {
+   "20": [
+    -0.005677968578541692,
+    0.027036114595676508
+   ],
+   "40": [
+    -0.006876888880380516,
+    0.037666087368641854
+   ],
+   "100": [
+    0.012996291426315032,
+    0.03410359862086465
+   ]
+  },
+  "free_choice_high_minus_low_seen_by_mode": {
+   "B": [
+    -0.005677968578541692,
+    0.03410359862086465
+   ],
+   "A": [
+    -0.006876888880380516,
+    0.037666087368641854
+   ]
+  },
+  "seen_by_trunk_entropy_range": {
+   "low": [
+    0.0,
+    0.0
+   ],
+   "mid": [
+    0.09342671211366504,
+    0.15117382025136353
+   ],
+   "high": [
+    0.3938644093362687,
+    0.5463222854899417
+   ]
+  },
+  "free_over_all_gap": {
+   "seen": {
+    "min": -0.11159456014094439,
+    "median": 0.25471733956754045,
+    "max": 0.4552879774598998,
+    "legs_free_gap_not_smaller": []
+   },
+   "heard": {
+    "min": 0.04837875002079035,
+    "median": 0.5539740282768923,
+    "max": 1.1006291989291503,
+    "legs_free_gap_not_smaller": [
+     "p2u-act15-s1-100",
+     "p2u-nohead-s1-100"
+    ]
+   }
+  }
+ }
+}
