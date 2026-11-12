@@ -477,6 +477,9 @@ Unscored expectations: no F-053 event at 20 or 40; the continuation's
 | g6 | R-1 pairs by world id with the trunk rows AND the no-head rows; a shuffled no-head table raises | drop the world-id join, pair by position | mean Δ changes on the shuffled table |
 | g7 | R-3's frozen rule reproduces every recorded stop tick (8,002,560 on the trunks; the Phase 2 stops) | KL clause dropped in the "frozen" rule | a trunk stop called early (bin 6 flat on return alone) |
 | g8 | R-2's STEP on the no-head arms reproduces §2.2 (+0.0112 / +0.0112 / +0.0154) | off-by-one bin (first bin taken as the second) | +0.0138 on s1r |
+| g9 | R-4: the recorded act is a maximiser of the replayed masked logits on every row (`read_r5.fence_act`), so the rows and cells are what the arm saw | seat i's rows read against seat i+1's legal mask | `fence_act` raises at an early tick of world 905001 — **RED CONFIRMED 2026-11-11** ("the replayed arm act differs from the record at tick 0 (seat 0): recorded 21 at logit -inf"; `results-raw/reds/r4-red-act-fence.log`) |
+| g10 | R-4: a no-head leg shows 0 changed rows | `cells_in_use` zeroes 58 observation columns beside the cells (`train_ppo_p2.py`, where the bug would live) | the FENCE assertion on p2u-nohead-s1 20 world 905001 — **RED CONFIRMED 2026-11-11** (16,976 changed rows; `results-raw/reds/r4-red-nohead-fence.log`) |
+| g11 | R-4 score: a partial leg (fewer than 30 worlds, or a world set unequal to the arm's and the no-head leg's rows) is never scored | a leg JSON read with `--seeds` (a data bug, so hand-rolled: a one-world JSON in a scratch copy of `reads/r4/`) | the "a partial leg is never scored" assertion — owed before the score is cited |
 
 ## 10. Blind spots (declared)
 
