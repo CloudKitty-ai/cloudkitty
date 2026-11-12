@@ -130,6 +130,35 @@ def g16():
     assert (s7_close := [r["update"] for r in s7 if "bin_closed" in r])[-1] == cps[0][0], (s7_close[-1], cps[0])
 
 
+def g6():
+    """R-1 pairs by world id: the paired read of recorded rows (act15-s1's 20×20 leg standing in for a continuation
+    leg that does not exist yet) against the no-head rows is the same whatever order the no-head table is in, and a
+    no-head table missing a world raises."""
+    import read_r1_cont as R
+    rows = R.RP.leg_rows("p2u-act15-s1", 20, None)[0]
+    nh = R.RP.leg_rows("p2u-nohead-s1", 20, None)[0]
+    turned = {s: nh[s] for s in reversed(sorted(nh))}
+    a, b = R.paired(rows, nh), R.paired(rows, turned)
+    assert a == b and a["n"] == 30, f"the pairing depends on the no-head table's order: {a['mean']:+.3f} against {b['mean']:+.3f}"
+    short = {s: nh[s] for s in sorted(nh)[1:]}
+    try:
+        R.paired(rows, short)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("a no-head table missing a world paired without raising")
+
+
+def g17():
+    """The cont-s<k> seating seats the continuation's own final in all five seats, never the trunk's."""
+    import cert_harness_fog as H
+    for k in (1, 2, 4):
+        assert H.SEATINGS[f"cont-s{k}"] == [f"g2:cont-s{k}"] * 5, H.SEATINGS[f"cont-s{k}"]
+        p = H.artifact_path(f"g2:cont-s{k}")
+        assert p == HERE / "artifacts" / f"cont-s{k}" / "policy-final.pt", f"cont-s{k} seats {p}"
+    assert H.artifact_path("g2:trunk-s1") == D.TRUNK_ARC / "artifacts" / "ppo-g2-trunk-s1" / "policy-final.pt"
+
+
 def g7():
     """R-3's frozen rule reproduces every recorded stop (the asserts live in read_plateau.read, which raises): the
     seven trunk plateau stops sit at their last bin — 8,002,560 ticks on six seeds, 9,000,960 on s7 — and the Phase 2
@@ -157,7 +186,7 @@ def g8():
     assert got == [0.0112, 0.0112, 0.0154], f"the no-head STEP on s1r / s2 / s4 reads {got}, DECLARATION §2.2 records [0.0112, 0.0112, 0.0154]"
 
 
-GUARDS = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g7": g7, "g8": g8, "g16": g16}
+GUARDS = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g16": g16, "g17": g17}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)

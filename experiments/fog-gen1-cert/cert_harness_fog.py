@@ -87,6 +87,9 @@ G2_ARTS = EXPTS / "gen2-trunk-training-2026-10-18" / "artifacts"
 # Phase 2 arm seats (`p2:<slot>`, minifriend-phase2-2026-11-06/DECLARATION.md §6 R-1; the arm's policy with its
 # frozen head inline, heads_online.P2Actor — one forward, every home): the same v6 schema as g2 seats.
 P2_ARC = EXPTS / "minifriend-phase2-2026-11-06"
+# The trunk continuation's finals (`g2:cont-s<k>`, gen2-trunk-continuation-2026-11-10/DECLARATION.md §6 R-1): the
+# trunk's own policy class and seat kind, the artifact under that arc.
+CONT_ARC = EXPTS / "gen2-trunk-continuation-2026-11-10"
 V6_KINDS = ("g2:", "p2:")
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
 
@@ -96,6 +99,8 @@ def artifact_path(spec):
     and provenance both use it). `plan:<slot>` rides the ppo artifact."""
     kind, name = spec.split(":", 1)
     if kind == "g2":
+        if name.startswith("cont-"):
+            return CONT_ARC / "artifacts" / name / "policy-final.pt"
         return G2_ARTS / f"ppo-g2-{name}" / "policy-final.pt"
     if kind == "p2":
         return P2_ARC / "artifacts" / name / "policy-final.pt"
@@ -158,6 +163,9 @@ SEATINGS = {
     # permutations distinct from rot2's own (s2, s4, s1); Pumpkin s6 and Kittybear s7 fixed.
     "g2-rot2-perm1": ["g2:trunk-s4", "g2:trunk-s1", "g2:trunk-s6", "g2:trunk-s7", "g2:trunk-s2"],
     "g2-rot2-perm2": ["g2:trunk-s1", "g2:trunk-s2", "g2:trunk-s6", "g2:trunk-s7", "g2:trunk-s4"],
+    # The trunk continuation (gen2-trunk-continuation-2026-11-10 §6 R-1, declared 2026-11-11): the continued final
+    # of trunk seed k in all five seats, paired with the recorded g2-s<k> and p2u-nohead-s<k> uniform rows.
+    **{f"cont-s{k}": [f"g2:cont-s{k}"] * 5 for k in (1, 2, 4)},
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
 # disjoint 30-seed bands beyond the declared eval/stress pair
