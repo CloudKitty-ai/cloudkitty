@@ -2316,6 +2316,11 @@ arm's shortest seed (12.0M further), and it costs at most 15.6M covered
 cat-ticks more than (B)'s least. Nothing trains or is built on either
 reading until she rules; the guards that do not touch the floor (g1,
 g2, g5–g8) are unaffected.
+(3) A LAST-DIGIT NOTE, no ruling needed. §2.2 and guard g8 give the
+no-head arm's first-bin STEP on s4 as +0.0154; that is printed-cell
+arithmetic (0.8957 − 0.8803). The raw STEP is +0.0153 (0.01534), which
+is what `read_curves.py` reports; g8 asserts §2.2's three figures over
+bin returns rounded to four decimals, as §2.2 computed them.
 Status: OPEN — awaits her word on (A) / (B) and on the corrected cost
 line.
 
