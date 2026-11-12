@@ -18,7 +18,8 @@ truth.
 recorded (§0): call 1 "Accepted" (her word to declare, given §2.4), call
 3 "Yes" (R-4). NOT YET DECLARED: call 2 (the cap) is open — "I'm
 debating" — and the declaration freezes when she rules it (§13 step 1).
-No seed band claimed; no covered mind trained. Open with her: call 2
+No seed band claimed; no covered mind trained. R-4 read 2026-11-11 (P53
+NOT MET, §2.3). Open with her: call 2
 (her overtraining question answered in §2.5), call 5 (the checkpoint
 ladder §2.5 proposes, R-6), and item 4 of the 2026-11-10 proposal (no
 head rerun; explained to her 2026-11-11, unruled).**
@@ -187,6 +188,27 @@ zero-cost test is the cells-in-use read on the RECORDED legs by size
 cost, grows from 20 to 40 to 100, the transfer reading stands; if it is
 flat, the gap is the training-length and leash-budget terms alone.
 
+**Correction and read, 2026-11-11.** (a) Fact (ii)'s KL and entropy
+figures were single final-update values, not bin means. On last-bin
+means the contrast is absent: KL to the trunk act15 0.391 / 0.397 /
+0.363 against nohead 0.385 / 0.374 / 0.367; policy entropy 0.877 /
+0.882 / 0.857 against 0.853 / 0.859 / 0.888. "Sat closer to the trunk
+with lower entropy" is withdrawn, and with it the hypothesis's "ends
+nearer an undertrained trunk". The tick counts in (ii) stand. (b) R-4
+was read (`reads/r4/score.md`; P53 NOT MET, both halves): the changed
+share FALLS with world size in every seed and arm (act15-s1 0.0664 /
+0.0573 / 0.0487 at 20 / 40 / 100; s2 0.0573 / 0.0524; s4 0.0689 /
+0.0618; both-s1 0.0796 / 0.0683 / 0.0625), and the worlds where the
+cells are used most carry no worse paired Δ against the no-head arm
+(top-tercile Δ below bottom-tercile Δ at 40×40 in one of three seeds;
+Spearman share ~ Δ between −0.36 and +0.36 across the ten legs). The
+transfer reading is not supported. Neither is the budget reading on its
+own: both-s1 trained 12.0M ticks against its no-head partner's 15.0M,
+uses the cells more than any act15 seed, and sits at +0.008 / +0.026 /
++0.203 against it; act15-s4, at equal ticks with its partner, is at
+−0.143 / −0.215 (inside the edge). The act15 gap at 40×40 (−0.353 /
+−0.727 / −0.215 by seed) is unexplained by anything read so far.
+
 ### 2.4 Two corrections to the proposal she approved
 
 1. **Cost.** The proposal said "~105M covered cat-ticks". That figure
@@ -232,9 +254,10 @@ point?" Four recorded facts and one design consequence.
 3. **What the probes cannot see.** They are 20×20, the training size.
    Transfer (40×40, 100×100) has been read on finals only, and §2.3 (i)
    is a recorded case of equal training-size numbers hiding a transfer
-   gap. Policy entropy falls in every arm's last bins as the entropy
-   coefficient anneals (nohead 0.882 / 0.894 / 0.939 at stop against
-   ~0.95–1.05 mid-run): the place a brittleness cost would first appear.
+   gap. Per-bin mean policy entropy falls steadily in every arm as the
+   entropy coefficient anneals (nohead 1.064 / 1.088 / 1.017 in bin 1
+   to 0.853 / 0.859 / 0.888 in the last bin): the place a brittleness
+   cost would first appear.
 4. **Option B changes a second thing.** `schedules()` computes
    `progress = update / total_updates`; raising `--total-ticks` from 20M
    to 28M moves the resumed run's progress from 0.40 back to 0.29 and
@@ -479,7 +502,7 @@ Unscored expectations: no F-053 event at 20 or 40; the continuation's
 | g8 | R-2's STEP on the no-head arms reproduces §2.2 (+0.0112 / +0.0112 / +0.0154) | off-by-one bin (first bin taken as the second) | +0.0138 on s1r |
 | g9 | R-4: the recorded act is a maximiser of the replayed masked logits on every row (`read_r5.fence_act`), so the rows and cells are what the arm saw | seat i's rows read against seat i+1's legal mask | `fence_act` raises at an early tick of world 905001 — **RED CONFIRMED 2026-11-11** ("the replayed arm act differs from the record at tick 0 (seat 0): recorded 21 at logit -inf"; `results-raw/reds/r4-red-act-fence.log`) |
 | g10 | R-4: a no-head leg shows 0 changed rows | `cells_in_use` zeroes 58 observation columns beside the cells (`train_ppo_p2.py`, where the bug would live) | the FENCE assertion on p2u-nohead-s1 20 world 905001 — **RED CONFIRMED 2026-11-11** (16,976 changed rows; `results-raw/reds/r4-red-nohead-fence.log`) |
-| g11 | R-4 score: a partial leg (fewer than 30 worlds, or a world set unequal to the arm's and the no-head leg's rows) is never scored | a leg JSON read with `--seeds` (a data bug, so hand-rolled: a one-world JSON in a scratch copy of `reads/r4/`) | the "a partial leg is never scored" assertion — owed before the score is cited |
+| g11 | R-4 score: a partial leg (fewer than 30 worlds, or a world set unequal to the arm's and the no-head leg's rows) is never scored | a leg JSON read with `--seeds` (a data bug, so hand-rolled: a one-world JSON in a scratch copy of `reads/r4/`) | the "a partial leg is never scored" assertion — **RED CONFIRMED 2026-11-11** ("p2u-act15-s1 20: 1 worlds read, 30 arm rows, 30 no-head rows"; `results-raw/reds/r4-red-partial-leg.log`) |
 
 ## 10. Blind spots (declared)
 
@@ -544,7 +567,9 @@ Unscored expectations: no F-053 event at 20 or 40; the continuation's
 3. **R-4, cells-in-use by size** on Phase 2's recorded legs (her head
    question; zero cost; recommended yes). **RULED 2026-11-11: "Yes".**
    P53 registered before the reader exists; the read runs once this
-   text is committed (dump-only, no dependency on call 2).
+   text is committed (dump-only, no dependency on call 2). **READ
+   2026-11-11: P53 NOT MET (`reads/r4/score.md`; §2.3's correction and
+   read paragraph).**
 4. **Item 2's read** (R-5 on free-choice ticks, every Phase 2 leg;
    deviations entry 30, approved): lands as a Phase 2 RESULTS addendum,
    gated; runs on this declaration's word or before it — recommended

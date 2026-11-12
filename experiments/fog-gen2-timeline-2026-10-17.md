@@ -1158,6 +1158,17 @@ consent BC comparison ride the trunk.
   call 5, 12.0M covered cat-ticks, hers to rule) reads the second. Item
   4 explained to her, unruled. Entry 30's read launched on the 19
   remaining legs (`run_r5cf.sh`, dump-only).
+  2026-11-11, R-4 read (`gen2-trunk-continuation-2026-11-10/reads/r4/
+  score.md`; reds g9 / g10 / g11 CONFIRMED first): P53 NOT MET, both
+  halves — the share of decisions that change with the cells zeroed
+  FALLS with world size (act15-s1 0.0664 / 0.0573 / 0.0487 at 20 / 40 /
+  100) and the worlds that use the cells most carry no worse Δ against
+  the no-head arm; both-s1 uses the cells most and matches its no-head
+  partner on 3M fewer ticks. The transfer reading of her head question
+  is not supported; the act15 gap at 40×40 is unexplained. Correction
+  recorded with it (draft §2.3): "act15 sat nearer the trunk with lower
+  entropy" rested on single final-update values and is withdrawn (bin
+  means show no contrast).
 
 ## Flagged follow-ups (owner's word to start)
 

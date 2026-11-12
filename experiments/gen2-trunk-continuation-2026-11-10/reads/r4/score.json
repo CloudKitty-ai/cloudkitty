@@ -1,0 +1,453 @@
+{
+ "legs": {
+  "p2u-act15-s1-20": {
+   "seating": "p2u-act15-s1",
+   "size": 20,
+   "paired_with": "p2u-nohead-s1",
+   "worlds": 30,
+   "ties": 1,
+   "changed_share": 0.06639466666666667,
+   "free_changed_share": 0.11840860790345832,
+   "free_row_share": 0.560725,
+   "paired_delta_nohead_mean": -0.22485266666666823,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.06343,
+      0.06503
+     ],
+     "paired_delta_nohead_mean": -0.21546600000000496
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.06533,
+      0.06718
+     ],
+     "paired_delta_nohead_mean": -0.18513600000000138
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.06728,
+      0.0698
+     ],
+     "paired_delta_nohead_mean": -0.2739559999999983
+    }
+   },
+   "spearman_share_vs_delta": -0.007341490545050056,
+   "aborted_seeds": []
+  },
+  "p2u-act15-s1-40": {
+   "seating": "p2u-act15-s1",
+   "size": 40,
+   "paired_with": "p2u-nohead-s1",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.057262,
+   "free_changed_share": 0.09483347309253531,
+   "free_row_share": 0.6038163333333333,
+   "paired_delta_nohead_mean": -0.3531679999999999,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.0544,
+      0.05653
+     ],
+     "paired_delta_nohead_mean": -0.3828900000000033
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.05659,
+      0.0579
+     ],
+     "paired_delta_nohead_mean": -0.35619600000000134
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.05798,
+      0.0608
+     ],
+     "paired_delta_nohead_mean": -0.3204179999999951
+    }
+   },
+   "spearman_share_vs_delta": 0.26273637374860953,
+   "aborted_seeds": []
+  },
+  "p2u-act15-s1-100": {
+   "seating": "p2u-act15-s1",
+   "size": 100,
+   "paired_with": "p2u-nohead-s1",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.04873,
+   "free_changed_share": 0.0750367638567018,
+   "free_row_share": 0.649415,
+   "paired_delta_nohead_mean": -0.3872973333333339,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.04676,
+      0.04818
+     ],
+     "paired_delta_nohead_mean": -0.38902199999999854
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.04818,
+      0.04917
+     ],
+     "paired_delta_nohead_mean": -0.2594720000000009
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.04919,
+      0.05088
+     ],
+     "paired_delta_nohead_mean": -0.5133980000000022
+    }
+   },
+   "spearman_share_vs_delta": -0.1096774193548387,
+   "aborted_seeds": [
+    905009
+   ]
+  },
+  "p2u-act15-s2-20": {
+   "seating": "p2u-act15-s2",
+   "size": 20,
+   "paired_with": "p2u-nohead-s2",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.057304,
+   "free_changed_share": 0.10027905848095123,
+   "free_row_share": 0.5714453333333334,
+   "paired_delta_nohead_mean": -0.4005846666666685,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.0554,
+      0.05692
+     ],
+     "paired_delta_nohead_mean": -0.40483800000000514
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.05721,
+      0.05763
+     ],
+     "paired_delta_nohead_mean": -0.41126999999999897
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.05778,
+      0.05983
+     ],
+     "paired_delta_nohead_mean": -0.38564600000000127
+    }
+   },
+   "spearman_share_vs_delta": 0.0771968854282536,
+   "aborted_seeds": []
+  },
+  "p2u-act15-s2-40": {
+   "seating": "p2u-act15-s2",
+   "size": 40,
+   "paired_with": "p2u-nohead-s2",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.052385,
+   "free_changed_share": 0.08512930684252094,
+   "free_row_share": 0.615358,
+   "paired_delta_nohead_mean": -0.726748666666667,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.05018,
+      0.0517
+     ],
+     "paired_delta_nohead_mean": -0.7013019999999998
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.05173,
+      0.05306
+     ],
+     "paired_delta_nohead_mean": -0.7385760000000005
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.05313,
+      0.05477
+     ],
+     "paired_delta_nohead_mean": -0.7403680000000008
+    }
+   },
+   "spearman_share_vs_delta": -0.08832035595105672,
+   "aborted_seeds": []
+  },
+  "p2u-act15-s4-20": {
+   "seating": "p2u-act15-s4",
+   "size": 20,
+   "paired_with": "p2u-nohead-s4",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.06892666666666666,
+   "free_changed_share": 0.12586203748227232,
+   "free_row_share": 0.5476366666666667,
+   "paired_delta_nohead_mean": -0.14306533333333438,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.0644,
+      0.06832
+     ],
+     "paired_delta_nohead_mean": -0.2040859999999995
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.06847,
+      0.06939
+     ],
+     "paired_delta_nohead_mean": -0.09614400000000387
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.06956,
+      0.07198
+     ],
+     "paired_delta_nohead_mean": -0.12896599999999978
+    }
+   },
+   "spearman_share_vs_delta": 0.364182424916574,
+   "aborted_seeds": []
+  },
+  "p2u-act15-s4-40": {
+   "seating": "p2u-act15-s4",
+   "size": 40,
+   "paired_with": "p2u-nohead-s4",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.06181266666666667,
+   "free_changed_share": 0.10438049306580477,
+   "free_row_share": 0.592186,
+   "paired_delta_nohead_mean": -0.21458800000000006,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.05967,
+      0.06147
+     ],
+     "paired_delta_nohead_mean": -0.1996600000000001
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.0615,
+      0.06218
+     ],
+     "paired_delta_nohead_mean": -0.2643360000000001
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.06222,
+      0.06379
+     ],
+     "paired_delta_nohead_mean": -0.17976799999999998
+    }
+   },
+   "spearman_share_vs_delta": 0.2565072302558398,
+   "aborted_seeds": []
+  },
+  "p2u-both-s1-20": {
+   "seating": "p2u-both-s1",
+   "size": 20,
+   "paired_with": "p2u-nohead-s1",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.07962433333333334,
+   "free_changed_share": 0.1424743111670973,
+   "free_row_share": 0.558868,
+   "paired_delta_nohead_mean": 0.008023999999997974,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.07605,
+      0.07923
+     ],
+     "paired_delta_nohead_mean": 0.02040999999999258
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.07938,
+      0.08024
+     ],
+     "paired_delta_nohead_mean": 0.011156000000001142
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.08045,
+      0.08284
+     ],
+     "paired_delta_nohead_mean": -0.007493999999999801
+    }
+   },
+   "spearman_share_vs_delta": -0.14838709677419354,
+   "aborted_seeds": []
+  },
+  "p2u-both-s1-40": {
+   "seating": "p2u-both-s1",
+   "size": 40,
+   "paired_with": "p2u-nohead-s1",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.068279,
+   "free_changed_share": 0.11357528409484706,
+   "free_row_share": 0.6011783333333334,
+   "paired_delta_nohead_mean": 0.02593533333333416,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.06669,
+      0.06774
+     ],
+     "paired_delta_nohead_mean": 0.026213999999998804
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.06775,
+      0.06873
+     ],
+     "paired_delta_nohead_mean": 0.04531200000000268
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.06886,
+      0.07056
+     ],
+     "paired_delta_nohead_mean": 0.006280000000000996
+    }
+   },
+   "spearman_share_vs_delta": -0.10834260289210233,
+   "aborted_seeds": []
+  },
+  "p2u-both-s1-100": {
+   "seating": "p2u-both-s1",
+   "size": 100,
+   "paired_with": "p2u-nohead-s1",
+   "worlds": 30,
+   "ties": 0,
+   "changed_share": 0.0624828879156316,
+   "free_changed_share": 0.09746965181792869,
+   "free_row_share": 0.641049667770932,
+   "paired_delta_nohead_mean": 0.2032026666666667,
+   "terciles": {
+    "bottom": {
+     "n": 10,
+     "changed_share_range": [
+      0.05898,
+      0.06185
+     ],
+     "paired_delta_nohead_mean": 0.2701100000000025
+    },
+    "mid": {
+     "n": 10,
+     "changed_share_range": [
+      0.06188,
+      0.06308
+     ],
+     "paired_delta_nohead_mean": 0.3282979999999995
+    },
+    "top": {
+     "n": 10,
+     "changed_share_range": [
+      0.0631,
+      0.06845882218931541
+     ],
+     "paired_delta_nohead_mean": 0.011199999999998055
+    }
+   },
+   "spearman_share_vs_delta": -0.3619577308120133,
+   "aborted_seeds": [
+    905009,
+    905014,
+    905019
+   ]
+  }
+ },
+ "fences": {
+  "fence-p2u-nohead-s1-100": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  },
+  "fence-p2u-nohead-s1-20": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  },
+  "fence-p2u-nohead-s1-40": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  },
+  "fence-p2u-nohead-s2-20": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  },
+  "fence-p2u-nohead-s2-40": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  },
+  "fence-p2u-nohead-s4-20": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  },
+  "fence-p2u-nohead-s4-40": {
+   "worlds": 2,
+   "rows": 200000,
+   "changed": 0
+  }
+ },
+ "P53": {
+  "share_rises_with_size": {
+   "s1 40>20": false,
+   "s2 40>20": false,
+   "s4 40>20": false,
+   "s1 100>40": false
+  },
+  "half_a_met": false,
+  "top_tercile_delta_below_bottom_at_40": {
+   "s1": false,
+   "s2": true,
+   "s4": false
+  },
+  "half_b_met": false,
+  "verdict": "NOT MET"
+ }
+}

@@ -1,0 +1,308 @@
+{
+ "seating": "p2u-both-s1",
+ "size": 40,
+ "arm": "both",
+ "policy": "p2:p2-both-s1",
+ "worlds": [
+  {
+   "seed": 905001,
+   "rows": 100000,
+   "changed": 6669,
+   "free_rows": 60405,
+   "free_changed": 6669,
+   "ties": 0,
+   "changed_share": 0.06669,
+   "free_changed_share": 0.11040476781723367
+  },
+  {
+   "seed": 905002,
+   "rows": 100000,
+   "changed": 6856,
+   "free_rows": 59958,
+   "free_changed": 6856,
+   "ties": 0,
+   "changed_share": 0.06856,
+   "free_changed_share": 0.11434670936322092
+  },
+  {
+   "seed": 905003,
+   "rows": 100000,
+   "changed": 6966,
+   "free_rows": 60361,
+   "free_changed": 6966,
+   "ties": 0,
+   "changed_share": 0.06966,
+   "free_changed_share": 0.11540564271632345
+  },
+  {
+   "seed": 905004,
+   "rows": 100000,
+   "changed": 6775,
+   "free_rows": 60132,
+   "free_changed": 6775,
+   "ties": 0,
+   "changed_share": 0.06775,
+   "free_changed_share": 0.11266879531696933
+  },
+  {
+   "seed": 905005,
+   "rows": 100000,
+   "changed": 6824,
+   "free_rows": 59709,
+   "free_changed": 6824,
+   "ties": 0,
+   "changed_share": 0.06824,
+   "free_changed_share": 0.11428762833073741
+  },
+  {
+   "seed": 905006,
+   "rows": 100000,
+   "changed": 6739,
+   "free_rows": 60264,
+   "free_changed": 6739,
+   "ties": 0,
+   "changed_share": 0.06739,
+   "free_changed_share": 0.11182463825833001
+  },
+  {
+   "seed": 905007,
+   "rows": 100000,
+   "changed": 6811,
+   "free_rows": 59915,
+   "free_changed": 6811,
+   "ties": 0,
+   "changed_share": 0.06811,
+   "free_changed_share": 0.11367771008929317
+  },
+  {
+   "seed": 905008,
+   "rows": 100000,
+   "changed": 6824,
+   "free_rows": 60171,
+   "free_changed": 6824,
+   "ties": 0,
+   "changed_share": 0.06824,
+   "free_changed_share": 0.11341011450698842
+  },
+  {
+   "seed": 905009,
+   "rows": 100000,
+   "changed": 6698,
+   "free_rows": 60195,
+   "free_changed": 6698,
+   "ties": 0,
+   "changed_share": 0.06698,
+   "free_changed_share": 0.11127170030733449
+  },
+  {
+   "seed": 905010,
+   "rows": 100000,
+   "changed": 6693,
+   "free_rows": 59412,
+   "free_changed": 6693,
+   "ties": 0,
+   "changed_share": 0.06693,
+   "free_changed_share": 0.1126540092910523
+  },
+  {
+   "seed": 905011,
+   "rows": 100000,
+   "changed": 6688,
+   "free_rows": 60456,
+   "free_changed": 6688,
+   "ties": 0,
+   "changed_share": 0.06688,
+   "free_changed_share": 0.11062590975254731
+  },
+  {
+   "seed": 905012,
+   "rows": 100000,
+   "changed": 6896,
+   "free_rows": 59600,
+   "free_changed": 6896,
+   "ties": 0,
+   "changed_share": 0.06896,
+   "free_changed_share": 0.11570469798657718
+  },
+  {
+   "seed": 905013,
+   "rows": 100000,
+   "changed": 6930,
+   "free_rows": 60307,
+   "free_changed": 6930,
+   "ties": 0,
+   "changed_share": 0.0693,
+   "free_changed_share": 0.11491203342895517
+  },
+  {
+   "seed": 905014,
+   "rows": 100000,
+   "changed": 6749,
+   "free_rows": 60364,
+   "free_changed": 6749,
+   "ties": 0,
+   "changed_share": 0.06749,
+   "free_changed_share": 0.11180504936717249
+  },
+  {
+   "seed": 905015,
+   "rows": 100000,
+   "changed": 6678,
+   "free_rows": 60481,
+   "free_changed": 6678,
+   "ties": 0,
+   "changed_share": 0.06678,
+   "free_changed_share": 0.11041484102445397
+  },
+  {
+   "seed": 905016,
+   "rows": 100000,
+   "changed": 6994,
+   "free_rows": 60520,
+   "free_changed": 6994,
+   "ties": 0,
+   "changed_share": 0.06994,
+   "free_changed_share": 0.11556510244547256
+  },
+  {
+   "seed": 905017,
+   "rows": 100000,
+   "changed": 6836,
+   "free_rows": 60209,
+   "free_changed": 6836,
+   "ties": 0,
+   "changed_share": 0.06836,
+   "free_changed_share": 0.11353784317959109
+  },
+  {
+   "seed": 905018,
+   "rows": 100000,
+   "changed": 6887,
+   "free_rows": 60633,
+   "free_changed": 6887,
+   "ties": 0,
+   "changed_share": 0.06887,
+   "free_changed_share": 0.11358501146240496
+  },
+  {
+   "seed": 905019,
+   "rows": 100000,
+   "changed": 7056,
+   "free_rows": 60100,
+   "free_changed": 7056,
+   "ties": 0,
+   "changed_share": 0.07056,
+   "free_changed_share": 0.11740432612312812
+  },
+  {
+   "seed": 905020,
+   "rows": 100000,
+   "changed": 6886,
+   "free_rows": 59951,
+   "free_changed": 6886,
+   "ties": 0,
+   "changed_share": 0.06886,
+   "free_changed_share": 0.11486046938332972
+  },
+  {
+   "seed": 905021,
+   "rows": 100000,
+   "changed": 6844,
+   "free_rows": 60418,
+   "free_changed": 6844,
+   "ties": 0,
+   "changed_share": 0.06844,
+   "free_changed_share": 0.11327750008275679
+  },
+  {
+   "seed": 905022,
+   "rows": 100000,
+   "changed": 6757,
+   "free_rows": 60318,
+   "free_changed": 6757,
+   "ties": 0,
+   "changed_share": 0.06757,
+   "free_changed_share": 0.11202294505786001
+  },
+  {
+   "seed": 905023,
+   "rows": 100000,
+   "changed": 6873,
+   "free_rows": 59912,
+   "free_changed": 6873,
+   "ties": 0,
+   "changed_share": 0.06873,
+   "free_changed_share": 0.11471825343837629
+  },
+  {
+   "seed": 905024,
+   "rows": 100000,
+   "changed": 6855,
+   "free_rows": 59957,
+   "free_changed": 6855,
+   "ties": 0,
+   "changed_share": 0.06855,
+   "free_changed_share": 0.11433193788882032
+  },
+  {
+   "seed": 905025,
+   "rows": 100000,
+   "changed": 6774,
+   "free_rows": 60194,
+   "free_changed": 6774,
+   "ties": 0,
+   "changed_share": 0.06774,
+   "free_changed_share": 0.11253613316941888
+  },
+  {
+   "seed": 905026,
+   "rows": 100000,
+   "changed": 6866,
+   "free_rows": 60022,
+   "free_changed": 6866,
+   "ties": 0,
+   "changed_share": 0.06866,
+   "free_changed_share": 0.1143913898237313
+  },
+  {
+   "seed": 905027,
+   "rows": 100000,
+   "changed": 6670,
+   "free_rows": 59752,
+   "free_changed": 6670,
+   "ties": 0,
+   "changed_share": 0.0667,
+   "free_changed_share": 0.11162806265899049
+  },
+  {
+   "seed": 905028,
+   "rows": 100000,
+   "changed": 6892,
+   "free_rows": 59933,
+   "free_changed": 6892,
+   "ties": 0,
+   "changed_share": 0.06892,
+   "free_changed_share": 0.1149950778369179
+  },
+  {
+   "seed": 905029,
+   "rows": 100000,
+   "changed": 6892,
+   "free_rows": 59911,
+   "free_changed": 6892,
+   "ties": 0,
+   "changed_share": 0.06892,
+   "free_changed_share": 0.11503730533624877
+  },
+  {
+   "seed": 905030,
+   "rows": 100000,
+   "changed": 6959,
+   "free_rows": 59975,
+   "free_changed": 6959,
+   "ties": 0,
+   "changed_share": 0.06959,
+   "free_changed_share": 0.11603167986661109
+  }
+ ]
+}

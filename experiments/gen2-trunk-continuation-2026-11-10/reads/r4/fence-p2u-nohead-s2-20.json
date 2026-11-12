@@ -1,0 +1,28 @@
+{
+ "seating": "p2u-nohead-s2",
+ "size": 20,
+ "arm": "nohead",
+ "policy": "p2:p2-nohead-s2",
+ "worlds": [
+  {
+   "seed": 905001,
+   "rows": 100000,
+   "changed": 0,
+   "free_rows": 56282,
+   "free_changed": 0,
+   "ties": 0,
+   "changed_share": 0.0,
+   "free_changed_share": 0.0
+  },
+  {
+   "seed": 905002,
+   "rows": 100000,
+   "changed": 0,
+   "free_rows": 56026,
+   "free_changed": 0,
+   "ties": 0,
+   "changed_share": 0.0,
+   "free_changed_share": 0.0
+  }
+ ]
+}
