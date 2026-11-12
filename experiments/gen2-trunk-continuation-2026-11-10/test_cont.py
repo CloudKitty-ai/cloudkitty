@@ -139,7 +139,7 @@ def g6():
     nh = R.RP.leg_rows("p2u-nohead-s1", 20, None)[0]
     turned = {s: nh[s] for s in reversed(sorted(nh))}
     a, b = R.paired(rows, nh), R.paired(rows, turned)
-    assert a == b and a["n"] == 30, f"the pairing depends on the no-head table's order: {a['mean']:+.3f} against {b['mean']:+.3f}"
+    assert a == b and a["n"] == 30, f"the pairing depends on the no-head table's order: {a['positive']} of 30 positive in {a['range']} against {b['positive']} in {b['range']}"
     short = {s: nh[s] for s in sorted(nh)[1:]}
     try:
         R.paired(rows, short)
@@ -151,6 +151,7 @@ def g6():
 
 def g17():
     """The cont-s<k> seating seats the continuation's own final in all five seats, never the trunk's."""
+    import read_r1_cont  # noqa: F401  (p2_common puts the harness on sys.path)
     import cert_harness_fog as H
     for k in (1, 2, 4):
         assert H.SEATINGS[f"cont-s{k}"] == [f"g2:cont-s{k}"] * 5, H.SEATINGS[f"cont-s{k}"]
