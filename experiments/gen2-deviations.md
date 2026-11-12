@@ -2273,8 +2273,41 @@ Welfare-cost line: 146–208M covered cat-ticks (training 120.0–180.0M,
 probes 4.7–7.0M, legs 21.0M), the frozen asymmetric stops verbatim.
 Declaration: `gen2-trunk-continuation-2026-11-10/DECLARATION.md`
 (DECLARED 2026-11-11; §3–§9 frozen at its commit).
-Status: OPEN — nothing has trained; the instruments and their reds come
-next, then her word launches `cont-s1`.
+INSTRUMENTS, 2026-11-12 (declaration §13 step 2; nothing has trained):
+`train_ppo_cont.py` (the trunk trainer's own resume path, imported,
+never edited: byte copy of the trunk checkpoint with its sha256 in
+`cont-manifest.json`, `flat_streak` 0 in the resume record, no plateau
+stop under the cap per entry 32, a policy checkpoint at each of the
+eleven bin closes 9–19); the `cont-s<k>` seating in `cert_harness_fog`
+(the trunk's own g2 seat kind); `run_legs_cont.sh` (Phase 2's legs
+driver with this arc's out-dir — Phase 2's `results-raw` is
+hash-stamped); `read_r1_cont.py` (R-1). Guards in `test_cont.py`, ten
+green, each red CONFIRMED as predicted through `scripts/mutate.sh`
+(logs `results-raw/reds/cont-red-g*.log`, local raws):
+
+| guard | mutant | red |
+|---|---|---|
+| g1 | the trainer drops `opt_pi.load_state_dict` | "opt_pi's state differs from the checkpoint's (0 parameter states against 47)" |
+| g2 | the anchor loaded from the resume checkpoint | "the anchor is not the clone" |
+| g3 (entry 32's wording: no plateau stop under the cap) | the driver leaves PLATEAU_BINS at 3 | "a plateau stop can fire under the cap (PLATEAU_BINS 3)" |
+| g4 | the driver keeps the checkpoint's flat_streak | "flat_streak 3 at resume" |
+| g5 | the trainer leaves the segment at 0 | "segment 0, seed_base 2020000000" |
+| g6 | R-1 pairs by position | "the pairing depends on the no-head table's order" |
+| g16 (new: the per-bin checkpoints land on the bin closes) | the bin test off by one update | first checkpoint at update 2,930, not 2,929 |
+| g17 (new: `cont-s<k>` seats the continued final) | the seating names the trunk | "['g2:trunk-s1', …]" |
+
+g7 / g8 were CONFIRMED 2026-11-11. g0: Phase 2's g0a and g0c re-run on
+the Phase 2 venv, both pass (g0c re-runs one 20k-tick trunk leg: 0.1M
+covered cat-ticks, a trunk mind, as Phase 2's own g0c). One detail of
+the frozen §9 was wrong and is corrected here: g6's predicted red said
+"mean Δ changes on the shuffled table"; the mean of paired differences
+cannot change with the pairing — the positive count and range do, and
+that is what the guard asserts. Owed before their first read, each
+needing data that does not exist yet: the red of R-1's header fence (a
+leg whose header does not name the continued final; needs a final),
+and R-3's continuation wiring (needs the continuation's own bins; until
+then `read_plateau.py` refuses a continuation series).
+Status: OPEN — nothing has trained; her word launches `cont-s1`.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
@@ -2348,7 +2381,7 @@ replayed on. Nothing past 20M and no new rule runs unruled.
 The session's "loss" correction: the frozen rule reads training return
 per 1M-tick bin and the anchor KL, not loss.
 Status: (1) and (2) RULED 2026-11-12 (floor at the cap; cost 208.0M);
-OPEN until her reading is confirmed and the driver's g3 is red.
+OPEN until her reading is confirmed (g3 is red, entry 31's table).
 
 ## 33. The block read on the dual-head arm's recorded legs (R-7), prediction P55 (2026-11-11)
 A read no frozen declaration carries (Phase 2 §6 and the trunk

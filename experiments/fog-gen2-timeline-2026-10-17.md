@@ -1229,6 +1229,11 @@ consent BC comparison ride the trunk.
   only" (both-s2 / s4 HELD until the needs-only scout reads); 4) the
   ladder walked through again — R-6 reshaped to 2M rungs (24.0M) put to
   her as the rehearsal for a welfare-based stop.
+  2026-11-12, the continuation's instruments built and red-proven
+  (entry 31's table): `train_ppo_cont.py`, the `cont-s<k>` seating,
+  `run_legs_cont.sh`, `read_r1_cont.py`; guards g1–g8, g16, g17 green
+  and each red as predicted; g0a / g0c pass on the Phase 2 venv.
+  Nothing has trained; her word launches `cont-s1`.
 
 ## Flagged follow-ups (owner's word to start)
 
