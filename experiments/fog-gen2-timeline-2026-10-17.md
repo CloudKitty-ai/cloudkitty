@@ -1234,6 +1234,17 @@ consent BC comparison ride the trunk.
   `run_legs_cont.sh`, `read_r1_cont.py`; guards g1–g8, g16, g17 green
   and each red as predicted; g0a / g0c pass on the Phase 2 venv.
   Nothing has trained; her word launches `cont-s1`.
+  2026-11-12, her second reply: "Correct, …" confirms the 20M reading
+  (entry 32 CLOSED: every seed trains to 20M on the lineage; an
+  extension past it only "if welfare gains continue significantly", on
+  a rule not yet ruled); "2) 24M" rules the ladder at 2M rungs (entry
+  34: eight 40×40 legs, 24.0M covered; instruments owed); and she asks
+  whether the welfare line should be proportional to the improvement
+  rather than a flat 0.10. Answered from the recorded legs and
+  recommended: 1% of the remaining shortfall (100 minus the level) per
+  2M ticks, floored at the test's own half-width — the same decisions
+  as the flat line at today's levels (86–90.5), and it carries to
+  other sizes and generations. Unruled.
 
 ## Flagged follow-ups (owner's word to start)
 

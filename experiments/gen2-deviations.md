@@ -2380,8 +2380,56 @@ covered, against the declared 12.0M) as the rehearsal the rule is
 replayed on. Nothing past 20M and no new rule runs unruled.
 The session's "loss" correction: the frozen rule reads training return
 per 1M-tick bin and the anchor KL, not loss.
-Status: (1) and (2) RULED 2026-11-12 (floor at the cap; cost 208.0M);
-OPEN until her reading is confirmed (g3 is red, entry 31's table).
+CONFIRMED 2026-11-12, her words verbatim (item 1 of her reply; the
+session had asked "Is my reading of the 20M floor right: every seed
+trains to 20M on the lineage, 208M covered cat-ticks?"): "Correct, if
+we're seeing such dramatic improvement, I think training to 20M and
+extending beyond that if welfare gains continue significantly is a
+better approach (it's similar to what we're doing now, just a high
+baseline and a more sensitive welfare rule)." The record behind
+"dramatic": every Phase 2 arm sits +2.5 to +3.5 happiness points over
+its trunk seed in 30 of 30 worlds at each size read, against a
+seed-to-seed edge of 0.326 / 0.325; whether LENGTH bought it is what
+the continuation reads (§8.1), and §2.5 fact 1 puts most of it in the
+first bins after the restart. An extension past 20M is not ruled by
+this sentence: it needs the welfare rule's form (below) and her word
+with the seed's curve in hand.
+Her question on the welfare line, same reply (item 3), verbatim:
+"Rather than a flat number, let's look at it proportional to welfare
+improvement. Going from 60->60.1 is a lot less significant than
+90->90.1, and 95->95.1 is even more significant. Can you evaluate that
+approach in the context you proposed (comparison to test reoslution
+and seed-to-seed edge) and make a recommendation? Is this a better
+approach vs. flat 0.1?" Answered in the session from the recorded legs
+(session scratch, not a reader; the paired per-world differences of
+team happiness between same-arm seeds, arms and trunk at 20 / 40 /
+100): read as a line proportional to the remaining shortfall, 100
+minus the level. (i) The test's noise does not shrink with the level:
+the per-world paired SD is 0.10–0.13 points between trunk seeds at
+40×40 (level 86.1–86.3) and 0.09–0.12 between no-head seeds (level
+89.3–89.5); so a 30-world test resolves about ±0.03–0.05 points at any
+level seen, ±0.13 at 100×100. (ii) A line of 1% of the shortfall per
+2M ticks is 0.14 points at 86, 0.10 at 90 (the flat proposal), 0.05 at
+95; across the levels on record (86–90.5 at 20 / 40) it is 0.10–0.14,
+4 to 8 standard errors of a 30-world paired test (pairs with the
+trunk s2 leg at 20×20 excepted: one world lifts their paired SD to
+0.44–0.46), and it differs from
+the flat 0.10 by no more than the test's own half-width — the two
+rules would not have decided differently on anything recorded. (iii)
+It falls under the test's half-width past a level of about 95–96, so
+it needs a floor there: a gain the test cannot tell from zero is never
+counted (doctrine rule 10). (iv) The seed-to-seed edge is about 3% of
+the shortfall at 20 / 40 (0.326 on ~10–13), so the 1% line is a third
+of an edge either way. Recommended to her: the proportional line (1%
+of the shortfall per 2M ticks, floored at the test's own 95%
+half-width, two tests in a row under it before a stop), because it
+carries across sizes and generations without a new ruling; with the
+caveat that it is a rule about whether training is still working, not
+a claim that a point is worth more to a cat at 95 than at 60. UNRULED;
+the number is not final until the ladder (entry 34) is read.
+Status: (1) and (2) RULED and CONFIRMED 2026-11-12 (floor at the cap;
+cost 208.0M); (3) noted. CLOSED 2026-11-12. The welfare-based stop
+stays an open question with her, carried by entry 34's ladder.
 
 ## 33. The block read on the dual-head arm's recorded legs (R-7), prediction P55 (2026-11-11)
 A read no frozen declaration carries (Phase 2 §6 and the trunk
@@ -2485,3 +2533,39 @@ varies the wrong way, confounded. A needs-only arm (her lean) is the
 read that separates the two; it is a new declaration on her word.
 Status: READ 2026-11-12 — OPEN until its write-up is gated with R-4 in
 the continuation's RESULTS.
+
+## 34. R-6, the checkpoint ladder, ruled at 2M rungs: eight 40×40 legs, 24.0M covered (2026-11-12)
+The frozen declaration (`gen2-trunk-continuation-2026-11-10/DECLARATION.md`
+§6 R-6, §12 call 5) carries the ladder as PROPOSED: four 40×40 legs,
+12.0M covered cat-ticks, the no-head arm at three rungs and `cont-s1`
+at one, running only on her word. On 2026-11-12 the session put a
+reshaped ladder to her beside the declared one, as the rehearsal for a
+welfare-based stop (entry 32): "Ladder at 2M rungs (24M) or as
+declared (12M)?" Her answer, verbatim: "2) 24M".
+What is ruled: call 5 is yes, in the reshaped form. Eight legs, each
+the R-1 battery leg at 40×40 (30 worlds × 20k ticks, g2cmp
+905001–905030, F-053 abort armed, uniform five seats), 3.0M covered
+cat-ticks a leg, 24.0M in all (§5 gains this line):
+- `p2-nohead-s1r` at `ckpt-u1302` / `ckpt-u2604` / `ckpt-u3906` (4M /
+  8M / 12M further ticks; its final at 15M is the recorded
+  `p2u-nohead-s1` leg) — as declared;
+- `cont-s1` at five bin checkpoints, `ckpt-u3255` / `ckpt-u3906` /
+  `ckpt-u4557` / `ckpt-u5208` / `ckpt-u5859` (lineage ticks 10,002,432
+  / 12,002,304 / 14,002,176 / 16,002,048 / 18,001,920). With the trunk
+  s1 rows (8M) below and the continued final (20M, R-1's leg) above,
+  that is six consecutive 2M steps on one lineage.
+Reported: §6's three figures per lineage (the Δ-to-trunk per rung, the
+rung of the maximum, the earliest rung within the 0.325 edge of the
+maximum), and for each 2M step on `cont-s1` the paired gain between
+consecutive rungs with its 95% half-width, read against a flat line
+(0.10 points) and a proportional one (1% of the shortfall) — the
+rehearsal of entry 32's welfare rule, descriptive: no selector, no
+stop, nothing ruled by it.
+Predictions: P54 stands as frozen for the no-head rungs. The
+prediction for the `cont-s1` rungs is registered in the commit that
+lands the ladder's instruments, before any rung leg runs.
+Welfare cost: 24.0M covered cat-ticks at 40×40 under the armed F-053
+abort; no training. The no-head rungs exist now and can be read once
+the instruments are guard-proven; the `cont-s1` rungs wait on its
+checkpoints.
+Status: RULED 2026-11-12 — OPEN (instruments, reds and the legs owed).
