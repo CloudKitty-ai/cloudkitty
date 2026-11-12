@@ -2382,10 +2382,13 @@ Guards, each red before the read (reds under
 
 | guard | asserts | mutant | predicted red |
 |---|---|---|---|
-| g12 | the recorded act is a maximiser of the replayed masked logits on every row (`read_r5.fence_act`) | seat i's rows read against seat i+1's legal mask | `fence_act` raises at an early tick of world 905001 |
-| g13 | all cells zeroed reproduces R-4's recorded rows and changed count for the world | the ablated argmax taken without the legal mask | the FENCE assertion on 20×20 world 905001 (a count other than R-4's 8,057 of 100,000) |
-| g14 | the three blocks partition the arm's 22 cells | the needs block starts one cell early | "the blocks do not partition" at import |
-| g15 | a partial leg is never scored | a one-world leg JSON in a scratch copy of `reads/r7/` (a data bug, so hand-rolled) | the "a partial leg is never scored" assertion |
+| g12 | the recorded act is a maximiser of the replayed masked logits on every row (`read_r5.fence_act`) | seat i's rows read against seat i+1's legal mask | `fence_act` raises at an early tick of world 905001 — **RED CONFIRMED 2026-11-11** ("the replayed arm act differs from the record at tick 0 (seat 0): recorded 21 at logit -inf"; `r7-red-g12-act-fence.log`) |
+| g13 | all cells zeroed reproduces R-4's recorded rows and changed count for the world | the ablated argmax taken without the legal mask | the FENCE assertion on 20×20 world 905001 (a count other than R-4's 8,057 of 100,000) — **RED CONFIRMED 2026-11-11** (69,583 of 100,000; `r7-red-g13-r4-reproduction.log`) |
+| g14 | the three blocks partition the arm's 22 cells | the needs block starts one cell early | "the blocks do not partition" at import — **RED CONFIRMED 2026-11-11** (`r7-red-g14-partition.log`) |
+| g15 | a partial leg is never scored | a one-world leg JSON in a scratch copy of `reads/r7/` (a data bug, so hand-rolled) | the "a partial leg is never scored" assertion — **RED CONFIRMED 2026-11-11** ("p2u-both-s1 20: 1 worlds read, 30 arm rows, 30 act15 rows"; `r7-red-g15-partial-leg.log`) |
+
+The unmutated reader on 20×20 world 905001 reproduces R-4's 8,057 of
+100,000 exactly.
 
 Welfare cost: none (no covered mind is served or trained).
 Status: OPEN — read pending.
