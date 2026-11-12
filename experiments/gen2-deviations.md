@@ -2276,3 +2276,46 @@ Declaration: `gen2-trunk-continuation-2026-11-10/DECLARATION.md`
 Status: OPEN — nothing has trained; the instruments and their reds come
 next, then her word launches `cont-s1`.
 
+## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
+Found after the declaration froze (667b4107) and before any instrument
+or seed existed: two statements in the frozen text disagree with the
+trainer's bin arithmetic (3,072 ticks an update; the cap is 6,510
+updates = 19,998,720 lineage ticks; lineage bins 16 / 17 / 18 / 19 / 20
+close at ticks 16,002,048 / 17,000,448 / 18,001,920 / 19,000,320 /
+20,001,792).
+(1) THE COST LINE. §5 prices training from "at least 8,002,560 further
+ticks per seed (the floor)" = 120.0M covered cat-ticks. The floor is
+not a stop: after it the plateau rule still needs three flat bins, so
+the earliest possible stop is lineage bin 19 (10,997,760 further ticks
+a seed). Training is 165.0M covered cat-ticks at the least and 179.9M
+at the cap (11,996,160 further ticks a seed; §3's "at most 11,997,440"
+is 1,280 ticks over); with 71–78 probes a seed (6.4–7.0M) and the 21.0M
+of legs the total is 192.4–208.0M, not 146–208M. The maximum she ruled
+the cap on is unchanged; the minimum is about 46M higher.
+(2) THE FLOOR'S RULE. §3 says "Phase 2 §4's floor, so the continuation
+and the arms meet the same budget rule"; §4, guard g3 and P52 say bins
+closed after the floor count and a flat series stops at lineage bin 19.
+Phase 2's own rule (`train_ppo_p2.plateau_step`) is stricter: a bin is
+flat only if it AND its predecessor closed after the floor. Under it
+the first bin that can be flat is lineage bin 18 and the earliest stop
+is bin 20, which closes one update past the cap. The two readings:
+  (A) Phase 2's rule verbatim (`plateau_step` imported): no
+      continuation can stop on the plateau rule; every seed runs to the
+      cap, 11,996,160 further ticks, 6,144 ticks short of the arms' own
+      earliest stop (12,002,304). Cost fixed at the maximum, 208.0M.
+      P52 is scored on R-3's replay of the recorded bins (would the
+      rule have fired at bin 19 had bin 17 counted), not lived; g3
+      asserts no plateau stop before lineage bin 20 and none under the
+      cap.
+  (B) §4 / g3 / P52 as worded: a bin counts once it closes after the
+      floor; the earliest stop is lineage bin 19, 1.0M further ticks
+      short of any arm's budget; cost 192.4–208.0M.
+The session's recommendation: (A) — it is the rule the arms actually
+ran under, it gives the continuation the same budget as the no-head
+arm's shortest seed (12.0M further), and it costs at most 15.6M covered
+cat-ticks more than (B)'s least. Nothing trains or is built on either
+reading until she rules; the guards that do not touch the floor (g1,
+g2, g5–g8) are unaffected.
+Status: OPEN — awaits her word on (A) / (B) and on the corrected cost
+line.
+

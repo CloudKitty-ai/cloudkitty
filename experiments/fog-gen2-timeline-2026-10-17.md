@@ -1198,6 +1198,15 @@ consent BC comparison ride the trunk.
   edge), with two F-053 aborts at 100×100 against the no-head arm's
   one. Put to her: a zero-cost block-ablation read on the both legs,
   then both-s2 / both-s4 on her word; no design change before that.
+  2026-11-11, post-freeze defect found while starting the driver
+  (deviations entry 32, OPEN, hers): the declaration's cost line treated
+  the floor as a possible stop (true total 192.4–208.0M covered
+  cat-ticks, not 146–208M; maximum unchanged), and its "Phase 2 §4's
+  floor" disagrees with its own "stops at lineage bin 19" — under Phase
+  2's `plateau_step` the earliest plateau stop is lineage bin 20, one
+  update past the 20M cap. Readings (A) Phase 2's rule verbatim (every
+  seed runs to the cap; recommended) / (B) the bin-19 wording put to
+  her; nothing built on either.
 
 ## Flagged follow-ups (owner's word to start)
 

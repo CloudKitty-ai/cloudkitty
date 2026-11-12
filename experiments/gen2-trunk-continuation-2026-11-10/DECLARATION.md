@@ -24,6 +24,15 @@ Nothing has trained: the instruments and their reds come next (§13 step
 the 2026-11-10 proposal (the heads; her question of 2026-11-11 answered
 in the session, unruled).**
 
+**DEFECT FOUND POST-FREEZE, 2026-11-11 (deviations entry 32, OPEN, her
+word asked; nothing built on it): §5's cost line treats the floor as a
+possible stop — the true total is 192.4–208.0M covered cat-ticks, not
+146–208M (maximum unchanged); and §3's "Phase 2 §4's floor" disagrees
+with §4 / g3 / P52's "stops at lineage bin 19" — under Phase 2's own
+rule the earliest plateau stop is lineage bin 20, one update past the
+cap, so every seed would run to the cap. Entry 32 puts both readings to
+her, (A) Phase 2's rule verbatim recommended.**
+
 ## 0. Her words, verbatim and in order (the record this draft obeys)
 
 - 2026-11-09, on the gated Phase 2 RESULTS: "B10 vs b15 is not
