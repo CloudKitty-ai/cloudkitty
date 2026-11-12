@@ -1213,6 +1213,13 @@ consent BC comparison ride the trunk.
   P55 registered with the unrun reader. Her lean, not a ruling: "we
   will probably want to train needs only as well" — a new declaration
   on her word, drafted after the read.
+  2026-11-12, R-7 READ (entry 33; `reads/r7/score.md`): P55 MET on all
+  three halves — zeroing the needs block changes 0.0325 / 0.0273 /
+  0.0289 of the both arm's acts at 20 / 40 / 100 (act block 0.0613 /
+  0.0539 / 0.0473), and 0.0572 / 0.0628 / 0.0604 on rows where the
+  needs head flags a grave friend. In use, not shown to help: both sits
+  level with no-head, and at 100×100 the worlds with the higher needs
+  share show the smaller gain over act15 (Spearman −0.620, confounded).
 
 ## Flagged follow-ups (owner's word to start)
 

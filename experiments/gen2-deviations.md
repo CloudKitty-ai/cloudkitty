@@ -2391,4 +2391,38 @@ The unmutated reader on 20×20 world 905001 reproduces R-4's 8,057 of
 100,000 exactly.
 
 Welfare cost: none (no covered mind is served or trained).
-Status: OPEN — read pending.
+READ 2026-11-12 (`reads/r7/score.md`, every number below from it; three
+legs × 30 worlds, 0 ties, every world's all-cells count equal to
+R-4's). **P55: (a) MET, (b) MET, (c) MET.**
+(a) Zeroing the needs block changes 0.0325 / 0.0273 / 0.0289 of all
+rows at 20 / 40 / 100 (0.0582 / 0.0455 / 0.0451 of free-choice rows);
+permuting it, 0.0162 / 0.0159 / 0.0243.
+(b) On flagged rows (2,361 / 12,708 / 155,623 of them) the zeroed
+needs share is 0.0572 / 0.0628 / 0.0604 against 0.0325 / 0.0272 /
+0.0271 unflagged; permuted, 0.0534 / 0.0537 / 0.0533 against 0.0161 /
+0.0158 / 0.0227. The act block shows no such lift at 40 and 100
+(0.0556 against 0.0539; 0.0467 against 0.0474) and one at 20 (0.0733
+against 0.0613).
+(c) The act block: 0.0613 / 0.0539 / 0.0473 zeroed, 0.0459 / 0.0393 /
+0.0381 permuted. Act and needs together exceed all cells (0.0796 /
+0.0683 / 0.0625), so the blocks overlap. The tsl cell changes no row
+under either ablation at any size.
+Descriptive, one seed: the worlds ranked by needs share against the
+paired both − act15 delta give Spearman −0.203 / +0.000 / −0.620; at
+100×100 the delta is +0.776 / +0.626 / +0.370 in the bottom / mid /
+top tercile of needs share (−0.573 with the two aborted worlds, 905014
+and 905019, out). There the needs share rises with the world's flagged
+share (+0.595) and the flagged share falls with the both arm's own
+team happiness (−0.542; +0.026 against act15's on the same seeds). The
+flags are read in the both arm's own lived worlds: a world going badly
+for it raises flags and lowers the delta at once, so the direction is
+not separable in this read.
+What it says: the policy's acts depend on the needs cells, about half
+as much as on the act cells, and about twice as much (zeroed) to three
+times as much (permuted) when the head flags a grave friend. What it
+does not say: that the dependence helps — both sits level with the
+no-head arm, and the one place the needs share varies with welfare it
+varies the wrong way, confounded. A needs-only arm (her lean) is the
+read that separates the two; it is a new declaration on her word.
+Status: READ 2026-11-12 — OPEN until its write-up is gated with R-4 in
+the continuation's RESULTS.

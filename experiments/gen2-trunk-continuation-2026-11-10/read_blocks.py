@@ -121,11 +121,21 @@ def score(d):
         delta = {s: R1.team(arm_rows[s]) - R1.team(pair_rows[s]) for s in seeds}
         k = WORLDS // 3
         rk = lambda v: np.argsort(np.argsort(v))
+        sp = lambda x, y: float(np.corrcoef(rk(np.asarray(x)), rk(np.asarray(y)))[0, 1])
+        flag = {s: ws[s]["flagged_rows"] / ws[s]["rows"] for s in seeds}
+        aborted = sorted(s for s in seeds if "aborted_streak" in arm_rows[s] or "aborted_streak" in pair_rows[s])
+        kept = [s for s in seeds if s not in aborted]
         leg_["needs_share_vs_delta_act15"] = {
             "paired_delta_mean": float(np.mean(list(delta.values()))),
             "terciles": {name: {"needs_share_range": [share(seeds[i * k]), share(seeds[(i + 1) * k - 1])],
                                 "paired_delta_mean": float(np.mean([delta[s] for s in seeds[i * k:(i + 1) * k]]))} for i, name in enumerate(TERCILES)},
-            "spearman": float(np.corrcoef(rk(np.asarray([share(s) for s in seeds])), rk(np.asarray([delta[s] for s in seeds])))[0, 1])}
+            "spearman": sp([share(s) for s in seeds], [delta[s] for s in seeds]),
+            "aborted_seeds": aborted,
+            "spearman_excluding_aborted": sp([share(s) for s in kept], [delta[s] for s in kept]),
+            "spearman_flagged_share_vs_delta": sp([flag[s] for s in seeds], [delta[s] for s in seeds]),
+            "spearman_needs_share_vs_flagged_share": sp([share(s) for s in seeds], [flag[s] for s in seeds]),
+            "spearman_flagged_share_vs_team": {"both": sp([flag[s] for s in seeds], [R1.team(arm_rows[s]) for s in seeds]),
+                                               "act15": sp([flag[s] for s in seeds], [R1.team(pair_rows[s]) for s in seeds])}}
         res["legs"][str(size)] = leg_
     z = lambda size, b, col="all_rows": res["legs"][str(size)]["share"][f"zero/{b}"][col]
     a = {str(s): z(s, "needs") >= 0.010 for s in SIZES}
@@ -151,12 +161,14 @@ def md(res):
         for key, s in v["share"].items():
             m, b = key.split("/")
             out.append(f"| {size}×{size} | {m} | {b} | {s['all_rows']:.4f} | {s['free_choice']:.4f} | {f(s['flagged'])} | {s['unflagged']:.4f} |")
-    out += ["", "| size | rows | free-choice rows | flagged rows | ties | both − act15 paired Δ | Δ bottom tercile of needs share | Δ mid | Δ top | Spearman needs share ~ Δ |",
-            "|---|---|---|---|---|---|---|---|---|---|"]
+    out += ["", "| size | rows | free-choice rows | flagged rows | ties | both − act15 paired Δ | Δ bottom tercile of needs share | Δ mid | Δ top | Spearman needs share ~ Δ | same, aborted worlds out | flagged share ~ Δ | needs share ~ flagged share | flagged share ~ team happiness, both / act15 | aborted |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for size, v in res["legs"].items():
         n = v["needs_share_vs_delta_act15"]; t = n["terciles"]
         out.append(f"| {size}×{size} | {v['rows']:,} | {v['free_rows']:,} | {v['flagged_rows']:,} | {v['ties']} | {n['paired_delta_mean']:+.3f} | "
-                   f"{t['bottom']['paired_delta_mean']:+.3f} | {t['mid']['paired_delta_mean']:+.3f} | {t['top']['paired_delta_mean']:+.3f} | {n['spearman']:+.3f} |")
+                   f"{t['bottom']['paired_delta_mean']:+.3f} | {t['mid']['paired_delta_mean']:+.3f} | {t['top']['paired_delta_mean']:+.3f} | {n['spearman']:+.3f} | "
+                   f"{n['spearman_excluding_aborted']:+.3f} | {n['spearman_flagged_share_vs_delta']:+.3f} | {n['spearman_needs_share_vs_flagged_share']:+.3f} | "
+                   f"{n['spearman_flagged_share_vs_team']['both']:+.3f} / {n['spearman_flagged_share_vs_team']['act15']:+.3f} | {n['aborted_seeds'] or '—'} |")
     p = res["P55"]
     out += ["", f"**P55.** (a) needs-block share at least 0.010 at every size: {p['a_needs_share_at_least_0.010']} — {p['half_a']}. "
             f"(b) needs-block share higher on flagged rows than unflagged: {p['b_needs_share_flagged_above_unflagged']} — {p['half_b']}. "

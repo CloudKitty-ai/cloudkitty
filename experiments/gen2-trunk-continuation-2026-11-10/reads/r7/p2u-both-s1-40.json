@@ -1,0 +1,1316 @@
+{
+ "seating": "p2u-both-s1",
+ "size": 40,
+ "arm": "both",
+ "policy": "p2:p2-both-s1",
+ "blocks": {
+  "act": [
+   0,
+   13
+  ],
+  "needs": [
+   13,
+   21
+  ],
+  "tsl": [
+   21,
+   22
+  ],
+  "all": [
+   0,
+   22
+  ]
+ },
+ "worlds": [
+  {
+   "seed": 905001,
+   "rows": 100000,
+   "free_rows": 60405,
+   "flagged_rows": 558,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5276,
+     "changed_flagged": 26
+    },
+    "needs": {
+     "changed": 2682,
+     "changed_flagged": 34
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6669,
+     "changed_flagged": 44
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3731,
+     "changed_flagged": 25
+    },
+    "needs": {
+     "changed": 1700,
+     "changed_flagged": 31
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4284,
+     "changed_flagged": 40
+    }
+   }
+  },
+  {
+   "seed": 905002,
+   "rows": 100000,
+   "free_rows": 59958,
+   "flagged_rows": 15,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5509,
+     "changed_flagged": 2
+    },
+    "needs": {
+     "changed": 2824,
+     "changed_flagged": 2
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6856,
+     "changed_flagged": 2
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3891,
+     "changed_flagged": 1
+    },
+    "needs": {
+     "changed": 1493,
+     "changed_flagged": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4250,
+     "changed_flagged": 1
+    }
+   }
+  },
+  {
+   "seed": 905003,
+   "rows": 100000,
+   "free_rows": 60361,
+   "flagged_rows": 1010,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5372,
+     "changed_flagged": 53
+    },
+    "needs": {
+     "changed": 2853,
+     "changed_flagged": 62
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6966,
+     "changed_flagged": 100
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 4040,
+     "changed_flagged": 38
+    },
+    "needs": {
+     "changed": 1654,
+     "changed_flagged": 50
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4522,
+     "changed_flagged": 68
+    }
+   }
+  },
+  {
+   "seed": 905004,
+   "rows": 100000,
+   "free_rows": 60132,
+   "flagged_rows": 5,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5333,
+     "changed_flagged": 0
+    },
+    "needs": {
+     "changed": 2671,
+     "changed_flagged": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6775,
+     "changed_flagged": 0
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3970,
+     "changed_flagged": 0
+    },
+    "needs": {
+     "changed": 1473,
+     "changed_flagged": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4282,
+     "changed_flagged": 0
+    }
+   }
+  },
+  {
+   "seed": 905005,
+   "rows": 100000,
+   "free_rows": 59709,
+   "flagged_rows": 156,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5391,
+     "changed_flagged": 5
+    },
+    "needs": {
+     "changed": 2742,
+     "changed_flagged": 7
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6824,
+     "changed_flagged": 13
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3852,
+     "changed_flagged": 1
+    },
+    "needs": {
+     "changed": 1549,
+     "changed_flagged": 5
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4199,
+     "changed_flagged": 8
+    }
+   }
+  },
+  {
+   "seed": 905006,
+   "rows": 100000,
+   "free_rows": 60264,
+   "flagged_rows": 17,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5400,
+     "changed_flagged": 0
+    },
+    "needs": {
+     "changed": 2629,
+     "changed_flagged": 1
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6739,
+     "changed_flagged": 1
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3812,
+     "changed_flagged": 1
+    },
+    "needs": {
+     "changed": 1632,
+     "changed_flagged": 1
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4282,
+     "changed_flagged": 2
+    }
+   }
+  },
+  {
+   "seed": 905007,
+   "rows": 100000,
+   "free_rows": 59915,
+   "flagged_rows": 160,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5292,
+     "changed_flagged": 7
+    },
+    "needs": {
+     "changed": 2734,
+     "changed_flagged": 5
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6811,
+     "changed_flagged": 7
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3887,
+     "changed_flagged": 7
+    },
+    "needs": {
+     "changed": 1501,
+     "changed_flagged": 3
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4192,
+     "changed_flagged": 7
+    }
+   }
+  },
+  {
+   "seed": 905008,
+   "rows": 100000,
+   "free_rows": 60171,
+   "flagged_rows": 29,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5316,
+     "changed_flagged": 1
+    },
+    "needs": {
+     "changed": 2865,
+     "changed_flagged": 2
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6824,
+     "changed_flagged": 3
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3958,
+     "changed_flagged": 2
+    },
+    "needs": {
+     "changed": 1545,
+     "changed_flagged": 3
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4307,
+     "changed_flagged": 1
+    }
+   }
+  },
+  {
+   "seed": 905009,
+   "rows": 100000,
+   "free_rows": 60195,
+   "flagged_rows": 457,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5315,
+     "changed_flagged": 40
+    },
+    "needs": {
+     "changed": 2667,
+     "changed_flagged": 33
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6698,
+     "changed_flagged": 44
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3668,
+     "changed_flagged": 25
+    },
+    "needs": {
+     "changed": 1525,
+     "changed_flagged": 20
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4030,
+     "changed_flagged": 34
+    }
+   }
+  },
+  {
+   "seed": 905010,
+   "rows": 100000,
+   "free_rows": 59412,
+   "flagged_rows": 164,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5347,
+     "changed_flagged": 10
+    },
+    "needs": {
+     "changed": 2753,
+     "changed_flagged": 12
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6693,
+     "changed_flagged": 11
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3700,
+     "changed_flagged": 9
+    },
+    "needs": {
+     "changed": 1532,
+     "changed_flagged": 10
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4009,
+     "changed_flagged": 13
+    }
+   }
+  },
+  {
+   "seed": 905011,
+   "rows": 100000,
+   "free_rows": 60456,
+   "flagged_rows": 77,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5290,
+     "changed_flagged": 3
+    },
+    "needs": {
+     "changed": 2615,
+     "changed_flagged": 2
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6688,
+     "changed_flagged": 4
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3916,
+     "changed_flagged": 2
+    },
+    "needs": {
+     "changed": 1427,
+     "changed_flagged": 2
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4272,
+     "changed_flagged": 3
+    }
+   }
+  },
+  {
+   "seed": 905012,
+   "rows": 100000,
+   "free_rows": 59600,
+   "flagged_rows": 590,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5513,
+     "changed_flagged": 27
+    },
+    "needs": {
+     "changed": 2781,
+     "changed_flagged": 43
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6896,
+     "changed_flagged": 52
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3986,
+     "changed_flagged": 27
+    },
+    "needs": {
+     "changed": 1650,
+     "changed_flagged": 40
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4382,
+     "changed_flagged": 48
+    }
+   }
+  },
+  {
+   "seed": 905013,
+   "rows": 100000,
+   "free_rows": 60307,
+   "flagged_rows": 236,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5501,
+     "changed_flagged": 11
+    },
+    "needs": {
+     "changed": 2727,
+     "changed_flagged": 12
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6930,
+     "changed_flagged": 19
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 4047,
+     "changed_flagged": 5
+    },
+    "needs": {
+     "changed": 1598,
+     "changed_flagged": 12
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4572,
+     "changed_flagged": 17
+    }
+   }
+  },
+  {
+   "seed": 905014,
+   "rows": 100000,
+   "free_rows": 60364,
+   "flagged_rows": 666,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5305,
+     "changed_flagged": 28
+    },
+    "needs": {
+     "changed": 2686,
+     "changed_flagged": 39
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6749,
+     "changed_flagged": 57
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3960,
+     "changed_flagged": 24
+    },
+    "needs": {
+     "changed": 1696,
+     "changed_flagged": 32
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4388,
+     "changed_flagged": 41
+    }
+   }
+  },
+  {
+   "seed": 905015,
+   "rows": 100000,
+   "free_rows": 60481,
+   "flagged_rows": 390,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5344,
+     "changed_flagged": 20
+    },
+    "needs": {
+     "changed": 2645,
+     "changed_flagged": 30
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6678,
+     "changed_flagged": 37
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3848,
+     "changed_flagged": 21
+    },
+    "needs": {
+     "changed": 1525,
+     "changed_flagged": 25
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4282,
+     "changed_flagged": 28
+    }
+   }
+  },
+  {
+   "seed": 905016,
+   "rows": 100000,
+   "free_rows": 60520,
+   "flagged_rows": 49,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5530,
+     "changed_flagged": 4
+    },
+    "needs": {
+     "changed": 2702,
+     "changed_flagged": 1
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6994,
+     "changed_flagged": 4
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 4110,
+     "changed_flagged": 4
+    },
+    "needs": {
+     "changed": 1491,
+     "changed_flagged": 1
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4432,
+     "changed_flagged": 3
+    }
+   }
+  },
+  {
+   "seed": 905017,
+   "rows": 100000,
+   "free_rows": 60209,
+   "flagged_rows": 423,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5403,
+     "changed_flagged": 19
+    },
+    "needs": {
+     "changed": 2748,
+     "changed_flagged": 28
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6836,
+     "changed_flagged": 38
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3949,
+     "changed_flagged": 17
+    },
+    "needs": {
+     "changed": 1682,
+     "changed_flagged": 22
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4436,
+     "changed_flagged": 28
+    }
+   }
+  },
+  {
+   "seed": 905018,
+   "rows": 100000,
+   "free_rows": 60633,
+   "flagged_rows": 327,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5403,
+     "changed_flagged": 19
+    },
+    "needs": {
+     "changed": 2801,
+     "changed_flagged": 43
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6887,
+     "changed_flagged": 45
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3878,
+     "changed_flagged": 19
+    },
+    "needs": {
+     "changed": 1661,
+     "changed_flagged": 34
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4365,
+     "changed_flagged": 40
+    }
+   }
+  },
+  {
+   "seed": 905019,
+   "rows": 100000,
+   "free_rows": 60100,
+   "flagged_rows": 1186,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5464,
+     "changed_flagged": 73
+    },
+    "needs": {
+     "changed": 2886,
+     "changed_flagged": 80
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 7056,
+     "changed_flagged": 113
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 4093,
+     "changed_flagged": 58
+    },
+    "needs": {
+     "changed": 1734,
+     "changed_flagged": 73
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4453,
+     "changed_flagged": 82
+    }
+   }
+  },
+  {
+   "seed": 905020,
+   "rows": 100000,
+   "free_rows": 59951,
+   "flagged_rows": 432,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5350,
+     "changed_flagged": 22
+    },
+    "needs": {
+     "changed": 2762,
+     "changed_flagged": 29
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6886,
+     "changed_flagged": 39
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3975,
+     "changed_flagged": 20
+    },
+    "needs": {
+     "changed": 1673,
+     "changed_flagged": 27
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4381,
+     "changed_flagged": 40
+    }
+   }
+  },
+  {
+   "seed": 905021,
+   "rows": 100000,
+   "free_rows": 60418,
+   "flagged_rows": 785,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5417,
+     "changed_flagged": 38
+    },
+    "needs": {
+     "changed": 2777,
+     "changed_flagged": 26
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6844,
+     "changed_flagged": 51
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3934,
+     "changed_flagged": 26
+    },
+    "needs": {
+     "changed": 1674,
+     "changed_flagged": 23
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4343,
+     "changed_flagged": 36
+    }
+   }
+  },
+  {
+   "seed": 905022,
+   "rows": 100000,
+   "free_rows": 60318,
+   "flagged_rows": 755,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5396,
+     "changed_flagged": 43
+    },
+    "needs": {
+     "changed": 2723,
+     "changed_flagged": 45
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6757,
+     "changed_flagged": 69
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3791,
+     "changed_flagged": 34
+    },
+    "needs": {
+     "changed": 1584,
+     "changed_flagged": 33
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4219,
+     "changed_flagged": 50
+    }
+   }
+  },
+  {
+   "seed": 905023,
+   "rows": 100000,
+   "free_rows": 59912,
+   "flagged_rows": 98,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5512,
+     "changed_flagged": 5
+    },
+    "needs": {
+     "changed": 2772,
+     "changed_flagged": 3
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6873,
+     "changed_flagged": 7
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 4130,
+     "changed_flagged": 2
+    },
+    "needs": {
+     "changed": 1598,
+     "changed_flagged": 4
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4602,
+     "changed_flagged": 3
+    }
+   }
+  },
+  {
+   "seed": 905024,
+   "rows": 100000,
+   "free_rows": 59957,
+   "flagged_rows": 397,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5458,
+     "changed_flagged": 20
+    },
+    "needs": {
+     "changed": 2700,
+     "changed_flagged": 27
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6855,
+     "changed_flagged": 29
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3903,
+     "changed_flagged": 17
+    },
+    "needs": {
+     "changed": 1515,
+     "changed_flagged": 25
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4337,
+     "changed_flagged": 34
+    }
+   }
+  },
+  {
+   "seed": 905025,
+   "rows": 100000,
+   "free_rows": 60194,
+   "flagged_rows": 449,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5269,
+     "changed_flagged": 22
+    },
+    "needs": {
+     "changed": 2690,
+     "changed_flagged": 42
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6774,
+     "changed_flagged": 52
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3998,
+     "changed_flagged": 18
+    },
+    "needs": {
+     "changed": 1640,
+     "changed_flagged": 37
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4365,
+     "changed_flagged": 42
+    }
+   }
+  },
+  {
+   "seed": 905026,
+   "rows": 100000,
+   "free_rows": 60022,
+   "flagged_rows": 443,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5465,
+     "changed_flagged": 32
+    },
+    "needs": {
+     "changed": 2715,
+     "changed_flagged": 21
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6866,
+     "changed_flagged": 46
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3942,
+     "changed_flagged": 28
+    },
+    "needs": {
+     "changed": 1598,
+     "changed_flagged": 20
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4298,
+     "changed_flagged": 35
+    }
+   }
+  },
+  {
+   "seed": 905027,
+   "rows": 100000,
+   "free_rows": 59752,
+   "flagged_rows": 70,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5242,
+     "changed_flagged": 2
+    },
+    "needs": {
+     "changed": 2577,
+     "changed_flagged": 2
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6670,
+     "changed_flagged": 3
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3932,
+     "changed_flagged": 2
+    },
+    "needs": {
+     "changed": 1504,
+     "changed_flagged": 3
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4074,
+     "changed_flagged": 4
+    }
+   }
+  },
+  {
+   "seed": 905028,
+   "rows": 100000,
+   "free_rows": 59933,
+   "flagged_rows": 866,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5431,
+     "changed_flagged": 61
+    },
+    "needs": {
+     "changed": 2816,
+     "changed_flagged": 61
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6892,
+     "changed_flagged": 93
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3999,
+     "changed_flagged": 32
+    },
+    "needs": {
+     "changed": 1651,
+     "changed_flagged": 56
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4289,
+     "changed_flagged": 60
+    }
+   }
+  },
+  {
+   "seed": 905029,
+   "rows": 100000,
+   "free_rows": 59911,
+   "flagged_rows": 1292,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5396,
+     "changed_flagged": 77
+    },
+    "needs": {
+     "changed": 2736,
+     "changed_flagged": 77
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6892,
+     "changed_flagged": 115
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 3884,
+     "changed_flagged": 53
+    },
+    "needs": {
+     "changed": 1609,
+     "changed_flagged": 61
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4321,
+     "changed_flagged": 89
+    }
+   }
+  },
+  {
+   "seed": 905030,
+   "rows": 100000,
+   "free_rows": 59975,
+   "flagged_rows": 606,
+   "ties": 0,
+   "zero": {
+    "act": {
+     "changed": 5434,
+     "changed_flagged": 36
+    },
+    "needs": {
+     "changed": 2708,
+     "changed_flagged": 29
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 6959,
+     "changed_flagged": 47
+    }
+   },
+   "perm": {
+    "act": {
+     "changed": 4005,
+     "changed_flagged": 26
+    },
+    "needs": {
+     "changed": 1620,
+     "changed_flagged": 29
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_flagged": 0
+    },
+    "all": {
+     "changed": 4354,
+     "changed_flagged": 46
+    }
+   }
+  }
+ ]
+}
