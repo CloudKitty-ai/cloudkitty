@@ -2324,3 +2324,68 @@ bin returns rounded to four decimals, as §2.2 computed them.
 Status: OPEN — awaits her word on (A) / (B) and on the corrected cost
 line.
 
+## 33. The block read on the dual-head arm's recorded legs (R-7), prediction P55 (2026-11-11)
+A read no frozen declaration carries (Phase 2 §6 and the trunk
+continuation's §6 are frozen; R-4 zeroed every appended cell at once),
+on her word. Her words, verbatim (2026-11-11, after the session
+recalled why no needs-only arm trained): "Right, we found the
+underestimation on the need head was not as impactful as we initially
+thought. Let's run the block read. I think we will probably want to
+train needs only as well, and evaluate on welfare like we did with dual
+head". Read as: the block read is RULED (zero covered cost: a replay of
+p2u-both-s1's recorded legs, no world served, nothing trains); the
+needs-only arm is a LEAN, not a ruling — it is a new declaration on her
+word (Phase 2 §1: the needs head's welfare comparison "waits for Phase
+1f, a new declaration on her word"; entry 27 carried a failed-gate head
+into one arm by deviation), drafted after this read.
+The record behind her first sentence: on both-s1's legs the needs
+head's grave bias read POSITIVE, the opposite sign from the gate's
+−3.17 — in sight +5.04 on 55 grave rows (INSUFFICIENT), all-version
++10.67 on 620 grave rows (CLEAR), common +1.76; at probe time the
+cumulative state was INSUFFICIENT at all 78 probes (Phase 2 RESULTS
+§R-C: P45 lived UNDECIDABLE, P45 leg NOT MET, no signature). One seed,
+thin grave rows: the gate's under-read did not appear on the lived
+legs; it is not shown absent.
+THE READ (`gen2-trunk-continuation-2026-11-10/read_blocks.py`,
+`run_r7.sh`, outputs `reads/r7/`). The both arm appends 22 cells a
+friend row: act (the B15 head's 13), needs (seven estimates +
+P(grave)), tsl (time since live). Per world of the three legs (20 / 40 /
+100, 30 worlds each), per block and for all cells: the share of
+decision rows whose greedy act changes when the block is zeroed
+(R-4's ablation, the registered quantity) and when it is permuted
+across the seat's own ticks (descriptive: zeros are off-distribution
+for a probability vector); on all rows, free-choice rows, and rows
+FLAGGED by the needs head (some friend row's P(grave) cell ≥ 0.5; a leg
+with under 200 flagged rows reads INSUFFICIENT). Beside it, the worlds
+ranked by needs-block share against the paired team-happiness delta
+over the same-seed act15 leg (descriptive; R-4 found no such relation
+for all cells).
+P55, registered before any block number is read (this entry is
+committed with the unrun reader):
+  (a) the needs block is in use: its zeroed share is at least 0.010 of
+      all rows at each of 20 / 40 / 100. The line is unsourced, set
+      here just under the both arm's all-cell excess over act15-s1 in
+      R-4 (0.0132 / 0.0110 / 0.0138).
+  (b) it is used where the head speaks: the needs block's zeroed share
+      is higher on flagged rows than on unflagged rows at every size
+      with at least 200 flagged rows (none sufficient = UNDECIDABLE).
+  (c) the act block's zeroed share exceeds the needs block's at every
+      size.
+The session expects (a) MET, (b) MET where decidable, (c) MET. Her
+hypothesis ("the dual head model should provide enough useful
+information that it should be incorporated into the model's decisions")
+is (a) and (b); a MET says the policy's acts depend on the needs cells,
+not that the dependence helps — both sits level with the no-head arm
+(R-C), and one seed clears nothing.
+Guards, each red before the read (reds under
+`gen2-trunk-continuation-2026-11-10/results-raw/reds/`):
+
+| guard | asserts | mutant | predicted red |
+|---|---|---|---|
+| g12 | the recorded act is a maximiser of the replayed masked logits on every row (`read_r5.fence_act`) | seat i's rows read against seat i+1's legal mask | `fence_act` raises at an early tick of world 905001 |
+| g13 | all cells zeroed reproduces R-4's recorded rows and changed count for the world | the ablated argmax taken without the legal mask | the FENCE assertion on 20×20 world 905001 (a count other than R-4's 8,057 of 100,000) |
+| g14 | the three blocks partition the arm's 22 cells | the needs block starts one cell early | "the blocks do not partition" at import |
+| g15 | a partial leg is never scored | a one-world leg JSON in a scratch copy of `reads/r7/` (a data bug, so hand-rolled) | the "a partial leg is never scored" assertion |
+
+Welfare cost: none (no covered mind is served or trained).
+Status: OPEN — read pending.

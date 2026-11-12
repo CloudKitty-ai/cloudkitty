@@ -1207,6 +1207,12 @@ consent BC comparison ride the trunk.
   update past the 20M cap. Readings (A) Phase 2's rule verbatim (every
   seed runs to the cap; recommended) / (B) the bin-19 wording put to
   her; nothing built on either.
+  2026-11-11, her word "Let's run the block read" (deviations entry
+  33, OPEN): R-7, the both arm's cells ablated a block at a time (act /
+  needs / tsl) over p2u-both-s1's recorded legs, zero covered cost;
+  P55 registered with the unrun reader. Her lean, not a ruling: "we
+  will probably want to train needs only as well" — a new declaration
+  on her word, drafted after the read.
 
 ## Flagged follow-ups (owner's word to start)
 
