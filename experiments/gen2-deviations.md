@@ -2321,8 +2321,34 @@ no-head arm's first-bin STEP on s4 as +0.0154; that is printed-cell
 arithmetic (0.8957 − 0.8803). The raw STEP is +0.0153 (0.01534), which
 is what `read_curves.py` reports; g8 asserts §2.2's three figures over
 bin returns rounded to four decimals, as §2.2 computed them.
-Status: OPEN — awaits her word on (A) / (B) and on the corrected cost
-line.
+RULED 2026-11-12, her words verbatim (item 2 of her reply to the four
+open decisions): "let's set a 20M floor, and a smarter plateau rule so
+ideally I don't need to rule every time. Maybe we can do a welfare test
+every e. g. 2M ticks and evaluate based on that rather than loss?
+Thoughts on this approach?" Read as, and told to her as read: the
+floor is 20M ticks on the LINEAGE, which with cap A (20M) means no
+plateau stop can fire — every continuation seed trains to the cap,
+11,996,160 further ticks, the behaviour of reading (A) by a simpler
+rule; cost fixed at the maximum she ruled the cap on, 208.0M covered
+cat-ticks. This deviates from the frozen §3's "ONE delta (Phase 2's
+8,002,560-tick floor)": the delta is now a floor at the cap. P52 is
+scored on R-3's replay, never lived; g3 asserts no plateau stop under
+the cap. The second half of her sentence is a QUESTION, not a ruling:
+a welfare-based stop (a paired leg every 2M ticks, the best checkpoint
+kept) was answered in the session — agreed in principle; recorded
+paired legs resolve ±0.03–0.05 happiness points at 20×20 / 40×40 on 30
+worlds (3.0M covered a test, against 10.0M for 2M ticks of training);
+it needs its own test worlds, two flat tests before a stop, a line and
+a hard ceiling that are hers, a harm side, and schedules held past
+20M; it applies past 20M and at the Gen 3 freeze, not to the needs-only
+arm (which keeps Phase 2's rule for comparability). Put to her: R-6
+reshaped to 2M rungs on cont-s1 plus the three no-head rungs (24.0M
+covered, against the declared 12.0M) as the rehearsal the rule is
+replayed on. Nothing past 20M and no new rule runs unruled.
+The session's "loss" correction: the frozen rule reads training return
+per 1M-tick bin and the anchor KL, not loss.
+Status: (1) and (2) RULED 2026-11-12 (floor at the cap; cost 208.0M);
+OPEN until her reading is confirmed and the driver's g3 is red.
 
 ## 33. The block read on the dual-head arm's recorded legs (R-7), prediction P55 (2026-11-11)
 A read no frozen declaration carries (Phase 2 §6 and the trunk

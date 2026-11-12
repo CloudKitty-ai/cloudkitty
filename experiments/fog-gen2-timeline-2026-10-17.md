@@ -1220,6 +1220,15 @@ consent BC comparison ride the trunk.
   needs head flags a grave friend. In use, not shown to help: both sits
   level with no-head, and at 100×100 the worlds with the higher needs
   share show the smaller gain over act15 (Spearman −0.620, confounded).
+  2026-11-12, her rulings on the four open decisions: "1) agreed" (the
+  needs-only declaration is drafted: head as is, the both arm's trigger
+  treatment, a scout seed first); "let's set a 20M floor, and a smarter
+  plateau rule…" (entry 32 RULED as read: floor at the 20M lineage cap,
+  every continuation seed trains to it, 208.0M covered; the welfare-test
+  stop is a question, answered, unruled); "3) agreed, hold for needs
+  only" (both-s2 / s4 HELD until the needs-only scout reads); 4) the
+  ladder walked through again — R-6 reshaped to 2M rungs (24.0M) put to
+  her as the rehearsal for a welfare-based stop.
 
 ## Flagged follow-ups (owner's word to start)
 
