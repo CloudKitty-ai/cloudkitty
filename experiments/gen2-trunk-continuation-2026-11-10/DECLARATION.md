@@ -14,11 +14,14 @@ is item 1. Written after her approval and before any number; she sees it
 first. Her word declares it; until then the status line below is the
 truth.
 
-**Status: DRAFT 2026-11-10 (commit pending). Not declared; no seed band
-claimed; no covered mind trained. Open with her: §12 calls 1–4, call 1
-being her word to declare after reading the two corrections in §2.4
-(the covered cost is 146–208M cat-ticks, not the ~105M the proposal
-said; the recorded curves already lean DIFFERENT).**
+**Status: DRAFT 2026-11-10 (a0e7fc42), her rulings of 2026-11-11
+recorded (§0): call 1 "Accepted" (her word to declare, given §2.4), call
+3 "Yes" (R-4). NOT YET DECLARED: call 2 (the cap) is open — "I'm
+debating" — and the declaration freezes when she rules it (§13 step 1).
+No seed band claimed; no covered mind trained. Open with her: call 2
+(her overtraining question answered in §2.5), call 5 (the checkpoint
+ladder §2.5 proposes, R-6), and item 4 of the 2026-11-10 proposal (no
+head rerun; explained to her 2026-11-11, unruled).**
 
 ## 0. Her words, verbatim and in order (the record this draft obeys)
 
@@ -38,6 +41,16 @@ said; the recorded curves already lean DIFFERENT).**
   approved; item 4 unruled (a recommendation; nothing runs by default);
   the question answered in the session the same day and carried as §12
   call 3's read.
+- 2026-11-11, on the four open items as the session listed them ((1)
+  her word to declare given §2.4's two corrections; (2) the cap, 20M on
+  the lineage or 20M further; (3) the cells-in-use-by-size read; (4)
+  item 4, no head rerun, unruled): "1) Accepted 2) I'm debating. 3
+  happiness points is quite significant. Do we run the risk of
+  overtraining if we go higher? How would we decide the optimal stopping
+  point? 3) Yes 4) Explain this in more detail" — call 1 ruled
+  (declare), call 3 ruled (R-4 runs), call 2 OPEN (her question answered
+  in §2.5; nothing freezes until she rules it), item 4 explained in the
+  session the same day and still unruled.
 
 Standing: Gen 2 prereg FROZEN 18f06f84, never edited; Phase 2
 DECLARATION 226509ec §3–§9 frozen (its R-5 change is deviations entry
@@ -152,7 +165,7 @@ weight norm (per-column 0.55–0.61 against the kitty embedding's
 1.40–1.43). What the R-5 analysis showed is narrower: the policy's
 DEPARTURES from the trunk are not steered by the head's certainty. Three
 recorded facts bound the "negative impact": (i) training-world returns
-at stop are equal across arms (last-bin means act15 0.9039 / 0.9022 /
+at stop are equal across arms (last-bin means act15 0.9038 / 0.9022 /
 0.9034, nohead 0.9039 / 0.9015 / 0.9045) — the gap is a BATTERY gap, at
 20×20 inside the edge (−0.256 against 0.326) and at 40×40 beyond it
 (−0.431 against 0.325, same sign in all three seeds), so it is a
@@ -188,6 +201,60 @@ flat, the gap is the training-length and leash-budget terms alone.
    "the step is the resume" from "the step is the re-anchor" (§8), and
    the decision it buys is Gen 3's recipe (§8.3); but she approved on
    the earlier reading, so her word is asked again (§12 call 1).
+
+### 2.5 Her cap question, answered from the record (2026-11-11; raw-field reads of `metrics.jsonl`, no reader; §6 R-6 is the proposed read)
+
+"3 happiness points is quite significant. Do we run the risk of
+overtraining if we go higher? How would we decide the optimal stopping
+point?" Four recorded facts and one design consequence.
+
+1. **Where the gain sits.** The no-head arm's per-bin training return
+   (s1r / s2 / s4): bin 1 0.8914 / 0.8901 / 0.8957 (the step, §2.2), bin
+   8 0.9031 / 0.9000 / 0.9041, last bin 0.9039 / 0.9015 / 0.9045 (bins
+   15 / 15 / 12). From bin 8 to the last bin the return moved +0.0008 /
+   +0.0015 / +0.0004 — by P48's return-to-happiness ratio ~0.05–0.2
+   happiness, inside the 0.326 edge. Length past ~8M further ticks has
+   bought nothing the battery could resolve.
+2. **Held-out welfare tracks training return in every run.** Each
+   trainer probes three worlds it never trains on (PROBE_SEEDS 40,001–3,
+   2k ticks every 50 updates; the probe row's `nash`). Per 1M bin, the
+   mean probe nash sits between 0.001 above and 0.009 under the bin's
+   training return in the three trunk seeds, the three no-head seeds
+   and the three act15 seeds, and every run's last-bin probe nash is
+   within 0.0022 of its own series maximum (none peaks early and
+   declines): last-bin pairs (return / probe nash) trunk 0.8802 / 0.8741, 0.8789 /
+   0.8716, 0.8803 / 0.8746; nohead 0.9039 / 0.9019, 0.9015 / 0.8996,
+   0.9045 / 0.9012; act15 0.9038 / 0.9014, 0.9022 / 0.9002, 0.9034 /
+   0.9034. No overtraining signature at the training size through
+   lineage tick ~23M (the no-head arm's 15M past the trunk's 8M) — so
+   the 20M lineage cap (call 2 A) lies inside ticks a trunk-initialised
+   policy has already been trained through.
+3. **What the probes cannot see.** They are 20×20, the training size.
+   Transfer (40×40, 100×100) has been read on finals only, and §2.3 (i)
+   is a recorded case of equal training-size numbers hiding a transfer
+   gap. Policy entropy falls in every arm's last bins as the entropy
+   coefficient anneals (nohead 0.882 / 0.894 / 0.939 at stop against
+   ~0.95–1.05 mid-run): the place a brittleness cost would first appear.
+4. **Option B changes a second thing.** `schedules()` computes
+   `progress = update / total_updates`; raising `--total-ticks` from 20M
+   to 28M moves the resumed run's progress from 0.40 back to 0.29 and
+   its entropy coefficient from 0.0064 up to 0.0074 at the resume — a
+   schedule discontinuity beside the floor, against §3's "ONE delta",
+   and it lands exactly where P50 reads the step.
+
+**Consequence: the stop rule and the optimal network are two
+decisions.** The training stop is a futility rule (welfare practice
+item 1: it ends spending, it never certifies an optimum). Every 1M bin
+leaves a policy checkpoint, so a longer run contains every shorter run;
+going long risks covered ticks, not the result. The optimal stopping
+point is then read afterwards, on held-out worlds at a size the
+training never saw: a checkpoint ladder at 40×40 (§6 R-6, §12 call 5),
+the rule proposed for Gen 3 being "the EARLIEST checkpoint whose paired
+40×40 welfare is within the edge of the best rung" (earlier = less
+drift from the anchor and fewer covered ticks; within-the-edge = rule
+10, a noise reading is never a bar). And cap A stays extendable: a seed
+that reaches the 20M cap still climbing holds a checkpoint she can rule
+an extension from, with its curve in hand.
 
 ## 3. The arm (three resumed seeds; nothing else trains)
 
@@ -310,6 +377,20 @@ Phase 2's headline.
   no-head arm on the worlds split by that share's tercile. Fence: the
   no-head legs show 0 changed rows. Zero cost; dump-only.
 
+- **R-6 checkpoint ladder — the stopping-point read** (PROPOSED, §12
+  call 5; runs only on her word; the name R-5 is skipped, it is Phase
+  2's). The battery leg of R-1 at 40×40 (30 × 20k, g2cmp 905001–905030,
+  F-053 abort armed, uniform five seats) on intermediate per-bin
+  checkpoints: the no-head arm `p2-nohead-s1r` at `ckpt-u1302` /
+  `ckpt-u2604` / `ckpt-u3906` (4M / 8M / 12M further ticks; its final at
+  15M is the recorded `p2u-nohead-s1` leg) and `cont-s1` at its bin
+  nearest 4M further ticks (its final is R-1's). Paired per world
+  against the trunk s1 rows and against the lineage's final. Reported:
+  the Δ-to-trunk per rung, the rung of the maximum, the earliest rung
+  within the 0.325 edge of the maximum. Covered cost 4 legs × 3.0M =
+  12.0M cat-ticks (§5 gains this line on her word). No selector here:
+  the earliest-within-edge rule is a candidate for the Gen 3 freeze.
+
 ## 7. Registered predictions (this thread's; before any number)
 
 - **P48.** Each continued seed is above its trunk at 20×20 (R-1, paired
@@ -338,6 +419,19 @@ Phase 2's headline.
   as well (the trunk's last-three-bin climb is under 0.002 on two seeds)
   — the finer return line alone does not buy Gen 3 the arms' gain; the
   floor or the re-anchor does.
+
+- **P53 (R-4; registered 2026-11-11 before the reader exists).** On the
+  act15 legs the share of decision rows whose greedy act changes when
+  the cells are zeroed RISES with world size in every seed that has
+  both sizes (40×40 above 20×20 in s1, s2 and s4; 100×100 above 40×40 in
+  s1), and at 40×40 the arm's paired Δ against the no-head arm is lower
+  in the top cells-in-use tercile of worlds than in the bottom tercile
+  in at least two of three seeds. Grounds: §2.3's transfer reading.
+  Either half failing reads against that hypothesis and for the
+  budget terms (§2.3 (ii)–(iii)); reported whichever way.
+- **P54 (R-6, if she rules it).** The no-head ladder is monotone within
+  the edge: no rung's Δ-to-trunk at 40×40 exceeds the final's by more
+  than 0.325 (no recorded peak before the stop). Grounds: §2.5 fact 2.
 
 Unscored expectations: no F-053 event at 20 or 40; the continuation's
 40×40 worst streaks inside the trunk's and no-head arm's range (128–294).
@@ -434,17 +528,31 @@ Unscored expectations: no F-053 event at 20 or 40; the continuation's
    resume" from "the step is the re-anchor", and Gen 3's trunk recipe
    turns on it. If she declines, the FINDINGS clause reads from the
    curves alone, labelled as such.
+   **RULED 2026-11-11: "Accepted".**
 2. **The cap**: (A) the frozen §5 cap on the lineage, 20M total (at most
    12M further ticks; recommended — the trunk's own run inside its
    frozen prereg; a cap stop while still climbing is itself a Gen 3
    input), or (B) 20M further ticks (Phase 2's arm budget, 300M covered
-   at the cap).
+   at the cap). **OPEN 2026-11-11: "I'm debating" — her overtraining
+   and stopping-point question is answered in §2.5; the recommendation
+   stays A (no overtraining signature on record, but the gain past ~8M
+   further ticks is under the edge; B rewinds the schedules at the
+   resume; A is extendable from its checkpoint on her word).**
 3. **R-4, cells-in-use by size** on Phase 2's recorded legs (her head
-   question; zero cost; recommended yes).
+   question; zero cost; recommended yes). **RULED 2026-11-11: "Yes".**
+   P53 registered before the reader exists; the read runs once this
+   text is committed (dump-only, no dependency on call 2).
 4. **Item 2's read** (R-5 on free-choice ticks, every Phase 2 leg;
    deviations entry 30, approved): lands as a Phase 2 RESULTS addendum,
    gated; runs on this declaration's word or before it — recommended
-   before (zero cost, no dependency).
+   before (zero cost, no dependency). Approved as item 2 on 2026-11-10;
+   running 2026-11-11.
+5. **R-6, the checkpoint ladder** (§2.5, §6; added 2026-11-11 on her
+   stopping-point question): 12.0M covered cat-ticks, four 40×40 legs on
+   intermediate checkpoints of no-head s1r and cont-s1. Recommended yes,
+   after the continuation's finals are read (it is what turns "how
+   would we decide the optimal stopping point" into a recorded rule for
+   Gen 3). Runs only on her word.
 
 Thread's choices, stated and reversible before the first seed: the
 Phase 2 binding (§4); s1 as the mechanics scout; the no-head rows as
@@ -463,7 +571,9 @@ the DIFFERENT comparator at both sizes; the candidate rule set in R-3.
    closed bin read for P50's mechanics only; then `cont-s2` / `cont-s4`.
    Any trip → that seed holds, owner-routed.
 4. On her word: R-1 legs (20 then 40, s1's 100 last), R-2 / R-3 on the
-   recorded series; R-4 any time after step 2 (call 3).
+   recorded series; R-4 once P53 and its reader's fence red are
+   committed (call 3 ruled 2026-11-11; it reads Phase 2's recorded legs
+   only and does not wait on call 2); R-6 on her word (call 5).
 5. RESULTS gated (fresh subagent, Read fence only); TRIALS entry;
    entries 30 / 31 CLOSED or carried; timeline; the FINDINGS clause put
    to her with 8.1's reading.

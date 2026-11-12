@@ -1141,6 +1141,23 @@ consent BC comparison ride the trunk.
   on 5–7% of decisions; the welfare gap is a battery (transfer) gap,
   not a training-return gap; a cells-in-use-by-size read proposed.
   F-019 and F-030 moved back from FINDINGS-COLD (cited by the draft).
+  2026-11-11, her word on the four open items (declare given §2.4; the
+  cap; cells-in-use by size; item 4), verbatim: "1) Accepted 2) I'm
+  debating. 3 happiness points is quite significant. Do we run the risk
+  of overtraining if we go higher? How would we decide the optimal
+  stopping point? 3) Yes 4) Explain this in more detail" → call 1 ruled
+  (declare) and call 3 ruled (R-4; P53 registered before its reader);
+  the cap OPEN, so the declaration is not yet frozen. Her question
+  answered from the record (draft §2.5): held-out probe welfare tracks
+  training return in all nine trunk / no-head / act15 runs through
+  lineage ~23M (no overtraining signature at the training size); the
+  no-head arm's return moved +0.0004 to +0.0015 from bin 8 to its stop
+  (under the edge); transfer is unread between finals; option B rewinds
+  the schedules at the resume (progress 0.40 → 0.29). The stop rule and
+  the optimal network are two decisions: a 40×40 checkpoint ladder (R-6,
+  call 5, 12.0M covered cat-ticks, hers to rule) reads the second. Item
+  4 explained to her, unruled. Entry 30's read launched on the 19
+  remaining legs (`run_r5cf.sh`, dump-only).
 
 ## Flagged follow-ups (owner's word to start)
 
