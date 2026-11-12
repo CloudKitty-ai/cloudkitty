@@ -1,0 +1,224 @@
+{
+ "seating": "p2r-act15",
+ "size": 20,
+ "mode": "B",
+ "worlds": 30,
+ "ties": 0,
+ "tick_divergence_live_rows": 0.1767712407267768,
+ "by_head_entropy": {
+  "seen": {
+   "n": 2961506,
+   "tercile_edges": [
+    0.03374316046635308,
+    0.45183183749516787
+   ],
+   "divergence": 0.18198072197051096,
+   "low": {
+    "n": 987169,
+    "divergence": 0.15040585755833094
+   },
+   "mid": {
+    "n": 987168,
+    "divergence": 0.1923715112321307
+   },
+   "high": {
+    "n": 987169,
+    "divergence": 0.2031648076469176
+   }
+  },
+  "heard": {
+   "n": 4230303,
+   "tercile_edges": [
+    0.5474766095479329,
+    0.6506568392117817
+   ],
+   "divergence": 0.17312424192782408,
+   "low": {
+    "n": 1410101,
+    "divergence": 0.16263374042001247
+   },
+   "mid": {
+    "n": 1410101,
+    "divergence": 0.17545977203051413
+   },
+   "high": {
+    "n": 1410101,
+    "divergence": 0.18127921333294567
+   }
+  }
+ },
+ "within_regime_low_gt_high_head": {
+  "seen": false,
+  "heard": false
+ },
+ "by_trunk_entropy": {
+  "seen": {
+   "n": 2961506,
+   "tercile_edges": [
+    0.0,
+    0.7365239858627319
+   ],
+   "divergence": 0.18198072197051096,
+   "low": {
+    "n": 1418320,
+    "divergence": 0.0
+   },
+   "mid": {
+    "n": 556018,
+    "divergence": 0.11862026049516383
+   },
+   "high": {
+    "n": 987168,
+    "divergence": 0.47913019870984475
+   }
+  },
+  "heard": {
+   "n": 4230303,
+   "tercile_edges": [
+    0.0,
+    0.6459425687789917
+   ],
+   "divergence": 0.17312424192782408,
+   "low": {
+    "n": 1803571,
+    "divergence": 0.0
+   },
+   "mid": {
+    "n": 1016632,
+    "divergence": 0.11005653963282683
+   },
+   "high": {
+    "n": 1410100,
+    "divergence": 0.44002623927381035
+   }
+  }
+ },
+ "within_regime_low_gt_high_trunk": {
+  "seen": false,
+  "heard": false
+ },
+ "by_n_legal": {
+  "1-1": {
+   "n": 3221891,
+   "divergence": 0.0,
+   "mean_head_entropy": 0.4389078100474526
+  },
+  "2-3": {
+   "n": 0,
+   "divergence": null,
+   "mean_head_entropy": null
+  },
+  "4-6": {
+   "n": 64,
+   "divergence": 0.125,
+   "mean_head_entropy": 0.5828156333882362
+  },
+  "7-12": {
+   "n": 2179070,
+   "divergence": 0.2998421344885662,
+   "mean_head_entropy": 0.5337903959023356
+  },
+  "13-99": {
+   "n": 1790784,
+   "divergence": 0.345055573424824,
+   "mean_head_entropy": 0.41440667939327985
+  }
+ },
+ "by_head_entropy_free_choice": {
+  "seen": {
+   "n": 1543186,
+   "tercile_edges": [
+    0.07337406277656555,
+    0.4831889271736145
+   ],
+   "divergence": 0.3492365793883563,
+   "low": {
+    "n": 514396,
+    "divergence": 0.35106027263042483
+   },
+   "mid": {
+    "n": 514395,
+    "divergence": 0.33737886254726424
+   },
+   "high": {
+    "n": 514395,
+    "divergence": 0.359270599442063
+   }
+  },
+  "heard": {
+   "n": 2426732,
+   "tercile_edges": [
+    0.5526633063952128,
+    0.6542346874872843
+   ],
+   "divergence": 0.3017918748341391,
+   "low": {
+    "n": 808911,
+    "divergence": 0.296708785020849
+   },
+   "mid": {
+    "n": 808910,
+    "divergence": 0.3041574464402715
+   },
+   "high": {
+    "n": 808911,
+    "divergence": 0.3045093959656872
+   }
+  }
+ },
+ "within_regime_low_gt_high_head_free_choice": {
+  "seen": false,
+  "heard": false
+ },
+ "share_forced_choice_live_rows": 0.44799451709576826,
+ "grid_head_x_trunk": {
+  "rows": "head entropy tercile low/mid/high",
+  "cols": "trunk entropy tercile low/mid/high",
+  "cells": [
+   [
+    {
+     "n": 0,
+     "divergence": null
+    },
+    {
+     "n": 1607983,
+     "divergence": 0.02900963505211187
+    },
+    {
+     "n": 789287,
+     "divergence": 0.4561458632918064
+    }
+   ],
+   [
+    {
+     "n": 0,
+     "divergence": null
+    },
+    {
+     "n": 1608689,
+     "divergence": 0.03799180574989945
+    },
+    {
+     "n": 788577,
+     "divergence": 0.45556109295604613
+    }
+   ],
+   [
+    {
+     "n": 0,
+     "divergence": null
+    },
+    {
+     "n": 1577865,
+     "divergence": 0.04449303330766574
+    },
+    {
+     "n": 819408,
+     "divergence": 0.4565027434440474
+    }
+   ]
+  ]
+ },
+ "spearman_head_vs_trunk_entropy": 0.04583088092483941,
+ "spearman_head_vs_arm_entropy": 0.05188037093819298
+}
