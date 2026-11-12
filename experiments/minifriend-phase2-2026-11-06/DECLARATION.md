@@ -240,6 +240,13 @@ norm — and the gap is a battery gap (training-world returns equal),
 inside the edge at 20, beyond it at 40; the act arms trained 2–3M fewer
 ticks on two seeds and sat nearer the trunk (KL 0.36–0.39 vs
 0.38–0.42); a cells-in-use-by-size read is proposed there (call 3).
+**UPDATE 2026-11-11:** entry 30 CLOSED (RESULTS §R-5 addendum, gated);
+the trunk continuation DECLARED on her words "1) Accepted" and "2: a"
+(the 20M cap on the lineage; deviations entry 31; no seed launched); the
+cells-in-use-by-size read ran (that declaration's R-4: P53 NOT MET, the
+changed share falls with world size, the transfer reading unsupported);
+"sat nearer the trunk" above rested on single final-update values and
+is WITHDRAWN (that declaration's §2.3: last-bin means show no contrast).
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

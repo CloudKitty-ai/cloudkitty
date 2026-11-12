@@ -1,4 +1,4 @@
-# Gen 2 trunk continuation — longer or different? The frozen trunk seeds resumed under their own recipe, read against the Phase 2 no-head arm (DRAFT 2026-11-10; nothing runs)
+# Gen 2 trunk continuation — longer or different? The frozen trunk seeds resumed under their own recipe, read against the Phase 2 no-head arm (DECLARED 2026-11-11; no seed launched)
 
 Phase 2 (`minifriend-phase2-2026-11-06/RESULTS.md`, gated 2026-11-09)
 found every arm grafted on the frozen trunk above its trunk seed in 30
@@ -14,15 +14,15 @@ is item 1. Written after her approval and before any number; she sees it
 first. Her word declares it; until then the status line below is the
 truth.
 
-**Status: DRAFT 2026-11-10 (a0e7fc42), her rulings of 2026-11-11
-recorded (§0): call 1 "Accepted" (her word to declare, given §2.4), call
-3 "Yes" (R-4). NOT YET DECLARED: call 2 (the cap) is open — "I'm
-debating" — and the declaration freezes when she rules it (§13 step 1).
-No seed band claimed; no covered mind trained. R-4 read 2026-11-11 (P53
-NOT MET, §2.3). Open with her: call 2
-(her overtraining question answered in §2.5), call 5 (the checkpoint
-ladder §2.5 proposes, R-6), and item 4 of the 2026-11-10 proposal (no
-head rerun; explained to her 2026-11-11, unruled).**
+**Status: DECLARED 2026-11-11 on her words — call 1 "Accepted", call 2
+"2: a" (the frozen 20M cap on the lineage), call 3 "Yes". FROZEN at
+this commit: §3–§9 change only through a deviations entry on her word.
+Deviations entry 31 landed; the `SEED-BANDS.md` touch notes landed.
+Nothing has trained: the instruments and their reds come next (§13 step
+2), then her word launches `cont-s1`. R-4 read 2026-11-11 (P53 NOT MET,
+§2.3). Open with her: call 5 (R-6, the checkpoint ladder) and item 4 of
+the 2026-11-10 proposal (the heads; her question of 2026-11-11 answered
+in the session, unruled).**
 
 ## 0. Her words, verbatim and in order (the record this draft obeys)
 
@@ -52,6 +52,16 @@ head rerun; explained to her 2026-11-11, unruled).**
   (declare), call 3 ruled (R-4 runs), call 2 OPEN (her question answered
   in §2.5; nothing freezes until she rules it), item 4 explained in the
   session the same day and still unruled.
+- 2026-11-11, later, on §2.5's answer and the R-4 read: "2: a 4: based
+  on the cell reads, what approach do you think we should take here? It
+  seems to me that the dual head model should provide enough useful
+  information that it should be incorporated into the model's decisions
+  and show a welfare benefit. The initial small positive result
+  (particularly on 100x100) is promising. It's interesting that we saw
+  so many failures with the needs head only model, which suggests that
+  it was having some real impact on behavior." — call 2 RULED (A, the
+  20M cap on the lineage): the declaration is DECLARED. Item 4: her
+  question, answered in the session; nothing ruled, no head arm trains.
 
 Standing: Gen 2 prereg FROZEN 18f06f84, never edited; Phase 2
 DECLARATION 226509ec §3–§9 frozen (its R-5 change is deviations entry
@@ -300,7 +310,7 @@ these deltas and no other:
   indices 96 / 97 / 99), so the twelve rollout worlds draw seeds the
   trunk's segment 0 never did (guard g5). No new `SEED-BANDS.md` row:
   a touch note on the three trunk rows at DECLARED ("segment 1 burned
-  by the continuation, 2026-11-xx").
+  by the continuation, 2026-11-11").
 
 Everything else is the trunk's run continued: anchor = the BC clone
 (KL-to-anchor resumes at 0.52), β 0.04 (the schedule holds it),
@@ -564,6 +574,9 @@ Unscored expectations: no F-053 event at 20 or 40; the continuation's
    stays A (no overtraining signature on record, but the gain past ~8M
    further ticks is under the edge; B rewinds the schedules at the
    resume; A is extendable from its checkpoint on her word).**
+   **RULED 2026-11-11: "2: a" — the frozen 20M cap on the lineage (at
+   most 11,997,440 further ticks per seed; 180.0M covered cat-ticks of
+   training at the cap).**
 3. **R-4, cells-in-use by size** on Phase 2's recorded legs (her head
    question; zero cost; recommended yes). **RULED 2026-11-11: "Yes".**
    P53 registered before the reader exists; the read runs once this
@@ -606,7 +619,7 @@ the DIFFERENT comparator at both sizes; the candidate rule set in R-3.
    entries 30 / 31 CLOSED or carried; timeline; the FINDINGS clause put
    to her with 8.1's reading.
 
-## 14. Deviations entries (texts; entry 30 landed 2026-11-10, entry 31 lands at DECLARED)
+## 14. Deviations entries (texts; entry 30 landed 2026-11-10, entry 31 landed 2026-11-11)
 
 **Entry 30 (landed).** "Phase 2 R-5 re-read on free-choice ticks
 (2026-11-10). Deviation from the frozen Phase 2 DECLARATION §6 R-5 /
@@ -620,15 +633,15 @@ beside it as an addendum to RESULTS §R-5, gated. Grounds: the ed6a1972
 analysis showed 43–44% of friend-rows sit on one-legal-action ticks
 where divergence is 0 by construction. No run; zero covered cost."
 
-**Entry 31 (at DECLARED).** "Gen 2 trunk continuation (2026-11-xx).
+**Entry 31 (landed 2026-11-11).** "Gen 2 trunk continuation (2026-11-11).
 Deviation from the frozen prereg §5's plateau rule as applied to the
 trunk seeds s1 / s2 / s4: each seed's run, stopped by the rule at
 8,002,560 ticks, is RESUMED from its checkpoint under its own recipe
 with a floor of 8,002,560 further ticks before the rule may fire again
-(Phase 2 §4's floor), the frozen 20M cap on the lineage [or: 20M
-further, call 2]; the continued networks are lab arms (rule 9), never
-seated by this entry. On her word '1-3 approved' (item 1) and her word
-to declare at §12 call 1. Declaration:
+(Phase 2 §4's floor), the frozen 20M cap on the lineage (call 2, her
+word '2: a'); the continued networks are lab arms (rule 9), never
+seated by this entry. On her word '1-3 approved' (item 1) and her words
+'1) Accepted' and '2: a' at §12 calls 1–2. Declaration:
 `gen2-trunk-continuation-2026-11-10/DECLARATION.md`."
 
 ## 15. Regeneration

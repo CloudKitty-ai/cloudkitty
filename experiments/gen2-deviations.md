@@ -2257,3 +2257,22 @@ P44 not re-scored. CORRECTION 2026-11-11 (accuracy gate run 2): the
 grounds above say "the one leg read"; two legs had been read at
 ed6a1972 — p2u-act15-s1 at 20×20 in mode B, whose figures the grounds
 quote, and p2u-nohead-s1 at 20×20 in mode A.
+
+## 31. Gen 2 trunk continuation (2026-11-11)
+Deviation from the frozen prereg §5's plateau rule as applied to the
+trunk seeds s1 / s2 / s4: each seed's run, stopped by the rule at
+8,002,560 ticks, is RESUMED from its checkpoint under its own recipe
+with a floor of 8,002,560 further ticks before the rule may fire again
+(Phase 2 §4's floor), the frozen 20M cap on the lineage (call 2, her
+word "2: a"); the continued networks are lab arms (rule 9), never
+seated by this entry. On her word "1-3 approved" (item 1 of the
+2026-11-10 proposal) and her words of 2026-11-11 at the declaration's
+§12 calls 1–2: "1) Accepted" and "2: a". Segment 1 of run indices 96 /
+97 / 99 is claimed in `SEED-BANDS.md` (touch notes, before first burn).
+Welfare-cost line: 146–208M covered cat-ticks (training 120.0–180.0M,
+probes 4.7–7.0M, legs 21.0M), the frozen asymmetric stops verbatim.
+Declaration: `gen2-trunk-continuation-2026-11-10/DECLARATION.md`
+(DECLARED 2026-11-11; §3–§9 frozen at its commit).
+Status: OPEN — nothing has trained; the instruments and their reds come
+next, then her word launches `cont-s1`.
+

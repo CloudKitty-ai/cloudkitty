@@ -1180,6 +1180,24 @@ consent BC comparison ride the trunk.
   arm to see a head). Leg by leg the free-choice gap is −0.11 to +0.46 of
   the all-rows gap when seen (median +0.25) and +0.05 to +1.10 when
   heard (median +0.55): a residual remains. P44 not re-scored.
+  2026-11-11, her word on the cap and the heads, verbatim: "2: a 4:
+  based on the cell reads, what approach do you think we should take
+  here? It seems to me that the dual head model should provide enough
+  useful information that it should be incorporated into the model's
+  decisions and show a welfare benefit. The initial small positive
+  result (particularly on 100x100) is promising. It's interesting that
+  we saw so many failures with the needs head only model, which
+  suggests that it was having some real impact on behavior." → the
+  trunk continuation is DECLARED (cap A, the 20M lineage cap; deviations
+  entry 31; SEED-BANDS touch notes; §3–§9 frozen; nothing trained —
+  instruments and reds next, then her word for `cont-s1`). Her head
+  question answered in the session, nothing ruled: no needs-only arm
+  was ever trained (dropped 2026-11-06); the halts were act10's; on the
+  recorded s1 legs the both arm sits above act15 in 30 / 30 / 29 of 30
+  worlds at 20 / 40 / 100 and level with the no-head arm (inside the
+  edge), with two F-053 aborts at 100×100 against the no-head arm's
+  one. Put to her: a zero-cost block-ablation read on the both legs,
+  then both-s2 / both-s4 on her word; no design change before that.
 
 ## Flagged follow-ups (owner's word to start)
 
