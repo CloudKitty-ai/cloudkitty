@@ -163,7 +163,8 @@ def g17():
 def g7():
     """R-3's frozen rule reproduces every recorded stop (the asserts live in read_plateau.read, which raises): the
     seven trunk plateau stops sit at their last bin — 8,002,560 ticks on six seeds, 9,000,960 on s7 — and the Phase 2
-    plateau stops at theirs; a run halted by a welfare stop shows no plateau stop."""
+    plateau stops at theirs; a run halted by a welfare stop shows no plateau stop. The three continuations are read on
+    their lineage with their recorded flags reproduced, and P52's clause decides on lineage bins 17–19."""
     import read_plateau as RP
     out = RP.read()
     trunk = {n: r for n, r in out.items() if n.startswith("ppo-g2-trunk")}
@@ -172,6 +173,14 @@ def g7():
         if r["stop_reason"] == "plateau":
             assert r["rules"]["frozen"]["ticks"] == r["stop_ticks"] == (9_000_960 if n.endswith("s7") else 8_002_560), (n, r["rules"]["frozen"], r["stop_ticks"])
     assert len([n for n in out if n.startswith("p2-")]) == 12
+    # the continuations (entries 31 / 32): replayed on their lineage; P52 is read on the first three bins after §4's floor
+    cont = {n: r for n, r in out.items() if n.startswith("cont-")}
+    assert sorted(cont) == ["cont-s1", "cont-s2", "cont-s4"], f"continuations read: {sorted(cont)}"
+    for n, r in cont.items():
+        assert (r["p52"]["floor_ticks"], r["p52"]["bins"]) == (16_005_120, [17, 18, 19]), f"{n}: p52 reads bins {r['p52']['bins']} after {r['p52']['floor_ticks']}"
+    bins = RC.series(RC.LINEAGES[1]["trunk"]) + RC.series(RC.LINEAGES[1]["cont"])
+    got = [RP.p52(bins, [i not in off for i in range(19)], 8_002_560)["stops_at_bin_19"] for off in ((), (17,), (15,))]
+    assert got == [True, False, True], f"p52 on all-flat / bin 18 not flat / bin 16 not flat reads {got}"
 
 
 def g8():

@@ -12,6 +12,13 @@ Rules (a bin is FLAT against its predecessor; N flat bins in a row stop):
   slope2       stop at the first bin whose return is < 0.004 above the bin two before it (< 0.002 a bin over the last two)
 Floors: a Phase 2 run's bins count as its trainer counted them (train_ppo_p2.plateau_step: a bin is flat only if it
 and its predecessor closed after 8,002,560 ticks); a trunk series has no floor.
+A continuation is replayed on its LINEAGE — the trunk's bins, then its own, numbered as lineage bins — as its trainer
+set its flags: from the resume, each bin against the one before it, the first against the trunk's last, the streak
+from 0 (floor = the trunk's second-to-last bin, so the trunk's last bin is the first that counts as a predecessor).
+It ran with the plateau stop off (deviations entry 32) and ends at the cap, so its stops here are replays, not
+records; its recorded flags must still be reproduced. P52's first clause is read off the same flags: the frozen rule
+would have stopped at lineage bin 19 if the first three bins closing after §4's declared floor (the trunk's stop plus
+8,002,560 ticks) are all flat.
 The frozen replay must reproduce every recorded flat flag and every recorded stop (g7) or this reader raises.
     VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B read_plateau.py --out reads/r3/plateau.json [--md]
 """
@@ -62,30 +69,45 @@ def replay_slope2(bins, floor):
 
 
 def all_series():
-    runs = [(d.name, d, 0) for d in sorted(RC.TRUNK.glob("ppo-g2-trunk-s*"), key=lambda p: int(p.name.rsplit("s", 1)[1]))]
-    runs += [(d.name, d, P.FLOOR_TICKS) for d in sorted(RC.P2.glob("p2-*")) if d.is_dir()]
-    runs += [(d.name, d, None) for d in sorted(RC.CONT.glob("cont-s*")) if (d / "metrics.jsonl").exists()]
+    """(name, run dir, floor, lead): lead = the bins before the run's own on its lineage (a continuation's trunk)."""
+    runs = [(d.name, d, 0, []) for d in sorted(RC.TRUNK.glob("ppo-g2-trunk-s*"), key=lambda p: int(p.name.rsplit("s", 1)[1]))]
+    runs += [(d.name, d, P.FLOOR_TICKS, []) for d in sorted(RC.P2.glob("p2-*")) if d.is_dir()]
+    for d in sorted(RC.CONT.glob("cont-s*")):
+        if (d / "metrics.jsonl").exists():
+            lead = RC.series(RC.LINEAGES[int(d.name.rsplit("s", 1)[1])]["trunk"])
+            runs.append((d.name, d, lead[-2]["ticks"], lead))
     return runs
+
+
+def p52(bins, flags, trunk_stop):
+    """P52's first clause on one continuation: the frozen flags of the first three bins closing after §4's declared
+    floor (trunk stop + 8,002,560 ticks), and whether all three are flat (a stop at lineage bin 19)."""
+    first = [(i + 1, f) for i, (b, f) in enumerate(zip(bins, flags)) if b["ticks"] > trunk_stop + P.FLOOR_TICKS][:3]
+    return {"floor_ticks": trunk_stop + P.FLOOR_TICKS, "bins": [i for i, _ in first], "flat": [f for _, f in first],
+            "stops_at_bin_19": len(first) == 3 and first[-1][0] == 19 and all(f for _, f in first)}
 
 
 def read():
     out, loaded = {}, []
-    for name, d, floor in all_series():
-        assert floor is not None, "a continuation's floor is deviations entry 32's ruling; not wired until she rules"
-        loaded.append((name, floor, RC.series(d)) + RC.stop(d))
+    for name, d, floor, lead in all_series():
+        loaded.append((name, floor, len(lead), lead + RC.series(d)) + RC.stop(d))
     # g7, first over every series: the frozen replay reproduces every recorded stop (a plateau stop at the last bin;
     # a run halted by a welfare stop shows none)
-    for name, floor, bins, ticks, reason in loaded:
+    for name, floor, n0, bins, ticks, reason in loaded:
         stop = replay(bins, floor, "frozen")[1]
+        if n0:                                                 # a continuation ran with the stop off: nothing to reproduce
+            continue
         want = len(bins) - 1 if reason == "plateau" else None
         assert stop == want, f"{name}: frozen replay stops at bin {None if stop is None else stop + 1}, the record ({reason}) at bin {None if want is None else want + 1}"
     # then the stricter half: every recorded flat flag, and this file's frozen flatness equals the trainer's own
-    for name, floor, bins, ticks, reason in loaded:
-        flags = replay(bins, floor, "frozen")[0]
-        assert flags == [b["flat"] for b in bins], f"{name}: frozen replay flags {flags} != recorded {[b['flat'] for b in bins]}"
+    for name, floor, n0, bins, ticks, reason in loaded:
+        flags = replay(bins, floor, "frozen")[0][n0:]          # the run's own bins; a continuation's lead is its trunk's
+        assert flags == [b["flat"] for b in bins[n0:]], f"{name}: frozen replay flags {flags} != recorded {[b['flat'] for b in bins[n0:]]}"
         assert all(flat(bins[i - 1], bins[i], T.PLATEAU_RETURN, True) == T.plateau_flat(bins[i - 1], bins[i]) for i in range(1, len(bins))), name
-    for name, floor, bins, ticks, reason in loaded:
+    for name, floor, n0, bins, ticks, reason in loaded:
         row = {"bins": len(bins), "floor": floor, "stop_ticks": ticks, "stop_reason": reason, "rules": {}}
+        if n0:
+            row["p52"] = p52(bins, replay(bins, floor, "frozen")[0], bins[n0 - 1]["ticks"])
         for rule in list(RULES) + ["slope2"]:
             s = replay_slope2(bins, floor) if rule == "slope2" else replay(bins, floor, rule)[1]
             row["rules"][rule] = None if s is None else {"bin": s + 1, "ticks": bins[s]["ticks"], "ret": bins[s]["ret"],
@@ -108,6 +130,11 @@ def md(out):
           + "; ".join(f"{k} stops {sum(out[n]['rules'][k] is not None and out[n]['rules'][k]['bins_before_end'] == 0 for n in plateau)} at the recorded bin, "
                       f"{sum(out[n]['rules'][k] is not None and out[n]['rules'][k]['bins_before_end'] > 0 for n in plateau)} earlier, "
                       f"{sum(out[n]['rules'][k] is None for n in plateau)} not inside the record" for k in rules) + "."]
+    cont = {n: r["p52"] for n, r in out.items() if "p52" in r}
+    if cont:
+        L += ["", "P52, first clause (the frozen rule's flags on the first three bins closing after §4's declared floor; all flat = a stop at "
+              "lineage bin 19): " + "; ".join(f"{n} bins {v['bins']} flat {v['flat']}" for n, v in cont.items())
+              + f" — {sum(v['stops_at_bin_19'] for v in cont.values())} of {len(cont)} would have stopped at bin 19."]
     return "\n".join(L) + "\n"
 
 
