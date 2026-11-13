@@ -2618,8 +2618,34 @@ prediction written before the run, all CONFIRMED (logs
 
 The three no-head rung legs started 2026-11-13T05:49Z (9.9M covered
 cat-ticks with their scouts), one after another, beside `cont-s1`.
-Status: RULED 2026-11-12 — OPEN (no-head rungs running; cont-s1's
-rungs wait on its checkpoints).
+NO-HEAD LADDER READ 2026-11-12 (`reads/r6.json`, `reads/r6.md`; the
+three rung legs clean, worst distress streaks 374 / 147 / 187, no
+abort). Δ-to-trunk at 40×40, paired, 30 of 30 worlds positive at every
+rung: +1.969 at 4M further ticks, +2.462 at 8M, +2.392 at 12M, +2.866
+at the 15M final (`ckpt-u4882` and `policy-final.pt` hold the same
+weights, checked). **P54 MET**: no rung is over the final (the largest
+is 0.404 under it). The steps, gain ± the test's 95% half-width: +1.969
+± 0.036 (trunk to 4M), +0.493 ± 0.043 (4M to 8M), −0.070 ± 0.040 (8M
+to 12M), +0.474 ± 0.031 (12M to 15M); the first, second and fourth
+reach both the flat and the 1% line, the third reaches neither. The
+earliest rung within the 0.325 edge of the maximum is the final itself.
+Two things this corrects or flags. (i) §2.5 fact 1 read the training
+return from bin 8 to the last bin (+0.0008) as "length past ~8M
+further ticks has bought nothing the battery could resolve"; at 40×40
+the arm gained +0.404 from 8M to 15M, beyond the edge, while its bin
+return moved 0.9031 to 0.9039. Training return did not track the
+held-out size at this grain. (ii) The path is not smooth: flat for 4M
+ticks, then +0.474 in 3M. Each rung is ONE checkpoint, so a step holds
+both the training trend and whatever one checkpoint differs from its
+neighbours by; this read cannot separate them, and the half-width
+above covers only the worlds. A two-flat-tests rule at 2M steps could
+have stopped this run at 12M, 0.47 short of its final — or the 12M
+checkpoint is a low draw. The 10M, 13M and 14M checkpoints of the same
+run exist and would tell which (3.3M covered cat-ticks a leg); put to
+her, not run.
+Status: RULED 2026-11-12 — no-head ladder READ; OPEN (cont-s1's rungs
+wait on its checkpoints; the write-up is gated in the continuation's
+RESULTS).
 
 ## 35. The welfare-based stop: its line ruled, the rest of the rule owed (2026-11-12)
 Entry 32 carried her question of a welfare test every 2M ticks in

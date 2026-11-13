@@ -1,0 +1,158 @@
+{
+ "edge": 0.325,
+ "lines_per_2M": {
+  "flat": 0.1,
+  "share_of_shortfall": 0.01
+ },
+ "ladders": {
+  "nohead-s1": {
+   "rungs": [
+    {
+     "seating": "r6-nohead-s1-u1302",
+     "ticks": 4002816,
+     "team": 88.11101399999997,
+     "delta_trunk": {
+      "mean": 1.9694239999999985,
+      "positive": 30,
+      "n": 30,
+      "range": [
+       1.7805599999999941,
+       2.1344200000000058
+      ]
+     },
+     "worst_streak_max": 374,
+     "artifact_sha256": "67f6bf7aa7dfb555d04f3f0ae293f6c721123c944aa6ba80aeeaa436c3451d7c",
+     "step": {
+      "ticks": 4002816,
+      "gain": 1.9694239999999985,
+      "sd": 0.09626202880858518,
+      "half_width": 0.035940796342261286,
+      "prev_team": 86.14159,
+      "lines": {
+       "flat": 0.2001408,
+       "share": 0.2773633264128001
+      },
+      "clears": {
+       "flat": true,
+       "share": true
+      }
+     }
+    },
+    {
+     "seating": "r6-nohead-s1-u2604",
+     "ticks": 8002560,
+     "team": 88.60372466666666,
+     "delta_trunk": {
+      "mean": 2.462134666666667,
+      "positive": 30,
+      "n": 30,
+      "range": [
+       2.2361199999999997,
+       2.6796400000000062
+      ]
+     },
+     "worst_streak_max": 147,
+     "artifact_sha256": "9023fc9b62ce932c285c97ff68aa717b43614fbf2c03332d2026a64ee3a2262c",
+     "step": {
+      "ticks": 3999744,
+      "gain": 0.49271066666666885,
+      "sd": 0.1154457554343861,
+      "half_width": 0.04310331327938648,
+      "prev_team": 88.11101399999997,
+      "lines": {
+       "flat": 0.1999872,
+       "share": 0.23776450209792063
+      },
+      "clears": {
+       "flat": true,
+       "share": true
+      }
+     }
+    },
+    {
+     "seating": "r6-nohead-s1-u3906",
+     "ticks": 12002304,
+     "team": 88.53381400000002,
+     "delta_trunk": {
+      "mean": 2.3922240000000006,
+      "positive": 30,
+      "n": 30,
+      "range": [
+       2.1729600000000033,
+       2.5779600000000045
+      ]
+     },
+     "worst_streak_max": 187,
+     "artifact_sha256": "2f6a0b6ab0fdac966fce7440d83387a56dcdf2c09954e297c36c9837d3abc9f4",
+     "step": {
+      "ticks": 3999744,
+      "gain": -0.06991066666666654,
+      "sd": 0.10720827203459364,
+      "half_width": 0.040027731797165594,
+      "prev_team": 88.60372466666666,
+      "lines": {
+       "flat": 0.1999872,
+       "share": 0.22791091943424005
+      },
+      "clears": {
+       "flat": false,
+       "share": false
+      }
+     }
+    },
+    {
+     "seating": "p2u-nohead-s1",
+     "ticks": 15000576,
+     "team": 89.00736533333335,
+     "delta_trunk": {
+      "mean": 2.8657753333333336,
+      "positive": 30,
+      "n": 30,
+      "range": [
+       2.6300000000000097,
+       3.017300000000006
+      ]
+     },
+     "worst_streak_max": 294,
+     "artifact_sha256": "c14c8a5b931b6a266759bfb806558bdcd471df390b87452e24e09342d2a19d63",
+     "step": {
+      "ticks": 2998272,
+      "gain": 0.473551333333333,
+      "sd": 0.08351372394891945,
+      "half_width": 0.031181035569076306,
+      "prev_team": 88.53381400000002,
+      "lines": {
+       "flat": 0.1499136,
+       "share": 0.1718937221529597
+      },
+      "clears": {
+       "flat": true,
+       "share": true
+      }
+     }
+    }
+   ],
+   "missing": [],
+   "summit": {
+    "max_rung": "p2u-nohead-s1",
+    "earliest_within_edge": "p2u-nohead-s1",
+    "peak_over_final": -0.40364066666666654
+   }
+  },
+  "cont-s1": {
+   "rungs": [],
+   "missing": [
+    "r6-cont-s1-u3255",
+    "r6-cont-s1-u3906",
+    "r6-cont-s1-u4557",
+    "r6-cont-s1-u5208",
+    "r6-cont-s1-u5859",
+    "cont-s1"
+   ]
+  }
+ },
+ "P54": {
+  "peak_over_final": -0.40364066666666654,
+  "met": true
+ }
+}
