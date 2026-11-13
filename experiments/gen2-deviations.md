@@ -2315,7 +2315,16 @@ sha256 ed32b0cd…ebef642 (the trunk's own); the first rows show update
 2,606 on, segment 1, progress 0.4006, entropy coefficient 0.00639 — the
 trunk's schedule continued. `cont-s2` / `cont-s4` follow on the same
 word once the first closed bin is read for P50's mechanics (§13 step 3).
-Status: OPEN — `cont-s1` training.
+FIRST BIN, 2026-11-13T06:01Z (raw-field read of `metrics.jsonl`, for
+P50's mechanics only; P50 is scored on three seeds by R-2): `cont-s1`
+closed lineage bin 9 at update 2,929 with return 0.8814 against the
+trunk's last bin 0.8802 (+0.0012, no step), KL-to-clone 0.5365, the
+frozen rule's flag recorded (`flat` true, `flat_streak` 1) and no stop
+taken; `ckpt-u2929.pt` written; six probes, distress streak 0 at each.
+`cont-s2` and `cont-s4` launched 2026-11-13T06:02Z at HEAD db381405 on
+the same word (§13 step 3); their byte copies read sha256 d7f72d35… and
+51b965ec… (the trunk's own); both resumed at update 2,606, segment 1.
+Status: OPEN — three seeds training.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
