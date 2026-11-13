@@ -2656,9 +2656,26 @@ CONT-S1 RUNGS, as they land (each leg on her "2) go"; `reads/r6.md`
 is the table): 10M on the lineage (`ckpt-u3255`, 2026-11-13T06:30Z,
 leg clean, worst streak 86): +0.139 over trunk s1, 27 of 30 worlds,
 step +0.139 ± 0.043.
-Status: RULED 2026-11-12 — no-head ladder READ; OPEN (cont-s1's rungs
-wait on its checkpoints; the write-up is gated in the continuation's
-RESULTS).
+**SCOUT MISS at the 12M rung, 2026-11-13T07:22Z — owner-routed, the
+leg did not run.** `r6-cont-s1-u3906` (`ckpt-u3906`, sha256
+83a630f8…): the three-world scout at 40×40 aborted world 905002 at
+tick 15,802 on the F-053 line (seat 2's distress streak reached 1,000;
+seat 3 at 936, seat 4 at 375); the other two scout worlds ran whole
+with worst streaks 142 (905001) and 343 (905003). On the same three
+worlds the trunk's recorded streaks are 116 / 0 / 1 and the 10M rung's
+(905001, 905002) are 0 / 0. Team happiness in the scout worlds 85.9 /
+85.1 / 85.7 against the trunk's 86.1 / 86.3 / 86.0. About 0.28M covered
+cat-ticks lived. The training-size probes of the same run show nothing
+(worst streak 17 across all probes; bin 12's return 0.8805 after
+0.8821), and the frozen training stops have not tripped, so `cont-s1`
+trains on as declared. HELD on the session's own call until her word:
+the 12M leg (the gate's own stop) and the three later `cont-s1` rung
+legs. This is the declaration's unscored expectation "no F-053 event
+at 20 or 40" failing on an intermediate checkpoint. Noted, not
+claimed: the no-head arm's dip (−0.070) also sits at update 3,906 on
+its own clock.
+Status: RULED 2026-11-12 — no-head ladder READ; cont-s1 rung legs HELD
+after the 12M scout miss, her word asked; OPEN.
 
 ## 35. The welfare-based stop: its line ruled, the rest of the rule owed (2026-11-12)
 Entry 32 carried her question of a welfare test every 2M ticks in
