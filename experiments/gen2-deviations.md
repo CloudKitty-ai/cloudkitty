@@ -2779,4 +2779,48 @@ re-pointed. Welfare-cost line (§5): the scout about 72–88M covered
 cat-ticks expected, about 114M at most; all three seeds about 209–256M
 expected, about 334M at most. Nothing is built and nothing has trained;
 launching the scout is a separate word of hers (§13 step 3).
-Status: DECLARED 2026-11-13 — OPEN.
+INSTRUMENTS AND REDS, 2026-11-13 (§13 step 2; 738d2bb6): `heads_online`
+gains the arm (9 cells; the needs cells at offset 0, `needs_off`; an
+arm with no act head carries no act cells); `train_ppo_p2` gains the
+three slots and gates the branch read, the act trigger and the act
+monitors on the act head (they were gated on the arm's name);
+`cert_harness_fog` gains `p2u-needs-s<k>`. Sorted first (rule 6):
+Phase 2's g10 went red on the change at its 107–120 range assert, as
+sorted, and is re-pointed; g0a–g12 stayed green on the edited files
+(g0c included), the continuation's suite 16 passed. New guard g13.
+Reds, each through `scripts/mutate.sh --expect`
+(`minifriend-needs-arm-2026-11-12/results-raw/reds/`):
+
+| guard | mutation | predicted red | got |
+|---|---|---|---|
+| g13a | the needs cells appended after ticks-since-live | `online needs cells differ from the Phase 1e reader's by` | as predicted |
+| g13b | thirteen zero cells stand in for the absent act head | `needs step returns (…, 4, 22)` | as predicted |
+| g13c | `p2u-needs-s<k>` seats the dual-head final | `p2u-needs-s1 seats ['p2:p2-both-s1'` | as predicted |
+| g13d (i) | the bias read at the dual-head arm's offset | `needs bias is not finite` | **WRONG REASON**: `ValueError: operands could not be broadcast together with shapes (20,0) (20,5)` |
+| g13d (i), re-predicted | the same | that ValueError | as predicted |
+| g13d (ii) | the probe's snapshot taken with no act head | `a needs-only probe forked the world` | as predicted |
+| g10 | `p2-needs-s1` given run index 120 | `120, 120, 122, 123` | as predicted |
+| g13 | `needs_off` always 0 | `read (9, 0, 0)` | as predicted |
+| g13 | the ninth cell a copy of P(grave) | `the needs arm's ninth cell is not ticks-since-live` | as predicted |
+| g13 | the harness's seat steps the heads twice a tick | `harness seat and trainer forward disagree at tick N (needs arm)` | as predicted |
+| g13 | run index 120 (the manifest read) | `'run_index': 120` | as predicted |
+| g13 | the needs read computed for the dual-head arm only | `the needs read is not logged` | as predicted |
+| g13 | the cumulative accumulator not fed | `cumulative != sum of probes` | as predicted |
+| g13 | run index 124 (outside the claimed band) | `AssertionError: 124` | as predicted |
+
+One detail of the frozen §9 was wrong and is corrected here: its row
+g13d promised "a finite bias" and predicted `needs bias is not finite`
+for a bias read at the wrong offset. On a 9-cell arm that offset
+selects no cells, and the subtraction raises before any bias exists;
+the run dies at the first probe. The guard is the smoke run's own
+crash, re-predicted and red on that reason; no finiteness assert is
+carried, since no mutation reaches it. Guard cost, outside §5's line:
+about 0.6M covered cat-ticks (g13's smoke run, 2,048 ticks of an
+untrained graft, and its 300-tick harness leg, about 45 times over the
+cycles; Phase 2's guards ran the same shape), plus g0c's one 20k-tick
+trunk leg. Owed before their first read, each with its own red: the
+paired welfare read for this arm, the trigger trajectory on the needs
+legs (`read_canary` is written for the dual-head arm), the block read
+at C = 9 (`read_blocks` likewise).
+Status: DECLARED 2026-11-13; instruments red-proven — OPEN (the
+scout's launch waits on her word).
