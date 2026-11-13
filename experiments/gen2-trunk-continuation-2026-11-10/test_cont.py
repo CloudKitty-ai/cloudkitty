@@ -187,7 +187,83 @@ def g8():
     assert got == [0.0112, 0.0112, 0.0154], f"the no-head STEP on s1r / s2 / s4 reads {got}, DECLARATION §2.2 records [0.0112, 0.0112, 0.0154]"
 
 
-GUARDS = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g16": g16, "g17": g17}
+def g18():
+    """R-6's rung seatings load the RUNG (deviations entry 34): `<run>@u<update>` resolves to that run's own
+    ckpt-u<update>.pt and a spec without a rung still resolves to policy-final.pt; every rung seating seats one
+    rung spec five times at the ticks its update index gives; the no-head rung files exist; cont-s1's rungs are bin
+    checkpoints the driver writes."""
+    import read_r6 as R6
+    H = R6.H
+    got = [H.artifact_path(s) for s in ("p2:p2-nohead-s1r@u1302", "g2:cont-s1@u3255", "p2:p2-nohead-s1r", "g2:cont-s1", "g2:trunk-s1")]
+    want = [R6.P2 / "artifacts" / "p2-nohead-s1r" / "ckpt-u1302.pt", HERE / "artifacts" / "cont-s1" / "ckpt-u3255.pt",
+            R6.P2 / "artifacts" / "p2-nohead-s1r" / "policy-final.pt", HERE / "artifacts" / "cont-s1" / "policy-final.pt",
+            D.TRUNK_ARC / "artifacts" / "ppo-g2-trunk-s1" / "policy-final.pt"]
+    assert got == want, f"rung and final specs resolve to {[str(p.relative_to(HERE.parent)) for p in got]}"
+    bins = dict(D.bin_checkpoints())
+    for name, (_t0, rungs) in R6.LADDERS.items():
+        for seating, _root, ticks in rungs[:-1]:
+            spec = H.SEATINGS[seating][0]
+            u = int(spec.split("@u")[1])
+            ok = H.SEATINGS[seating] == [spec] * 5 and ticks == (u + 1) * R6.TPU and (H.artifact_path(spec).exists() if name == "nohead-s1" else bins.get(u) == ticks)
+            assert ok, f"{seating}: seats {H.SEATINGS[seating]}, ticks {ticks}, update {u}"
+
+
+def g19():
+    """R-6's reader refuses a leg whose header names another file than the rung's checkpoint: the recorded no-head
+    final leg reads under its own artifact, and raises when the artifact asked for is the u1302 checkpoint."""
+    import read_r6 as R6
+    R6.rung_rows("p2u-nohead-s1", None)
+    try:
+        R6.rung_rows("p2u-nohead-s1", None, artifact=R6.P2 / "artifacts" / "p2-nohead-s1r" / "ckpt-u1302.pt")
+    except AssertionError:
+        return
+    raise AssertionError("the final's leg was read as the u1302 rung: the header's artifact sha256 is not compared")
+
+
+def _r6_rows():
+    import read_r6 as R6
+    return R6, R6.C.battery_rows("g2-s1", 40), R6.RP.leg_rows("p2u-nohead-s1", 40, None)[0], R6.RP.leg_rows("p2u-both-s1", 40, None)[0]
+
+
+def g20():
+    """R-6's step on recorded rows (no-head s1 over trunk s1 at 40×40, read as a 4M-tick step): the gain is the
+    paired mean R-1 reports (+2.866), the flat line is 0.10 a 2M (0.20), the 1% line is 1% of the EARLIER rung's
+    shortfall a 2M (the trunk's 86.141 -> 0.277)."""
+    R6, trunk, nohead, _ = _r6_rows()
+    s = R6.step(nohead, trunk, 4_000_000)
+    got = (round(s["gain"], 3), round(s["lines"]["flat"], 3), round(s["lines"]["share"], 3))
+    assert got == (round(R6.R1C.paired(nohead, trunk)["mean"], 3), 0.2, 0.277) == (2.866, 0.2, 0.277), f"step (gain, flat line, 1% line) reads {got}"
+
+
+def g21():
+    """A gain the test cannot tell from zero never counts: the both arm over the no-head arm at 40×40 (+0.026, half
+    width 0.031) read as a 200k-tick step is over both lines (0.010, 0.011) and reaches neither; the no-head arm
+    over the trunk reaches both."""
+    R6, trunk, nohead, both = _r6_rows()
+    s, big = R6.step(both, nohead, 200_000), R6.step(nohead, trunk, 4_000_000)
+    assert s["gain"] > max(s["lines"].values()) and s["gain"] < s["half_width"], (s["gain"], s["lines"], s["half_width"])   # the case is the one described
+    got = (s["clears"], big["clears"])
+    assert got == ({"flat": False, "share": False}, {"flat": True, "share": True}), f"clears reads {got}"
+
+
+def g22():
+    """R-6's summit: the largest Δ-to-trunk, the EARLIEST rung within the edge of it, the largest earlier rung over
+    the final."""
+    import read_r6 as R6
+    top, first, peak = R6.summit([1.0, 2.8, 3.0, 2.9], edge=0.325)
+    assert (top, first, round(peak, 9)) == (2, 1, 0.1), f"summit reads {(top, first, peak)}"
+
+
+def g23():
+    """P56's three clauses each decide: a gradual positive ladder is met; a step at the first rung, a negative rung,
+    and a peak over the final beyond the edge are each not."""
+    import read_r6 as R6
+    got = [R6.p56(d, edge=0.325)["met"] for d in ([0.2, 0.5, 0.9, 1.0], [0.6, 0.7, 0.9, 1.0], [-0.1, 0.5, 0.9, 1.0], [0.2, 1.4, 0.9, 1.0])]
+    assert got == [True, False, False, False], f"P56 on gradual / step / negative / peaked reads {got}"
+
+
+GUARDS = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g16": g16, "g17": g17,
+          "g18": g18, "g19": g19, "g20": g20, "g21": g21, "g22": g22, "g23": g23}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)

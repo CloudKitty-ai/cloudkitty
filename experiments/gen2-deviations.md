@@ -2561,11 +2561,37 @@ consecutive rungs with its 95% half-width, read against a flat line
 (0.10 points) and a proportional one (1% of the shortfall) — the
 rehearsal of entry 32's welfare rule, descriptive: no selector, no
 stop, nothing ruled by it.
-Predictions: P54 stands as frozen for the no-head rungs. The
-prediction for the `cont-s1` rungs is registered in the commit that
-lands the ladder's instruments, before any rung leg runs.
+Predictions: P54 stands as frozen for the no-head rungs.
+**P56 (registered 2026-11-12 with the ladder's instruments, before any
+rung leg and before `cont-s1` has closed a bin).** On `cont-s1` at
+40×40: (a) the Δ-to-trunk is positive at every rung; (b) the first
+rung (10M on the lineage, 2M further ticks) holds under half of the
+final's Δ-to-trunk — the gain is gradual, with no step at the resume;
+(c) no rung is over the final by more than the 0.325 edge. Grounds:
+P48's slope (about +1 happiness over 8 bins) and P50 (no step at the
+resume); §2.5 fact 2 for (c). Unscored expectation: at that slope a 2M
+step gains about 0.25 points early and less later, against lines of
+0.10 (flat) and about 0.14 (1% of the shortfall at 86), so the
+rehearsal of the welfare rule is expected to be a close call on the
+later steps.
 Welfare cost: 24.0M covered cat-ticks at 40×40 under the armed F-053
 abort; no training. The no-head rungs exist now and can be read once
 the instruments are guard-proven; the `cont-s1` rungs wait on its
 checkpoints.
-Status: RULED 2026-11-12 — OPEN (instruments, reds and the legs owed).
+COST CORRECTED 2026-11-12, found while building the instruments: the
+legs driver scouts three worlds at every displaced size before its leg
+(scouts-first, standing practice), 0.3M covered cat-ticks a leg that
+neither §6's 3.0M nor the 24.0M put to her counted. The ladder is
+26.4M, the three no-head rungs 9.9M. The same omission sits in §5's
+21.0M for R-1 (four legs at 40×40 and 100×100: +1.2M, the
+continuation's total 209.2M). Told to her with the first rung legs.
+HER WORD TO RUN, 2026-11-12, verbatim: asked "I read "24M" as the go
+for the ladder legs once their guards are proven, starting with the
+three no-head legs (9M covered cat-ticks). Say so if you want a
+separate word.", she answered "2) go".
+INSTRUMENTS 2026-11-12: `r6-nohead-s1-u<u>` and `r6-cont-s1-u<u>`
+seatings (`cert_harness_fog.py`: a spec `<run>@u<update>` resolves to
+that run's `ckpt-u<update>.pt`), `run_legs_cont.sh <seating> --only
+40`, `read_r6.py`, guards g18–g23 in `test_cont.py` (green; reds
+follow before any rung leg).
+Status: RULED 2026-11-12 — OPEN (reds and the legs owed).

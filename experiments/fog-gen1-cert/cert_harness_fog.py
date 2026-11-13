@@ -98,13 +98,15 @@ def artifact_path(spec):
     """The policy artifact a seat spec resolves to (one home: load_model
     and provenance both use it). `plan:<slot>` rides the ppo artifact."""
     kind, name = spec.split(":", 1)
+    name, _, rung = name.partition("@")        # `<run>@u<update>`: that run's bin checkpoint (R-6's ladder rungs)
+    leaf = f"ckpt-{rung}.pt" if rung else "policy-final.pt"
     if kind == "g2":
         if name.startswith("cont-"):
-            return CONT_ARC / "artifacts" / name / "policy-final.pt"
-        return G2_ARTS / f"ppo-g2-{name}" / "policy-final.pt"
+            return CONT_ARC / "artifacts" / name / leaf
+        return G2_ARTS / f"ppo-g2-{name}" / leaf
     if kind == "p2":
-        return P2_ARC / "artifacts" / name / "policy-final.pt"
-    return ARTS / f"ppo-fog-{name}" / "policy-final.pt"
+        return P2_ARC / "artifacts" / name / leaf
+    return ARTS / f"ppo-fog-{name}" / leaf
 
 # Seat order = kitty id order in the config: Miso, Biscuit, Pumpkin, Kittybear, Clementine.
 SEATINGS = {
@@ -166,6 +168,9 @@ SEATINGS = {
     # The trunk continuation (gen2-trunk-continuation-2026-11-10 §6 R-1, declared 2026-11-11): the continued final
     # of trunk seed k in all five seats, paired with the recorded g2-s<k> and p2u-nohead-s<k> uniform rows.
     **{f"cont-s{k}": [f"g2:cont-s{k}"] * 5 for k in (1, 2, 4)},
+    # R-6's checkpoint ladder (gen2-deviations.md entry 34): one bin checkpoint of a run in all five seats, at 40x40.
+    **{f"r6-nohead-s1-u{u}": [f"p2:p2-nohead-s1r@u{u}"] * 5 for u in (1302, 2604, 3906)},
+    **{f"r6-cont-s1-u{u}": [f"g2:cont-s1@u{u}"] * 5 for u in (3255, 3906, 4557, 5208, 5859)},
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
 # disjoint 30-seed bands beyond the declared eval/stress pair
