@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guards g0–g10 of DECLARATION.md §9; each red on record via scripts/mutate.sh --expect before any seed trains.
+g13: Phase 2b's needs-only arm (minifriend-needs-arm-2026-11-12/DECLARATION.md §9, deviations entry 36).
 
     VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B test_phase2.py [g0a g0b ...]
 
@@ -318,9 +319,9 @@ def g9():
 
 
 def g10():
-    """seeds and slots: the nine slots map to run indices 107–115 inside the claimed band by the stripe formula; no
-    needs slot exists; grafts pair s_k with trunk-s_k; the head named per arm is the median-validation seed by the
-    stores' done.json."""
+    """seeds and slots: the slots map to run indices 107–123 inside the claimed bands by the stripe formula; the needs
+    slots (Phase 2b, entry 36) are 121–123, above every Phase 2 stripe; grafts pair s_k with trunk-s_k; the head named
+    per arm is the median-validation seed by the stores' done.json."""
     import json as _j
     import train_ppo_p2 as P
     import heads_online as HO
@@ -328,11 +329,11 @@ def g10():
     import cert_harness_fog as H
     idx = sorted(P.SLOTS[s][2] for s in P.SLOTS)
     # 107–115 declared + 116 (entry 25) + 117–119 (entry 27, the `both` canary) + 120 (entry 26, the act10 s1 replacement)
-    assert idx == list(range(107, 121)), idx
-    assert not any("needs" in s for s in P.SLOTS), "a needs-only slot exists"
+    # + 121–123 (entry 36, Phase 2b's needs-only arm)
+    assert idx == list(range(107, 124)), idx
     lo = min(P.T.seed_stripe(i)[0] for i in idx)
     hi = max(P.T.seed_stripe(i)[1] for i in idx)
-    assert (lo, hi) == (2_240_000_000, 2_519_999_999), (lo, hi)
+    assert (lo, hi) == (2_240_000_000, 2_579_999_999), (lo, hi)
     replacements = {"p2-nohead-s1r": ("nohead", 1, 116), "p2-act10-s1r": ("act10", 1, 120)}
     for slot, (arm, k, i) in P.SLOTS.items():
         assert k in C.TRUNK_SEEDS, slot
@@ -340,8 +341,8 @@ def g10():
             assert (arm, k, i) == replacements[slot], (slot, arm, k, i)
             continue
         assert slot == f"p2-{arm}-s{k}", slot
-        assert {"act15": 107, "act10": 110, "nohead": 113, "both": 117}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
-    assert {P.SLOTS[s][0] for s in P.SLOTS} == set(HO.ARMS) == {"act15", "act10", "nohead", "both"}, set(HO.ARMS)
+        assert {"act15": 107, "act10": 110, "nohead": 113, "both": 117, "needs": 121}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
+    assert {P.SLOTS[s][0] for s in P.SLOTS} == set(HO.ARMS) == {"act15", "act10", "nohead", "both", "needs"}, set(HO.ARMS)
     # entries 25 / 26: the halted p2-nohead-s1 and p2-act10-s1 seat nowhere; each replacement takes its arm's s1 seat
     # in both seatings, and the trainer refuses each halted slot by name with its entry and its replacement
     assert P.HALTED_SLOTS == {"p2-nohead-s1": "p2-nohead-s1r", "p2-act10-s1": "p2-act10-s1r"}, P.HALTED_SLOTS
@@ -622,7 +623,95 @@ def g12():
     assert np.allclose(bias, [-10.0, 10.0]), f"bias convention: estimate × 100 − true, less needy = negative: {bias}"
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11, "g12": g12}
+def g13():
+    """Phase 2b's needs-only arm (minifriend-needs-arm-2026-11-12/DECLARATION.md §9): (a) 9 cells with the needs cells
+    at offset 0 — on the recorded tuning world the eight needs cells equal the Phase 1e reader's whole-sequence pass to
+    1e-6 on every tick and the ninth is ticks-since-live (the no-head arm's cell); (b) an arm with no act head carries
+    no act cells (the step returns 9 a row, never 22 with zeros); (c) `p2u-needs-s<k>` seats the needs final in all
+    five seats, and the harness's seat on a needs policy equals the trainer's forward at every tick of a recorded
+    300-tick leg; (d) a smoke run of p2-needs-s1 (scratch out-dir): run index 121 on its own stripe, no act head and
+    the needs head's sha256 in the manifest, the needs read logged at every probe with rows counted, no world fork and
+    no act trigger or monitors, the final naming the arm."""
+    import json as _j
+    import shutil
+    import torch
+    import cloudkitty
+    import cert_harness_fog as H
+    import heads_online as HO
+    import read_act as R
+    import train_ppo_p2 as P
+    from count_strata import friend_row
+    # (a), (b)
+    w, observers, _z = _tuning_world()
+    T, n = w["ticks"], len(observers)
+    obs = np.asarray(w["obs"][:, observers], np.float32)
+    heads = HO.OnlineHeads("needs", n)
+    got = (heads.cells, HO.needs_off("needs"), HO.needs_off("both"))
+    assert got == (9, 0, 13), f"needs arm cells and the two needs offsets read {got}"
+    cells = np.stack([heads.step(obs[t]) for t in range(T)])
+    assert cells.shape == (T, n, 4, 9), f"needs step returns {cells.shape}"
+    pairs, X, _ys, _states, _cls = R.world_inputs(w, observers, w["scripted"][0])
+    model, probe = heads.needs
+    with torch.no_grad():
+        z, _h = model.gru(torch.relu(model.proj(torch.from_numpy(np.asarray(X, np.float32)))))
+        ref = torch.cat([model.out(z)[..., :7], torch.sigmoid(probe(z))], -1).numpy()  # (T, n_pairs, 8)
+    worst = max(float(np.abs(cells[:, observers.index(k), friend_row(k, j), :8] - ref[:, pi]).max()) for pi, (k, j) in enumerate(pairs))
+    assert worst < 1e-6, f"online needs cells differ from the Phase 1e reader's by {worst}"
+    nohead = HO.OnlineHeads("nohead", n)
+    tsl = np.stack([nohead.step(obs[t]) for t in range(T)])
+    assert np.array_equal(cells[..., 8], tsl[..., 0]), "the needs arm's ninth cell is not ticks-since-live"
+    # (c)
+    for k in (1, 2, 4):
+        assert H.SEATINGS[f"p2u-needs-s{k}"] == [f"p2:p2-needs-s{k}"] * 5, f"p2u-needs-s{k} seats {H.SEATINGS[f'p2u-needs-s{k}']}"
+    art = _scratch_artifact("p2-needs-s1", arm="needs", live_cells=True)
+    H.P2_ARC = SCRATCH
+    rec_dir = SCRATCH / "rec-needs"
+    H.run_one(("p2u-needs-s1", 905_001, 300, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(rec_dir)))
+    acts = np.load(rec_dir / "acts-905001.npz")["acts"]
+    actor, _ck = HO.actor_from_artifact(art, n_obs=5)
+    env = cloudkitty.ParallelEnv(str(C.TRUNK_TOML), horizon=300)
+    ob_d, infos = env.reset(seed=905_001)
+    names = list(env.possible_agents)
+    actor.reset()
+    for t in range(300):
+        ob = np.stack([np.asarray(ob_d[a], np.float32) for a in names])
+        mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
+        lg = actor.logits(ob)
+        a0 = np.where(mk[:, :35], lg[:, :35], -np.inf).argmax(1)
+        m0 = np.where(mk[:, 35:], lg[:, 35:], -np.inf).argmax(1)
+        assert np.array_equal(a0, acts[t, :, 0]) and np.array_equal(m0, acts[t, :, 1]), f"harness seat and trainer forward disagree at tick {t} (needs arm)"
+        ob_d, _r, _te, _tr, infos = env.step({a: (int(acts[t, i, 0]), int(acts[t, i, 1])) for i, a in enumerate(names)})
+    # (d)
+    out = SCRATCH / "smoke-g13"
+    if out.exists():
+        shutil.rmtree(out)
+    argv = sys.argv
+    sys.argv = ["train_ppo_p2.py", "--slot", "p2-needs-s1", "--smoke", "--n-worlds", "2", "--horizon", "200", "--total-ticks", "2048",
+                "--fragment", "64", "--probe-every", "8", "--probe-ticks", "40", "--bin-ticks", "1024", "--floor-ticks", "1024", "--out-dir", str(out)]
+    try:
+        P.main()
+    finally:
+        sys.argv = argv
+    man = _j.loads((out / "run-manifest.json").read_text())
+    fin = torch.load(out / "policy-final.pt", map_location="cpu", weights_only=True)
+    got = {"arm": man["arm"], "cells": man["cells"], "run_index": man["run_index"], "seed_base": man["seed_base"], "head": man["head"],
+           "needs_sha": man["needs_head"]["sha256"], "act_trigger": man["stops"]["demotion_trigger"],
+           "final": (fin["arm"], fin["cells"], fin["stop_reason"])}
+    want = {"arm": "needs", "cells": 9, "run_index": 121, "seed_base": 2_520_000_000, "head": None,
+            "needs_sha": list(HO.NEEDS_SHA256[("NF1e-h24", 2)]), "act_trigger": None, "final": ("needs", 9, "cap")}
+    assert got == want, f"the needs smoke's manifest and final read {got}"
+    probes = [r for r in (_j.loads(l) for l in (out / "metrics.jsonl").read_text().splitlines()) if r.get("probe")]
+    assert len(probes) == 2, len(probes)
+    for r in probes:
+        act_side = (r["trigger"], r["monitors"], r["passive"], r["branches"], r["forks"])
+        assert act_side == (None, None, None, 0, 0), f"a needs-only probe forked the world or read act cells: {act_side[3:]} branches / forks, trigger {act_side[0]}"
+        nb = r["needs_bias_probe"]
+        assert r["needs_trigger"] is not None and nb["by_version"]["all"]["n_grave"] + nb["by_version"]["all"]["n_common"] > 0, "the needs read is not logged"
+    total = sum(p_["needs_bias_probe"]["by_version"]["all"]["n_common"] for p_ in probes)
+    assert probes[1]["needs_trigger"]["by_version"]["all"]["n_common"] == total, "cumulative != sum of probes"
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11, "g12": g12, "g13": g13}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]

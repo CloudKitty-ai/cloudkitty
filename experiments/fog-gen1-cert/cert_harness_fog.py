@@ -157,6 +157,8 @@ SEATINGS = {
     # is the entry-27 canary arm (owner 2026-11-07 "Yes, let's supersede iii and go this route"), seated like the others.
     **{f"p2u-{arm}-s{k}": [f"p2:p2-{arm}-s{k}" + ("r" if (arm, k) in (("nohead", 1), ("act10", 1)) else "")] * 5
        for arm in ("act15", "act10", "nohead", "both") for k in (1, 2, 4)},
+    # Phase 2b's needs-only arm (minifriend-needs-arm-2026-11-12/DECLARATION.md §6, deviations entry 36): uniform per seed.
+    **{f"p2u-needs-s{k}": [f"p2:p2-needs-s{k}"] * 5 for k in (1, 2, 4)},
     **{f"p2r-{arm}": [f"p2:p2-{arm}-s2", f"p2:p2-{arm}-s4", "g2:trunk-s6", "g2:trunk-s7",
                       f"p2:p2-{arm}-s1" + ("r" if arm in ("nohead", "act10") else "")]
        for arm in ("act15", "act10", "nohead", "both")},

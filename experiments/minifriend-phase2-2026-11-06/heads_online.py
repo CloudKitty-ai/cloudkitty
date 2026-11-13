@@ -17,6 +17,9 @@ Appended cells per friend row (DECLARATION §3 table):
                       route"): the canary arm, scouts-first. The needs head runs every tick on the same x_t with its own
                       GRU state (as Phase 1e's reader does; no prior stands in on a silent row — the cells are inert
                       there anyway). The act cells come FIRST so every act-head reader ([:11]) is unchanged.
+  needs     (C = 9):  the needs head's eight cells alone (no act head, no act cells) ++ ticks-since-live — Phase 2b
+                      (minifriend-needs-arm-2026-11-12/DECLARATION.md, deviations entry 36). The needs cells sit at
+                      offset 0 (`needs_off`).
 ticks-since-live = (tick − last tick the row was seen or heard) / 40 clamped to 1 (docs/encodings.md element-memory
 staleness; never-live = 1). Record note (g1's consequence): the trunk's tokenizer pads a kitty row iff its 58 cells are
 all zero, so on a SILENT row every appended cell is inert — the cells act on SEEN and HEARD rows only.
@@ -49,13 +52,20 @@ NEEDS_OFF = ACT_CELLS                                       # the needs cells fo
 ARMS = {"act15": {"head": ("B15", 2), "needs": None, "cells": ACT_CELLS + 1},
         "act10": {"head": ("B10", 3), "needs": None, "cells": ACT_CELLS + 1},
         "nohead": {"head": None, "needs": None, "cells": 1},
-        "both": {"head": ("B15", 2), "needs": ("NF1e-h24", 2), "cells": ACT_CELLS + NEEDS_CELLS + 1}}
+        "both": {"head": ("B15", 2), "needs": ("NF1e-h24", 2), "cells": ACT_CELLS + NEEDS_CELLS + 1},
+        "needs": {"head": None, "needs": ("NF1e-h24", 2), "cells": NEEDS_CELLS + 1}}
 HEAD_SHA256 = {("B15", 2): "dd0e2d6e84e93052f04111cba5dbb9c58666f22b6aab7e41805208d055bbff08",
                ("B10", 3): "9bde78f8caf50d5926b9c5909d855beee91ab748c1d9ce92afa87e6fe6b09d6b"}
 NEEDS_SHA256 = {("NF1e-h24", 2): ("0ca9ccb43fec9e953a573b2cae79943847ed1545ad6a9bde672820e92ba74d9e",    # head-best.pt
                                   "00e533b7c38a9e95554cd6eebe733a05fbd5abf7ab674f10dec48c2cac34c305")}   # probe.pt
 P1E, P1 = C.EXPTS / "minifriend-phase1e-2026-11-01", C.EXPTS / "minifriend-phase1-2026-10-22"
 ROW0, ROW1 = C.SELF_BLOCK, C.SELF_BLOCK + C.N_ROWS * C.KITTY_W
+
+
+def needs_off(arm):
+    """Where the arm's needs cells start in a friend row's appended cells: after the act cells, or 0 with no act head."""
+    assert ARMS[arm]["needs"] is not None, arm
+    return 0 if ARMS[arm]["head"] is None else ACT_CELLS
 
 
 def load_head(arm):
@@ -163,17 +173,21 @@ class OnlineHeads:
         tsl = np.ones((self.n, C.N_ROWS), np.float32)
         tsl[ever] = np.clip((self.t[:, None].repeat(C.N_ROWS, 1)[ever] - self.last_live[ever]) / C.STALENESS_NORMALISER, 0.0, 1.0)
         self.t += 1
-        if self.head is None:
+        if self.head is None and self.needs is None:
             return tsl[..., None]
         x = torch.from_numpy(np.concatenate([np.repeat(obs[:, None, :C.SELF_BLOCK], C.N_ROWS, 1), rows], -1).reshape(1, self.n * C.N_ROWS, -1))
-        with torch.no_grad():
-            o0, _o10, self.h = self.head(x, self.h)
-            p = torch.softmax(o0[0], -1).numpy().reshape(self.n, C.N_ROWS, N_CLASSES)
-        top, ent = summaries(p)
-        cells = np.concatenate([p, top[..., None], ent[..., None]], -1)
-        cells[~live] = self.prior_cells
-        parts = [cells] + ([self.needs_cells(x)] if self.needs is not None else []) + [tsl[..., None]]
-        return np.concatenate(parts, -1).astype(np.float32)
+        parts = []                                          # an absent head contributes no cells (never zero-filled)
+        if self.head is not None:
+            with torch.no_grad():
+                o0, _o10, self.h = self.head(x, self.h)
+                p = torch.softmax(o0[0], -1).numpy().reshape(self.n, C.N_ROWS, N_CLASSES)
+            top, ent = summaries(p)
+            cells = np.concatenate([p, top[..., None], ent[..., None]], -1)
+            cells[~live] = self.prior_cells
+            parts.append(cells)
+        if self.needs is not None:
+            parts.append(self.needs_cells(x))
+        return np.concatenate(parts + [tsl[..., None]], -1).astype(np.float32)
 
 
 class P2Actor:

@@ -63,12 +63,17 @@ N_ACTIONS, N_MSGS = T.N_ACTIONS, T.N_MSGS
 # p2-act10-s1r: the REPLACEMENT for p2-act10-s1 (halted by the frozen probe-distress stop at 10,752,000 ticks;
 # deviations entry 26, owner 2026-11-07 "Act10 s1 replace and analyze the failed seed"): the same trunk-s1 graft under
 # run index 120 (stripe claimed 2026-11-07 before first burn). The halted slot stays in the table as lineage.
+# p2-needs-s{1,2,4}: Phase 2b's needs-only arm (minifriend-needs-arm-2026-11-12/DECLARATION.md, deviations entry 36,
+# owner 2026-11-13 "1-5 on (4 needs only calls) yes as drafted"): the NF1e-h24-s2+p needs cells alone, run indices
+# 121-123 (stripes claimed 2026-11-13 before first burn); scouts-first — s1 alone until she rules on its read. Its
+# needs read is LOGGED, never a stop (entry 27's shape); no act head, so no act trigger; the welfare stops stay armed.
 SLOTS = {"p2-act15-s1": ("act15", 1, 107), "p2-act15-s2": ("act15", 2, 108), "p2-act15-s4": ("act15", 4, 109),
          "p2-act10-s1": ("act10", 1, 110), "p2-act10-s2": ("act10", 2, 111), "p2-act10-s4": ("act10", 4, 112),
          "p2-nohead-s1": ("nohead", 1, 113), "p2-nohead-s2": ("nohead", 2, 114), "p2-nohead-s4": ("nohead", 4, 115),
          "p2-nohead-s1r": ("nohead", 1, 116),
          "p2-both-s1": ("both", 1, 117), "p2-both-s2": ("both", 2, 118), "p2-both-s4": ("both", 4, 119),
-         "p2-act10-s1r": ("act10", 1, 120)}
+         "p2-act10-s1r": ("act10", 1, 120),
+         "p2-needs-s1": ("needs", 1, 121), "p2-needs-s2": ("needs", 2, 122), "p2-needs-s4": ("needs", 4, 123)}
 # halted -> replacement (entries 25, 26); the trainer refuses the halted one
 HALTED_SLOTS = {"p2-nohead-s1": "p2-nohead-s1r", "p2-act10-s1": "p2-act10-s1r"}
 HALTED_ENTRY = {"p2-nohead-s1": 25, "p2-act10-s1": 26}
@@ -331,6 +336,7 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, 
     (entry 27): every (observer, friend) row's needs bias (five hidden estimates × 100 − the friend's TRUE needs, mean)
     lands in `needs_acc` (cumulative, the trigger's shape, a READ) and in this probe's own accumulator."""
     has_needs = HO.ARMS[arm]["needs"] is not None
+    has_act = HO.ARMS[arm]["head"] is not None             # the branch read, the act trigger and the act monitors need the act head
     needs_probe = new_needs_acc() if has_needs else None
     if has_needs:
         assert needs_acc is not None
@@ -383,7 +389,7 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, 
                 meows += int((msg_ix != 0).sum())
                 decs += len(msg_ix)
                 acts = {a: (int(act_ix[j]), int(msg_ix[j])) for j, a in enumerate(names)}
-                snap = env.snapshot() if arm != "nohead" else None
+                snap = env.snapshot() if has_act else None
                 obs, rew, _t, trunc, infos = env.step(acts)
                 recs = env.tick_records()
                 applied = np.array([(-1 if (c := applied_class(recs[a]["applied_action_name"])) is None else c)
@@ -401,7 +407,8 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, 
                 mon["cells"].append(kcells.copy()); mon["applied"].append(applied[friend_j])
                 mon["live"].append(live); mon["visible"].append(visible); mon["friend"].append(friend_j)
                 if has_needs:
-                    nbias = (kcells[:, HO.NEEDS_OFF:HO.NEEDS_OFF + 5] * 100.0 - needs_true[friend_j, :5]).mean(1)
+                    off = HO.needs_off(arm)
+                    nbias = (kcells[:, off:off + 5] * 100.0 - needs_true[friend_j, :5]).mean(1)
                     needs_accumulate(needs_acc, nbias, codes[friend_j], friend_j, visible)
                     needs_accumulate(needs_probe, nbias, codes[friend_j], friend_j, visible)
                 if snap is not None:
@@ -452,9 +459,9 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, 
     if dump is not None:
         np.savez_compressed(dump, **{k: np.concatenate(v) for k, v in rows.items()})
     M = {k: np.concatenate(v) for k, v in mon.items()}
-    monitors = None if arm == "nohead" else monitor_reads(M["cells"], M["applied"], M["live"], M["visible"])
+    monitors = monitor_reads(M["cells"], M["applied"], M["live"], M["visible"]) if has_act else None
     passive = None
-    if arm != "nohead":
+    if has_act:
         passive = {}
         for j, f in enumerate(FRIENDS):
             sel = (M["friend"] == j) & (M["applied"] >= 0)
@@ -465,7 +472,7 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, 
     return {"nash": float(np.mean(nash)), "lounge_share": float(np.mean(lounge)), "inwater_share": float(np.mean(inwater)),
             "meow_per_1k": float(np.mean(meow_rate)), "max_distress_streak": int(max(max_streaks)),
             "max_distress_streak_per_seed": max_streaks, "monitors": monitors, "passive": passive,
-            "branches": branches, "forks": forks, "trigger": trigger_eval(trigger_acc) if arm != "nohead" else None,
+            "branches": branches, "forks": forks, "trigger": trigger_eval(trigger_acc) if has_act else None,
             "needs_trigger": needs_eval(needs_acc) if has_needs else None,            # cumulative; a READ, never a stop
             "needs_bias_probe": needs_eval(needs_probe) if has_needs else None}        # this probe alone
 
@@ -575,7 +582,7 @@ def main():
         branch_rng = np.random.default_rng(20261106 + run_index + 1000 * segment)
 
     seed_base = T.seed_stripe(run_index)[0] + segment * 1_000
-    assert T.seed_stripe(run_index)[1] < 2_520_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
+    assert T.seed_stripe(run_index)[1] < 2_580_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
     runner = P2VecRunner(arm, str(config_path), args.n_worlds, seed_base, horizon=args.horizon)
     obs_dim, mask_dim = runner.dims
     assert obs_dim == G.wide_dim(cells) and mask_dim == N_ACTIONS + N_MSGS, (obs_dim, mask_dim)
@@ -587,7 +594,7 @@ def main():
         "arm": arm, "slot": args.slot, "smoke": args.smoke, "cells": cells,
         "head": None if head_spec is None else {"arm": head_spec[0], "seed": head_spec[1], "sha256": HO.HEAD_SHA256[head_spec]},
         "needs_head": None if needs_spec is None else {"head": needs_spec[0], "seed": needs_spec[1], "sha256": list(HO.NEEDS_SHA256[needs_spec]),
-                                                       "cells": "seven estimates (0-1 scale) + P(grave), after the act cells"},
+                                                       "cells": f"seven estimates (0-1 scale) + P(grave), at cell offset {HO.needs_off(arm)}"},
         "trunk_seed": trunk_seed, "trunk_final": str(C.trunk_final(trunk_seed)), "trunk_final_sha256": C.TRUNK_FINAL_SHA[trunk_seed],
         "init": str(init_path), "init_sha256": init_sha,
         "beta": BETA, "beta_schedule": "held from step 0 (ruled 2026-11-06)", "gamma": args.gamma,
@@ -606,7 +613,7 @@ def main():
                   "needs_trigger": None if needs_spec is None else {"lift": TRIGGER_LIFT, "min_n": TRIGGER_MIN_N,
                                                                     "window": "cumulative over the run's probes (+ per probe)",
                                                                     "consequence": "READ ONLY — logged, never halts (deviations "
-                                                                                   "entry 27, shape (ii) for this arm)"}},
+                                                                                   "entry 27, shape (ii); entry 36 for the needs arm)"}},
         "monitors": {"f074_top1_min": MONITOR_TOP1, "f075_ece_max": MONITOR_ECE},
         "vstats": {"mean": mean_v, "std": std_v},
         "hyperparams": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
