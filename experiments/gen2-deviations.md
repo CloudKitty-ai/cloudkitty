@@ -2324,7 +2324,20 @@ taken; `ckpt-u2929.pt` written; six probes, distress streak 0 at each.
 `cont-s2` and `cont-s4` launched 2026-11-13T06:02Z at HEAD db381405 on
 the same word (§13 step 3); their byte copies read sha256 d7f72d35… and
 51b965ec… (the trunk's own); both resumed at update 2,606, segment 1.
-Status: OPEN — three seeds training.
+`cont-s1` FINAL, 2026-11-13T10:53Z (raw-field read of `metrics.jsonl`
+and the log; R-2 scores it on three seeds): the cap reached at update
+6,510, 19,998,720 lineage ticks, no stop taken;
+`policy-final.pt` sha256 416288ee…. Eleven closed bins, returns
+0.8814 / 0.8820 / 0.8821 / 0.8805 / 0.8757 / 0.8789 / 0.8811 / 0.8823 /
+0.8798 / 0.8809 / 0.8819 against the trunk's last bin 0.8802: every bin
+flagged flat by the frozen rule (`flat_streak` 11 at lineage bin 19),
+the range 0.8757–0.8823. 78 probes, worst distress streak 80 (update
+4,749; the 300 line never neared). At that hour `cont-s2` stood at
+update ~6,280 (eleven bins, 0.8747–0.8805 against its trunk's 0.8789,
+worst probe streak 40) and `cont-s4` at ~6,140 (ten bins,
+0.8796–0.8863 against 0.8803, worst probe streak 240 at update 5,499,
+under the 300 line). No R-1 leg has run: §13 step 4 takes her word.
+Status: OPEN — `cont-s1` final; `cont-s2` / `cont-s4` training.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
