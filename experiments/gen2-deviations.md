@@ -2337,7 +2337,41 @@ update ~6,280 (eleven bins, 0.8747–0.8805 against its trunk's 0.8789,
 worst probe streak 40) and `cont-s4` at ~6,140 (ten bins,
 0.8796–0.8863 against 0.8803, worst probe streak 240 at update 5,499,
 under the 300 line). No R-1 leg has run: §13 step 4 takes her word.
-Status: OPEN — `cont-s1` final; `cont-s2` / `cont-s4` training.
+`cont-s2` / `cont-s4` FINAL, 2026-11-13T11:22Z: both at the cap (update
+6,510, 19,998,720 lineage ticks, `stop_reason` cap, no stop taken);
+`policy-final.pt` sha256 386ef2e2… / 3ea563d4…. 78 probes each: worst
+distress streak 40 on s2 (update 4,699); on s4 240 (update 5,499) and
+181 (update 6,249), no other probe over 100, the 300 line not reached.
+R-2 READ (`reads/r2/curves.md`, zero cost, the recorded bins; scored in
+the gated RESULTS): STEP +0.0011 / −0.0031 / +0.0023 on s1 / s2 / s4
+(P50's line is 0.005: inside it on all three); SLOPE +0.0001 / −0.0001
+/ +0.0005 a bin; last bin 0.8819 / 0.8776 / 0.8864 against the trunks'
+0.8802 / 0.8789 / 0.8803. KL-to-clone 0.507–0.548 / 0.481–0.525 /
+0.527–0.577: s4 leaves P51's 0.47–0.57 band at lineage bins 14, 17 and
+19 (0.5723 / 0.5772 / 0.5712). The no-head and act15 arms on the same
+lineages: STEP +0.0087 to +0.0153, SLOPE +0.0006 to +0.0007 a bin.
+R-3 WIRED AND READ (`reads/r3/plateau.md`; the debt above): a
+continuation is replayed on its lineage as its trainer set its flags
+(from the resume, each bin against the one before, the first against
+the trunk's last; the stop was off, so its stops are replays, not
+records); the recorded flags are reproduced on all three. Guard g7
+extended; five reds, each as predicted (`results-raw/reds/r3-red-*.log`):
+
+| mutation (in `read_plateau.py`) | predicted red | got |
+|---|---|---|
+| floor at the trunk's last bin, not the one before | `cont-s1: frozen replay flags [False, True` | as predicted |
+| the stop-reproduction check not skipped for a continuation | `cont-s1: frozen replay stops at bin 11, the record (cap) at bin None` | as predicted |
+| P52's floor dropped (bins after the trunk's stop) | `cont-s1: p52 reads bins [9, 10, 11]` | as predicted |
+| P52 on any flat bin, not all three | `reads [True, True, True]` | as predicted |
+| the continuations not globbed | `continuations read: []` | as predicted |
+
+As read: had the frozen rule run from the resume it stops all three at
+lineage bin 11 (return left on the table −0.0002 / −0.0002 / +0.0045);
+P52's first clause holds on three of three (lineage bins 17–19 all
+flat); its second (the 0.002 / 3 candidate stops the trunk's series at
+bin 8) holds on s1 only.
+Status: OPEN — three finals at the cap; R-2 / R-3 read; the R-1 legs
+wait on her word.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
