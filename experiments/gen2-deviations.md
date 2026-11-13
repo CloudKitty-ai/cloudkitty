@@ -2751,3 +2751,32 @@ hand.
 Status: line RULED 2026-11-12 — OPEN (the rule's declaration owed
 after R-6).
 
+
+## 36. Mini-friend Phase 2b, the needs-only arm: declared (2026-11-13)
+
+The arm Phase 2 dropped on 2026-11-06 ("Iii drop the arm.") is declared
+as its own arc, `minifriend-needs-arm-2026-11-12/DECLARATION.md`: the
+frozen needs head NF1e-h24-s2+p as the policy's only added input (C =
+9), slots `p2-needs-s{1,2,4}` on run indices 121–123 (stripes
+2,520,000,000–2,579,999,999, claimed in `SEED-BANDS.md` before first
+burn), Phase 2's recipe and stop rule, read against the no-head arm on
+the same worlds. Her words, verbatim: 2026-11-11 "I think we will
+probably want to train needs only as well, and evaluate on welfare like
+we did with dual head"; 2026-11-12 "1) agreed" (draft it) and "3)
+agreed, hold for needs only" (the two further dual-head seeds);
+2026-11-13 "1-5 yes as drafted", then "1-5 on (4 needs only calls) yes
+as drafted" — the draft's five calls ruled as recommended: declare it;
+the scout seed first, seeds 2 and 4 on a later word; the needs trigger
+logged with its halt suspended and the harm stops armed (entry 27's
+shape); Phase 2's stop rule kept; the 100×100 leg on the scout.
+DECLARED at this commit with no edits to the draft's design: §3–§9
+frozen, predictions N1–N4 registered before any number, the guard table
+with its mutants and predicted reds written (§9). This deviates from
+Phase 2's frozen §3 ("no needs slot") by adding the arm to Phase 2's
+trainer, heads and seatings; Phase 2's own runs and reads are
+untouched, and its g10 must go red on the change before it is
+re-pointed. Welfare-cost line (§5): the scout about 72–88M covered
+cat-ticks expected, about 114M at most; all three seeds about 209–256M
+expected, about 334M at most. Nothing is built and nothing has trained;
+launching the scout is a separate word of hers (§13 step 3).
+Status: DECLARED 2026-11-13 — OPEN.

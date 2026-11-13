@@ -1,11 +1,14 @@
-# Mini-friend Phase 2b: the needs-only arm (DRAFT 2026-11-12; nothing declared, nothing built, nothing trained)
+# Mini-friend Phase 2b: the needs-only arm (DECLARED 2026-11-13; nothing built, nothing trained)
 
-Status: **DRAFT** for her review, on her word "1) agreed" (2026-11-12).
-Declaring it, launching the scout, and launching seeds 2 and 4 are
-three separate words of hers. Nothing here is frozen. The arc is Phase
-2's trainer, heads, legs and readers with one new arm; every text of
-Phase 2 it does not restate stands as Phase 2 wrote it
-(`minifriend-phase2-2026-11-06/DECLARATION.md`, frozen 226509ec).
+Status: **DECLARED 2026-11-13** on her word "1-5 on (4 needs only
+calls) yes as drafted": the five calls of §12 ruled as recommended, the
+draft of 2026-11-12 unedited. §3–§9 are FROZEN at this commit; a change
+to them is a deviations entry on her word (entry 36 carries this arc).
+Launching the scout, and launching seeds 2 and 4, are each a separate
+word of hers. The arc is Phase 2's trainer, heads, legs and readers
+with one new arm; every text of Phase 2 it does not restate stands as
+Phase 2 wrote it (`minifriend-phase2-2026-11-06/DECLARATION.md`, frozen
+226509ec).
 
 ## 0. Her words, verbatim and in order
 
@@ -30,6 +33,9 @@ Phase 2 it does not restate stands as Phase 2 wrote it
 - 2026-11-12, on "Needs-only declaration: shall I draft it? … a scout
   seed first": "1) agreed"; on the two further dual-head seeds: "3)
   agreed, hold for needs only".
+- 2026-11-13, on the draft's five calls (asked as item 4 of the open
+  decisions): "1-5 yes as drafted", then, clarifying which five, "1-5
+  on (4 needs only calls) yes as drafted".
 
 ## 1. What is being asked
 
@@ -160,7 +166,7 @@ Phase 1f (tightening the head) comes before any of it.
   the share of acts the needs cells drive, on all rows and on rows the
   head flags.
 
-## 7. Predictions (candidates; registered at DECLARED, before any number)
+## 7. Predictions (registered 2026-11-13 at DECLARED, before any number)
 
 - **N1.** needs − no-head is inside the edge at 20×20 and 40×40 on the
   scout (|Δ| ≤ 0.326 / 0.325). Grounds: the dual-head arm sits level
@@ -192,14 +198,29 @@ One seed clears nothing (the three-seed valve); a result inside the
 edge establishes nothing until replicated (doctrine rule 10). The
 hold on the dual-head seeds releases only on her word.
 
-## 9. Guards (to be built; each red before the scout trains)
+## 9. Guards (each red before the scout trains)
 
 Phase 2's g0–g12 re-run on the edited files; new: the needs arm's
 online cells equal the Phase 1e reader's on recorded rows (the entry-27
 guard, for an arm without an act head); the no-act-head path leaves the
 act cells absent rather than zero-filled; the slot's stripe is inside
 the claimed band and disjoint from Phase 2's; the seating seats the
-needs final. Mutants and predicted reds are written at DECLARED.
+needs final. Mutants and predicted reds, written at DECLARED
+(`test_phase2.py`; each red through `scripts/mutate.sh --expect`):
+
+| guard | asserts | mutant | predicted red |
+|---|---|---|---|
+| g13a | the needs arm carries 9 cells with the needs cells at offset 0; on the recorded tuning world its eight needs cells equal the Phase 1e reader's whole-sequence pass to 1e-6 on every tick, and its ninth cell is ticks-since-live | the needs cells appended after ticks-since-live | `online needs cells differ from the Phase 1e reader's` |
+| g13b | a step of an arm with no act head returns 9 cells a row: the act cells are absent | thirteen zero cells stand in for the absent act head | `needs step returns (…, 4, 22)` |
+| g13c | `p2u-needs-s<k>` seats `p2:p2-needs-s<k>` in all five seats; the harness's seat on a needs final equals the trainer's forward at every tick of a recorded 300-tick leg | the seating seats the dual-head final | `p2u-needs-s1 seats ['p2:p2-both-s1'` |
+| g13d | a smoke run of `p2-needs-s1`: 9 cells, run index 121, seed base 2,520,000,000, no act head and the needs head's two sha256 in the manifest; the needs read logged at every probe with rows counted and a finite bias, never a stop; no world fork, no act trigger, no act monitors; the final names the arm | (i) the bias read at the dual-head arm's cell offset; (ii) the probe's snapshot taken for an arm with no act head | (i) `needs bias is not finite`; (ii) `a needs-only probe forked the world` |
+| g10 | the slots map to run indices 107–123 by the stripe formula; the needs slots are 121–123, stripes 2,520,000,000–2,579,999,999, above every Phase 2 stripe | `p2-needs-s1` given run index 120 | `120, 120, 122, 123` |
+
+Phase 2's g10 asserted "no needs slot exists" and four arms; it must go
+red on this change before it is re-pointed (CLAUDE.md rule 6). The
+readers' extensions for this arm (the paired welfare read, the trigger
+trajectory on the needs legs, the block read at C = 9) are not needed
+to train; each is built before its first read with its own red (§4).
 
 ## 10. Blind spots (declared)
 
@@ -243,15 +264,20 @@ needs final. Mutants and predicted reds are written at DECLARED.
 
 ## 12. Owner calls (recommendation first; her word rules)
 
-1. **Declare this** (after her edits). Recommended.
+All five RULED 2026-11-13 as recommended ("1-5 on (4 needs only calls)
+yes as drafted").
+
+1. **Declare this** (after her edits). Recommended. RULED: declared, no
+   edits.
 2. **Scout seed first**, seeds 2 and 4 on a later word. Recommended.
+   RULED.
 3. **The needs trigger logged, its halt suspended; harm stops armed**
-   (entry 27's shape). Recommended.
+   (entry 27's shape). Recommended. RULED.
 4. **Phase 2's stop rule kept for this arm.** Recommended, for
-   comparability.
+   comparability. RULED.
 5. **The 100×100 leg on the scout** (3.0M of the 9.6M). Recommended:
    it is where the head flags and where the dual-head arm's gain over
-   no-head was largest.
+   no-head was largest. RULED.
 
 ## 13. Run order (each step its own commit before its data)
 

@@ -1255,6 +1255,16 @@ consent BC comparison ride the trunk.
   a row; the rest of the rule owed as one declaration after R-6);
   "4) walk me through these" — the needs-only draft's five calls
   walked through, her rulings awaited.
+  2026-11-13, the continuation: the 12M rung's scout MISSED the F-053
+  gate at 40×40 (entry 34; the leg unrun, the later rungs held for her
+  word); the three seeds reached the 20M cap with no stop (entry 31),
+  the training return flat on all three (R-2: STEP +0.0011 / −0.0031 /
+  +0.0023; R-3 wired for the continuations and read). The R-1 legs,
+  the held rungs and three further no-head rungs wait on her word.
+  2026-11-13, "1-5 on (4 needs only calls) yes as drafted": the
+  needs-only arm DECLARED (entry 36; `minifriend-needs-arm-2026-11-12/`,
+  §3–§9 frozen, N1–N4 registered, run indices 121–123 claimed). The
+  instruments and their reds come next; the scout's launch is her word.
 
 ## Flagged follow-ups (owner's word to start)
 
