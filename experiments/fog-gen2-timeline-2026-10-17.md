@@ -1245,6 +1245,16 @@ consent BC comparison ride the trunk.
   2M ticks, floored at the test's own half-width — the same decisions
   as the flat line at today's levels (86–90.5), and it carries to
   other sizes and generations. Unruled.
+  2026-11-12, her third reply: "1) yes" launches `cont-s1` (started
+  22:42 MST at c9fd1676; s2 / s4 follow once its first bin reads);
+  "2) go" runs the ladder legs once guard-proven (entry 34: seatings,
+  `read_r6.py`, guards g18–g23 each red as predicted, P56 registered;
+  cost corrected to 26.4M with the scouts; the three no-head rung legs
+  running); "3) yes" rules the welfare line's form (entry 35: 1% of
+  the shortfall per 2M, floored at the test's half-width, two tests in
+  a row; the rest of the rule owed as one declaration after R-6);
+  "4) walk me through these" — the needs-only draft's five calls
+  walked through, her rulings awaited.
 
 ## Flagged follow-ups (owner's word to start)
 

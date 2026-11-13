@@ -2307,7 +2307,15 @@ needing data that does not exist yet: the red of R-1's header fence (a
 leg whose header does not name the continued final; needs a final),
 and R-3's continuation wiring (needs the continuation's own bins; until
 then `read_plateau.py` refuses a continuation series).
-Status: OPEN — nothing has trained; her word launches `cont-s1`.
+LAUNCHED 2026-11-12 on her word, verbatim: asked "Launch the first
+continuation seed?", she answered "1) yes". `cont-s1` started
+2026-11-13T05:42Z (2026-11-12 22:42 MST) at HEAD c9fd1676 under
+`caffeinate -s nohup`; the byte copy of the trunk checkpoint reads
+sha256 ed32b0cd…ebef642 (the trunk's own); the first rows show update
+2,606 on, segment 1, progress 0.4006, entropy coefficient 0.00639 — the
+trunk's schedule continued. `cont-s2` / `cont-s4` follow on the same
+word once the first closed bin is read for P50's mechanics (§13 step 3).
+Status: OPEN — `cont-s1` training.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
@@ -2594,4 +2602,49 @@ seatings (`cert_harness_fog.py`: a spec `<run>@u<update>` resolves to
 that run's `ckpt-u<update>.pt`), `run_legs_cont.sh <seating> --only
 40`, `read_r6.py`, guards g18–g23 in `test_cont.py` (green; reds
 follow before any rung leg).
-Status: RULED 2026-11-12 — OPEN (reds and the legs owed).
+REDS 2026-11-12, each through `scripts/mutate.sh --expect`, the
+prediction written before the run, all CONFIRMED (logs
+`results-raw/reds/r6-red-*.log`, local raws):
+
+| guard | bug introduced | red as predicted |
+|---|---|---|
+| g18 (a rung seating loads the rung) | a rung spec resolves to `policy-final.pt` | the u1302 spec resolves to the final |
+| g19 (the reader's header fence) | the artifact sha256 not compared | the final's leg read as the u1302 rung |
+| g20 (a step's gain and lines) | the shortfall taken from the later rung | 1% line 0.22, not 0.277 |
+| g20 | the paired difference's sign flipped | gain −2.866 |
+| g21 (the half-width floor) | the floor dropped | a +0.026 gain under its ±0.031 half-width counted |
+| g22 (the summit rule) | the earliest-within-edge rung read as the maximum | rung 2, not rung 1 |
+| g23 (P56's clauses) | clause (a), (b), (c) each made always true | the negative, stepped and peaked ladders each read MET |
+
+The three no-head rung legs started 2026-11-13T05:49Z (9.9M covered
+cat-ticks with their scouts), one after another, beside `cont-s1`.
+Status: RULED 2026-11-12 — OPEN (no-head rungs running; cont-s1's
+rungs wait on its checkpoints).
+
+## 35. The welfare-based stop: its line ruled, the rest of the rule owed (2026-11-12)
+Entry 32 carried her question of a welfare test every 2M ticks in
+place of the training-return plateau rule, and the session's answer
+and recommendation on the line. Put to her 2026-11-12: "Proportional
+line as above (1% per 2M, floored at the test's resolution, two tests
+in a row under it before a stop)? The 1% figure stays provisional
+until the ladder reads." Her answer, verbatim: "3) yes".
+What is ruled: the line's form. A 2M-tick step counts as a gain when
+the paired gain on the test worlds is at least 1% of the remaining
+shortfall (100 minus the earlier test's team happiness) and at least
+the test's own 95% half-width; two tests in a row that do not count
+end the training. The 1% is provisional until R-6 (entry 34) is read;
+`read_r6.py` replays exactly this line on both lineages.
+What is not ruled, and is owed to her as one declaration after the
+ladder reads: the test worlds (their own seed band; R-6 borrows the
+battery's g2cmp worlds, which a live rule must not), the test size,
+the hard ceiling on ticks, the harm side (which checkpoint is kept
+when a test falls), the schedules past 20M (`schedules()` reaches its
+end values at the cap; raising `--total-ticks` would rewind them), and
+where it applies (past 20M on the continuation, the Gen 3 freeze; not
+the needs-only arm, which keeps Phase 2's rule for comparability).
+Until that declaration has her word no run stops or extends on this
+rule; an extension past 20M takes her word with the seed's curve in
+hand.
+Status: line RULED 2026-11-12 — OPEN (the rule's declaration owed
+after R-6).
+
