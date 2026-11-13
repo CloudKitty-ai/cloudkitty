@@ -140,9 +140,40 @@
    }
   },
   "cont-s1": {
-   "rungs": [],
+   "rungs": [
+    {
+     "seating": "r6-cont-s1-u3255",
+     "ticks": 10002432,
+     "team": 86.28102133333331,
+     "delta_trunk": {
+      "mean": 0.13943133333333294,
+      "positive": 27,
+      "n": 30,
+      "range": [
+       -0.20257999999999754,
+       0.3813200000000023
+      ]
+     },
+     "worst_streak_max": 86,
+     "artifact_sha256": "ccf9f8afb15fbc588caf2f7334200afad9c718816aeafbe48ba505a909dfe17a",
+     "step": {
+      "ticks": 1999872,
+      "gain": 0.13943133333333294,
+      "sd": 0.11499148678334407,
+      "half_width": 0.04293370562334757,
+      "prev_team": 86.14159,
+      "lines": {
+       "flat": 0.0999936,
+       "share": 0.13857523061760005
+      },
+      "clears": {
+       "flat": true,
+       "share": true
+      }
+     }
+    }
+   ],
    "missing": [
-    "r6-cont-s1-u3255",
     "r6-cont-s1-u3906",
     "r6-cont-s1-u4557",
     "r6-cont-s1-u5208",

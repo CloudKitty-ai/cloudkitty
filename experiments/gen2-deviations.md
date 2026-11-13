@@ -2652,6 +2652,10 @@ have stopped this run at 12M, 0.47 short of its final — or the 12M
 checkpoint is a low draw. The 10M, 13M and 14M checkpoints of the same
 run exist and would tell which (3.3M covered cat-ticks a leg); put to
 her, not run.
+CONT-S1 RUNGS, as they land (each leg on her "2) go"; `reads/r6.md`
+is the table): 10M on the lineage (`ckpt-u3255`, 2026-11-13T06:30Z,
+leg clean, worst streak 86): +0.139 over trunk s1, 27 of 30 worlds,
+step +0.139 ± 0.043.
 Status: RULED 2026-11-12 — no-head ladder READ; OPEN (cont-s1's rungs
 wait on its checkpoints; the write-up is gated in the continuation's
 RESULTS).
