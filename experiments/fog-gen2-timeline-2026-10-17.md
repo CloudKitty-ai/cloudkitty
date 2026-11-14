@@ -1265,6 +1265,14 @@ consent BC comparison ride the trunk.
   needs-only arm DECLARED (entry 36; `minifriend-needs-arm-2026-11-12/`,
   §3–§9 frozen, N1–N4 registered, run indices 121–123 claimed). The
   instruments and their reds come next; the scout's launch is her word.
+  2026-11-13, "Yes to both": the needs-only scout `p2-needs-s1`
+  LAUNCHED (entry 36) and the continuation's seven R-1 legs LAUNCHED
+  (entry 31), both 2026-11-14T06:58Z. Her direction the same day, on
+  the restart-against-continue reading: "Let's incorporate that going
+  forward" — no ticks past a plateau under a pinned anchor; staged
+  re-anchoring is a candidate for the recipe once a one-factor scout
+  separates the anchor from the entropy and optimiser resets (its
+  declaration is being drafted; nothing of it runs unruled).
 
 ## Flagged follow-ups (owner's word to start)
 

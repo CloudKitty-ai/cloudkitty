@@ -2370,8 +2370,16 @@ lineage bin 11 (return left on the table −0.0002 / −0.0002 / +0.0045);
 P52's first clause holds on three of three (lineage bins 17–19 all
 flat); its second (the 0.002 / 3 candidate stops the trunk's series at
 bin 8) holds on s1 only.
+R-1 LEGS LAUNCHED 2026-11-14T06:58Z on her word of 2026-11-13, "Yes
+to both" (the question put to her: the seven declared legs, 21M covered
+cat-ticks, and the needs-only scout's launch). One driver, in sequence:
+`run_legs_cont.sh cont-s<k> --only 20,40` for s1, s2, s4, then cont-s1
+`--only 100`; any scout miss or armed abort stops the whole driver and
+the row goes to her. The finals seated: 416288ee… / 386ef2e2… /
+3ea563d4…. The needs-only scout trains alongside (entry 36). Owed
+before the first R-1 read: the red of `read_r1_cont.leg`'s header fence.
 Status: OPEN — three finals at the cap; R-2 / R-3 read; the R-1 legs
-wait on her word.
+RUNNING.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
@@ -2822,5 +2830,10 @@ trunk leg. Owed before their first read, each with its own red: the
 paired welfare read for this arm, the trigger trajectory on the needs
 legs (`read_canary` is written for the dual-head arm), the block read
 at C = 9 (`read_blocks` likewise).
-Status: DECLARED 2026-11-13; instruments red-proven — OPEN (the
-scout's launch waits on her word).
+SCOUT LAUNCHED 2026-11-14T06:58:19Z on her word of 2026-11-13, "Yes
+to both": `run_arm.sh p2-needs-s1`, pid 52018, HEAD b1a95064, log
+`minifriend-phase2-2026-11-06/artifacts/p2-needs-s1.log`. Update 0 as
+expected of a graft with zero head weights: KL 0.0000, cells 0.000.
+Seeds 2 and 4 stay on a later word (§12).
+Status: DECLARED 2026-11-13; instruments red-proven; the scout
+TRAINING — OPEN.
