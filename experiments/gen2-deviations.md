@@ -2378,8 +2378,23 @@ cat-ticks, and the needs-only scout's launch). One driver, in sequence:
 the row goes to her. The finals seated: 416288ee… / 386ef2e2… /
 3ea563d4…. The needs-only scout trains alongside (entry 36). Owed
 before the first R-1 read: the red of `read_r1_cont.leg`'s header fence.
-Status: OPEN — three finals at the cap; R-2 / R-3 read; the R-1 legs
-RUNNING.
+R-1 LEG STOP 2026-11-14 (the driver's log, as recorded): cont-s1's
+20×20 leg ran clean (30 worlds, worst streak 192, on world 905007); its
+40×40 scout ran clean (3 worlds, worst streak 0); its 40×40 leg STOPPED
+on the armed F-053 abort: world 905007 aborted at tick 13,594, a
+1,000-tick distress streak. On that world every seat was in a hunger
+streak at once (worst streaks per seat 916 / 869 / 1,000 / 924 / 910,
+the need `eat` on all five, tending share 0.0 on all five); the leg's
+other 29 worlds' worst streak is 55 or under. The same world under the
+trunk's seed 1 reads a worst streak of 0 (leg maximum 219) and under
+the no-head arm 4 (leg maximum 294). This is the lineage's second
+1,000-tick abort at 40×40: the 12M rung's scout aborted on world
+905002 (entry 34), where the trunk and the no-head arm both read 0. The
+driver stopped whole: cont-s2 and cont-s4 (20 and 40) and cont-s1's
+100×100 did not run. The row is with her.
+Status: OPEN — three finals at the cap; R-2 / R-3 read; R-1: one leg
+read-ready (cont-s1 20×20), one STOPPED on the abort, five not run,
+HELD for her word.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
