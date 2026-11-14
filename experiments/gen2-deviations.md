@@ -3069,6 +3069,15 @@ top tercile of needs share at 20×20 and −0.367 / −0.410 / −0.548 at
 40×40. The more the cells drive the acts in a world, the further the
 arm sits under no-head there; as in entry 33, a world going badly may
 raise the share, so the direction is not separable in this read.
+THE BUDGET TERM (§10's first blind spot), a raw-field check with no
+reader, 40×40 only: the scout stopped at 12.0M ticks, the no-head
+seed-1 arm it is read against at 15.0M. Against that arm's own 12M
+checkpoint leg (`r6-nohead-s1-u3906`, entry 34) the scout reads +0.032
+(21 of 30 worlds, [−0.319, +0.227]): level at equal length. The
+−0.442 against the no-head final is the size of the no-head arm's own
+gain from 12M to 15M (+0.474, entry 34). Against it: the dual-head
+seed also stopped at 12.0M and sits +0.468 above the scout. Each is
+one checkpoint. No 12M no-head leg exists at 20×20.
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
 TRAINED; legs at 20 and 40 RECORDED; R-1, the trigger and the block
 read READ (N1, N2 NOT MET; N3 holds and N4 MET on the sizes read);
