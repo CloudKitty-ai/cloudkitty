@@ -3018,7 +3018,29 @@ head −0.235 / −0.442, with it (both − act15, recorded) +0.233 /
 both sizes and beyond the edge at 40×40 only, which is none of §8's
 four cases as worded (the reader prints NOT COVERED); put to her as
 that, not rounded to a case. One seed.
+TRIGGER READ, 2026-11-14 (`read_trigger_needs.py`, Phase 2's
+`read_canary` imported unchanged — its needs-leg reader steps the
+frozen head over recorded observations, the same whichever arm's cells
+carry it; guard n6; the read is `reads/trigger/score.md`). Three
+cycles through `scripts/mutate.sh --expect`, prediction first (logs
+`results-raw/reds/red-trigger-*.log`):
+
+| mutation | predicted red | got |
+|---|---|---|
+| `read_trigger_needs.leg`: the header fence dropped | `the trigger read ran on a leg whose header was not fenced` | as predicted |
+| `read_canary.needs_leg`: the bias read at offset 0 of the dual-head cells | `the needs-leg read differs from the arm's own cells (visible)` | as predicted |
+| `read_trigger_needs.fires`: the in-sight version only | `the trigger's read at probe 1,899 fires: False` | as predicted |
+
+As read: on the legs the pooled read is CLEAR in both versions at both
+sizes — grave bias +8.02 in sight (840 grave rows) and +9.43 on all
+rows (2,692) at 20×20, +3.46 (1,958) and +10.48 (38,244) at 40×40;
+the head reads grave friends as needier than they are, the opposite
+of the gate's −3.17. **N4 MET on the legs read** (100×100 not run).
+At the training probes the cumulative all-rows read showed the
+SIGNATURE at 11 of 78 probes (updates 1,899–2,399), then CLEAR at the
+30 probes after; the in-sight read never did (48 INSUFFICIENT, 30
+CLEAR). Logged, never a stop (shape (ii), §4).
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
-TRAINED; legs at 20 and 40 RECORDED and R-1 READ (N1, N2 NOT MET);
-100×100 STOPPED at its scout, with her; the trigger trajectory (N4)
-and the block read (N3) owed — OPEN.
+TRAINED; legs at 20 and 40 RECORDED; R-1 READ (N1, N2 NOT MET) and
+the trigger READ (N4 MET on the legs read); 100×100 STOPPED at its
+scout, with her; the block read (N3) owed — OPEN.

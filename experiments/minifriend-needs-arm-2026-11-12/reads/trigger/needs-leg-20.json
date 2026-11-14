@@ -1,0 +1,524 @@
+{
+ "seating": "p2u-needs-s1",
+ "size": 20,
+ "seats": [
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1"
+ ],
+ "worlds": {
+  "905001": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8724438207768336
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6109110291254227
+   }
+  },
+  "905002": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 6.253441050940869,
+    "n_grave": 51,
+    "common": 0.8021318689538138
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": 8.756545801647007,
+    "n_grave": 128,
+    "common": 1.6847878238107754
+   }
+  },
+  "905003": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.947617110205597
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7559444235498054
+   }
+  },
+  "905004": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8438233071640576
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.731421776873027
+   }
+  },
+  "905005": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.9367250913177395
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7728539653879938
+   }
+  },
+  "905006": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8697242725241353
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6986073307764027
+   }
+  },
+  "905007": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8091723440218458
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6030041715637147
+   }
+  },
+  "905008": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.7867989571204619
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": -0.032458815876985105,
+    "n_grave": 164,
+    "common": 1.6239312312207166
+   }
+  },
+  "905009": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.9011639753191857
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.8074274400204622
+   }
+  },
+  "905010": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 1.258951190044172,
+    "n_grave": 48,
+    "common": 0.8416898442931534
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 5.532296357916978,
+    "n_grave": 240,
+    "common": 1.622197086960918
+   }
+  },
+  "905011": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.89339590127857
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.75518015816572
+   }
+  },
+  "905012": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.9500944243999027
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.773892313644082
+   }
+  },
+  "905013": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8420355995913991
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": -5.519075393676758,
+    "n_grave": 4,
+    "common": 1.8388003346944506
+   }
+  },
+  "905014": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8548735803605421
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6746876891638494
+   }
+  },
+  "905015": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8158799545660487
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6539882082185282
+   }
+  },
+  "905016": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8802650087930666
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6942065142477674
+   }
+  },
+  "905017": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.864221119008104
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6672564036921842
+   }
+  },
+  "905018": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8887178648113028
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7733411013765703
+   }
+  },
+  "905019": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.9754840638635949
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7179245403237944
+   }
+  },
+  "905020": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.9971690981304014
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.8812992672492073
+   }
+  },
+  "905021": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.7858627098938361
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.642649976208151
+   }
+  },
+  "905022": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8899951995696311
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.9140748212312648
+   }
+  },
+  "905023": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 15.003013345930311,
+    "n_grave": 9,
+    "common": 0.900394983953996
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 9.183141475189656,
+    "n_grave": 832,
+    "common": 1.6704711367509506
+   }
+  },
+  "905024": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.909580568719129
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7310045166465033
+   }
+  },
+  "905025": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.883945555616795
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.630893329579782
+   }
+  },
+  "905026": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.7887269728424035
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.6122685456238284
+   }
+  },
+  "905027": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.8085698510969525
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7233084317405971
+   }
+  },
+  "905028": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.831937398674489
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.7383911722363217
+   }
+  },
+  "905029": {
+   "visible": {
+    "state": "CLEAR",
+    "grave": 8.497956959844213,
+    "n_grave": 732,
+    "common": 0.8248275879394005
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 11.565142597180438,
+    "n_grave": 1324,
+    "common": 1.5706745830521383
+   }
+  },
+  "905030": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 0.9397182979416473
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": null,
+    "n_grave": 0,
+    "common": 1.807053050756985
+   }
+  }
+ },
+ "pooled": {
+  "signature": false,
+  "by_version": {
+   "visible": {
+    "n_grave": 840,
+    "n_common": 4702145,
+    "grave": 8.01772233980886,
+    "common": 0.870842946069054,
+    "grave_sd": 9.791965652593051,
+    "per_friend": {
+     "Miso": {
+      "n_grave": 424,
+      "grave": 12.413401967441699,
+      "common": 0.5786475893003376,
+      "signature": false
+     },
+     "Biscuit": {
+      "n_grave": 308,
+      "grave": 3.1078638325022214,
+      "common": 1.0481619300950642,
+      "signature": false
+     },
+     "Pumpkin": {
+      "n_grave": 108,
+      "grave": 4.76279880401368,
+      "common": 1.0592798183522238,
+      "signature": null
+     },
+     "Kittybear": {
+      "n_grave": 0,
+      "grave": null,
+      "common": 1.2264956109481298,
+      "signature": null
+     },
+     "Clementine": {
+      "n_grave": 0,
+      "grave": null,
+      "common": 0.48199640921487125,
+      "signature": null
+     }
+    },
+    "lift": 9.206852252751771,
+    "state": "CLEAR"
+   },
+   "all": {
+    "n_grave": 2692,
+    "n_common": 11995572,
+    "grave": 9.425635938765621,
+    "common": 1.7127791515228319,
+    "grave_sd": 10.27616998931151,
+    "per_friend": {
+     "Miso": {
+      "n_grave": 804,
+      "grave": 15.646668193018556,
+      "common": 1.4864081337738797,
+      "signature": false
+     },
+     "Biscuit": {
+      "n_grave": 520,
+      "grave": 5.254476098999965,
+      "common": 1.9102295397012732,
+      "signature": false
+     },
+     "Pumpkin": {
+      "n_grave": 1368,
+      "grave": 7.354943821995726,
+      "common": 1.8338204871294652,
+      "signature": false
+     },
+     "Kittybear": {
+      "n_grave": 0,
+      "grave": null,
+      "common": 2.0534449255954232,
+      "signature": null
+     },
+     "Clementine": {
+      "n_grave": 0,
+      "grave": null,
+      "common": 1.2801349862118143,
+      "signature": null
+     }
+    },
+    "lift": 5.5031239318772,
+    "state": "CLEAR"
+   }
+  }
+ },
+ "state": {
+  "visible": "CLEAR",
+  "all": "CLEAR"
+ }
+}

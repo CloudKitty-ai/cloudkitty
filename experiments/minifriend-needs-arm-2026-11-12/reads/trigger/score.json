@@ -1,0 +1,121 @@
+{
+ "probes": {
+  "visible": {
+   "n_probes": 78,
+   "first_sufficient_update": 2449,
+   "cumulative_states": {
+    "INSUFFICIENT": 48,
+    "CLEAR": 30,
+    "SIGNATURE": 0
+   },
+   "final_cumulative_state": "CLEAR",
+   "per_probe_grave": {
+    "n_probes_with_grave_rows": 4,
+    "mean_of_probe_means": 6.249120840737141,
+    "min": -7.27074571089311,
+    "max": 16.826119838327898,
+    "total_grave_rows": 379
+   }
+  },
+  "all": {
+   "n_probes": 78,
+   "first_sufficient_update": 1899,
+   "cumulative_states": {
+    "INSUFFICIENT": 37,
+    "CLEAR": 30,
+    "SIGNATURE": 11
+   },
+   "final_cumulative_state": "CLEAR",
+   "per_probe_grave": {
+    "n_probes_with_grave_rows": 5,
+    "mean_of_probe_means": 5.757741905260766,
+    "min": -5.495595922747083,
+    "max": 19.94478470879023,
+    "total_grave_rows": 2328
+   }
+  }
+ },
+ "probes_fired": [
+  1899,
+  1949,
+  1999,
+  2049,
+  2099,
+  2149,
+  2199,
+  2249,
+  2299,
+  2349,
+  2399
+ ],
+ "last_probe": {
+  "visible": {
+   "state": "CLEAR",
+   "grave": 14.18787978825437,
+   "grave_sd": 7.896783515462726,
+   "n_grave": 379,
+   "common": 0.84887913073404
+  },
+  "all": {
+   "state": "CLEAR",
+   "grave": 8.368283436548836,
+   "grave_sd": 14.67324266663283,
+   "n_grave": 2328,
+   "common": 1.4985282980689376
+  }
+ },
+ "legs": {
+  "20": {
+   "state": {
+    "visible": "CLEAR",
+    "all": "CLEAR"
+   },
+   "fires": false,
+   "by_version": {
+    "visible": {
+     "n_grave": 840,
+     "grave": 8.01772233980886,
+     "grave_sd": 9.791965652593051,
+     "common": 0.870842946069054
+    },
+    "all": {
+     "n_grave": 2692,
+     "grave": 9.425635938765621,
+     "grave_sd": 10.27616998931151,
+     "common": 1.7127791515228319
+    }
+   }
+  },
+  "40": {
+   "state": {
+    "visible": "CLEAR",
+    "all": "CLEAR"
+   },
+   "fires": false,
+   "by_version": {
+    "visible": {
+     "n_grave": 1958,
+     "grave": 3.458614057299526,
+     "grave_sd": 8.832742593577855,
+     "common": -0.4143915422914234
+    },
+    "all": {
+     "n_grave": 38244,
+     "grave": 10.477659294762436,
+     "grave_sd": 8.39646332280835,
+     "common": 0.7664653714431714
+    }
+   }
+  }
+ },
+ "missing": [
+  100
+ ],
+ "N4": {
+  "fires": {
+   "20": false,
+   "40": false
+  },
+  "met_on_the_legs_read": true
+ }
+}

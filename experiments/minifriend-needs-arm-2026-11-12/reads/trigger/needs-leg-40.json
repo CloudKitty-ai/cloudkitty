@@ -1,0 +1,524 @@
+{
+ "seating": "p2u-needs-s1",
+ "size": 40,
+ "seats": [
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1",
+  "p2:p2-needs-s1"
+ ],
+ "worlds": {
+  "905001": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 8.288767129182816,
+    "n_grave": 28,
+    "common": -0.3944750963704421
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 10.824080126115254,
+    "n_grave": 700,
+    "common": 0.7896630459928025
+   }
+  },
+  "905002": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 6.315485339837544,
+    "n_grave": 33,
+    "common": -0.4939002454371862
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 7.482833814108014,
+    "n_grave": 1276,
+    "common": 0.738323320986222
+   }
+  },
+  "905003": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 0.2992578291047651,
+    "n_grave": 156,
+    "common": -0.479864036137365
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 6.902012918660207,
+    "n_grave": 1060,
+    "common": 0.6944390940043155
+   }
+  },
+  "905004": {
+   "visible": {
+    "state": "SIGNATURE",
+    "grave": -2.9124121447805025,
+    "n_grave": 347,
+    "common": -0.4075512769961767
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 15.077347988562224,
+    "n_grave": 2712,
+    "common": 0.9026882881883245
+   }
+  },
+  "905005": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 9.479014129474246,
+    "n_grave": 29,
+    "common": -0.416607709728983
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 13.474142785653594,
+    "n_grave": 484,
+    "common": 0.7109688667085291
+   }
+  },
+  "905006": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 3.884832604998542,
+    "n_grave": 31,
+    "common": -0.4253268713509534
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 6.554506974275066,
+    "n_grave": 992,
+    "common": 0.8298119756478801
+   }
+  },
+  "905007": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 8.833127168840484,
+    "n_grave": 57,
+    "common": -0.4524775944811473
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 10.149421327980702,
+    "n_grave": 1496,
+    "common": 0.6454811086333995
+   }
+  },
+  "905008": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 12.700812589554559,
+    "n_grave": 21,
+    "common": -0.3607902072373753
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 12.698554550900178,
+    "n_grave": 340,
+    "common": 0.7736627666276468
+   }
+  },
+  "905009": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 15.05398975719105,
+    "n_grave": 22,
+    "common": -0.4896113649677511
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 12.947118171792946,
+    "n_grave": 604,
+    "common": 0.7100899114119767
+   }
+  },
+  "905010": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 9.043107319761205,
+    "n_grave": 54,
+    "common": -0.4521087252308597
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 11.905623657231937,
+    "n_grave": 732,
+    "common": 0.7131024498765486
+   }
+  },
+  "905011": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 8.632369003002989,
+    "n_grave": 102,
+    "common": -0.40035627959307785
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 11.935203928843293,
+    "n_grave": 2048,
+    "common": 0.7275528859193782
+   }
+  },
+  "905012": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 3.191457085172582,
+    "n_grave": 161,
+    "common": -0.4116736233697026
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 11.731985477602148,
+    "n_grave": 4900,
+    "common": 0.7217720758796672
+   }
+  },
+  "905013": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 1.2133201009697385,
+    "n_grave": 45,
+    "common": -0.4363276497160189
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 5.544500773506505,
+    "n_grave": 364,
+    "common": 0.6492253297252268
+   }
+  },
+  "905014": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 7.092661780469558,
+    "n_grave": 17,
+    "common": -0.44317975207045
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": 10.160562941296535,
+    "n_grave": 176,
+    "common": 0.7366058210475295
+   }
+  },
+  "905015": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 13.863002706457067,
+    "n_grave": 27,
+    "common": -0.38692170461664954
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 15.964186242794337,
+    "n_grave": 584,
+    "common": 0.8220062802606798
+   }
+  },
+  "905016": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 11.53799709780463,
+    "n_grave": 29,
+    "common": -0.4013327956962249
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 7.603479703832882,
+    "n_grave": 2168,
+    "common": 0.8866538954705364
+   }
+  },
+  "905017": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": -1.2950645695839609,
+    "n_grave": 112,
+    "common": -0.2563028672243089
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 9.24255996838499,
+    "n_grave": 2908,
+    "common": 0.8902670395809394
+   }
+  },
+  "905018": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 4.003723482290904,
+    "n_grave": 6,
+    "common": -0.40594230031959216
+   },
+   "all": {
+    "state": "SIGNATURE",
+    "grave": -7.121469609742053,
+    "n_grave": 320,
+    "common": 0.7549231600741956
+   }
+  },
+  "905019": {
+   "visible": {
+    "state": "CLEAR",
+    "grave": 2.5810360959452443,
+    "n_grave": 234,
+    "common": -0.39133050648649603
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 10.414757484874743,
+    "n_grave": 3400,
+    "common": 0.7849293715609875
+   }
+  },
+  "905020": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 5.3744446333195715,
+    "n_grave": 74,
+    "common": -0.3782165593248402
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 9.224968408640612,
+    "n_grave": 1848,
+    "common": 0.7230934896498787
+   }
+  },
+  "905021": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 7.539562523365021,
+    "n_grave": 4,
+    "common": -0.46091312964503284
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 12.002585000661483,
+    "n_grave": 664,
+    "common": 0.7686998564793573
+   }
+  },
+  "905022": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 0.020046512574481312,
+    "n_grave": 128,
+    "common": -0.4126245568002811
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 9.935815492306864,
+    "n_grave": 956,
+    "common": 0.6531368052583386
+   }
+  },
+  "905023": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 2.2883860702698047,
+    "n_grave": 65,
+    "common": -0.5025802967510917
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 7.313617931934705,
+    "n_grave": 932,
+    "common": 0.7468974371055682
+   }
+  },
+  "905024": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 5.762867629528046,
+    "n_grave": 12,
+    "common": -0.4151274284845402
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": -1.0937759184175067,
+    "n_grave": 360,
+    "common": 0.8960961579772994
+   }
+  },
+  "905025": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 12.747557356550887,
+    "n_grave": 37,
+    "common": -0.33221378546500635
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 12.585641075264324,
+    "n_grave": 880,
+    "common": 0.8576800844415137
+   }
+  },
+  "905026": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 5.246766858630711,
+    "n_grave": 27,
+    "common": -0.3644071344200096
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 0.5965423676430346,
+    "n_grave": 620,
+    "common": 0.919946489456975
+   }
+  },
+  "905027": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 12.41667384193057,
+    "n_grave": 21,
+    "common": -0.4770955228175912
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 9.743101972459856,
+    "n_grave": 636,
+    "common": 0.7323424787012559
+   }
+  },
+  "905028": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 12.165143051873082,
+    "n_grave": 46,
+    "common": -0.3565436872982117
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 12.678398664593404,
+    "n_grave": 1016,
+    "common": 0.7672756677110024
+   }
+  },
+  "905029": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 12.606765111287435,
+    "n_grave": 3,
+    "common": -0.4418310295693837
+   },
+   "all": {
+    "state": "INSUFFICIENT",
+    "grave": 13.10341707865397,
+    "n_grave": 12,
+    "common": 0.7015560042114763
+   }
+  },
+  "905030": {
+   "visible": {
+    "state": "INSUFFICIENT",
+    "grave": 14.306237435340881,
+    "n_grave": 30,
+    "common": -0.3787017409520305
+   },
+   "all": {
+    "state": "CLEAR",
+    "grave": 14.118335759657294,
+    "n_grave": 3056,
+    "common": 0.7462584673445274
+   }
+  }
+ },
+ "pooled": {
+  "signature": false,
+  "by_version": {
+   "visible": {
+    "n_grave": 1958,
+    "n_common": 3571085,
+    "grave": 3.458614057299526,
+    "common": -0.4143915422914234,
+    "grave_sd": 8.832742593577855,
+    "per_friend": {
+     "Miso": {
+      "n_grave": 103,
+      "grave": 7.774477729374922,
+      "common": -0.9454915057203809,
+      "signature": null
+     },
+     "Biscuit": {
+      "n_grave": 78,
+      "grave": 9.010017913121443,
+      "common": -0.12985482712429397,
+      "signature": null
+     },
+     "Pumpkin": {
+      "n_grave": 1038,
+      "grave": 1.2305541051083346,
+      "common": -0.14779483298791585,
+      "signature": false
+     },
+     "Kittybear": {
+      "n_grave": 235,
+      "grave": 1.8756921056340983,
+      "common": -0.0428296356555503,
+      "signature": false
+     },
+     "Clementine": {
+      "n_grave": 504,
+      "grave": 7.044267688327218,
+      "common": -0.7793383684371862,
+      "signature": false
+     }
+    },
+    "lift": 8.346246736057259,
+    "state": "CLEAR"
+   },
+   "all": {
+    "n_grave": 38244,
+    "n_common": 11950992,
+    "grave": 10.477659294762436,
+    "common": 0.7664653714431714,
+    "grave_sd": 8.39646332280835,
+    "per_friend": {
+     "Miso": {
+      "n_grave": 3920,
+      "grave": 11.651199410590628,
+      "common": 0.28347799506839977,
+      "signature": false
+     },
+     "Biscuit": {
+      "n_grave": 1036,
+      "grave": 10.413533067870095,
+      "common": 1.0485853772210842,
+      "signature": false
+     },
+     "Pumpkin": {
+      "n_grave": 17164,
+      "grave": 9.57252255170902,
+      "common": 1.0397912125612103,
+      "signature": false
+     },
+     "Kittybear": {
+      "n_grave": 3684,
+      "grave": 10.010938138729777,
+      "common": 1.0571573721588436,
+      "signature": false
+     },
+     "Clementine": {
+      "n_grave": 12440,
+      "grave": 11.50027386981124,
+      "common": 0.40365240321729867,
+      "signature": false
+     }
+    },
+    "lift": 13.670101331563274,
+    "state": "CLEAR"
+   }
+  }
+ },
+ "state": {
+  "visible": "CLEAR",
+  "all": "CLEAR"
+ }
+}
