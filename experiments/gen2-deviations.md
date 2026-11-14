@@ -2392,8 +2392,30 @@ the no-head arm 4 (leg maximum 294). This is the lineage's second
 905002 (entry 34), where the trunk and the no-head arm both read 0. The
 driver stopped whole: cont-s2 and cont-s4 (20 and 40) and cont-s1's
 100×100 did not run. The row is with her.
-Status: OPEN — three finals at the cap; R-2 / R-3 read; R-1: one leg
-read-ready (cont-s1 20×20), one STOPPED on the abort, five not run,
+R-1 READER'S FENCE RED, THEN A PARTIAL READ (2026-11-14). Guard g24
+added before the first read (`read_r1_cont.leg` takes the final to
+compare; cont-s1's recorded 20×20 leg reads under its own final and
+raises under cont-s2's). g7's count of Phase 2's twelve series turned
+red when the needs-only scout's run directory appeared (entry 36) and
+is re-pointed to leave Phase 2b's runs out. Each cycle through
+`scripts/mutate.sh --expect`, prediction first:
+
+| mutation | predicted red | got |
+|---|---|---|
+| `read_r1_cont.leg`: the header's artifact sha256 not compared | `the header's artifact sha256 is not compared` (g24) | as predicted |
+| `read_r1_cont.leg`: the final asked for ignored | the same (g24) | as predicted |
+| `read_plateau.all_series`: Phase 2 runs globbed as `p2-a*` | `Phase 2 series read: 7` (g7) | as predicted |
+
+As read (`reads/r1.{json,md}`; predictions P48 / P49 and §8.1 do not
+score, five legs missing): cont-s1 at 20×20 against its trunk −0.000,
+17 of 30 positive, [−0.294, +0.192]; against the no-head arm −2.700,
+0 of 30. At 40×40, the aborted world's 13,594 ticks included: against
+the trunk −0.088, 17 of 30, [−2.813, +0.121] (the minimum is world
+905007); against the no-head arm −2.954, 0 of 30. R-6's cont-s1 ladder
+gains its final rung (`reads/r6.{json,md}`: 10M rung +0.139, final
+−0.088; four rungs not run, no summit and no P56).
+Status: OPEN — three finals at the cap; R-2 / R-3 read; R-1: cont-s1
+read at 20×20 and (with an aborted world) at 40×40; five legs not run,
 HELD for her word.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)

@@ -1,0 +1,96 @@
+{
+ "edge": {
+  "20": 0.326,
+  "40": 0.325,
+  "100": 0.726
+ },
+ "legs": {
+  "cont-s1/20": {
+   "n": 30,
+   "team_mean": 87.31314066666667,
+   "team_sd": 0.07022189372383042,
+   "paired_delta_trunk": {
+    "mean": -0.00039666666666941336,
+    "positive": 17,
+    "range": [
+     -0.2937000000000012,
+     0.19231999999999516
+    ]
+   },
+   "paired_delta_comparator": {
+    "mean": 5.392581999999998,
+    "positive": 30,
+    "range": [
+     4.539119999999997,
+     6.909660000000002
+    ]
+   },
+   "trunk_team_mean": 87.31353733333336,
+   "worst_streak_mean": 11.0,
+   "worst_streak_max": 192,
+   "aborted_seeds": [],
+   "f053_events": [],
+   "trunk_worst_streak_max": 77,
+   "dispersion_together_mean": 0.572906,
+   "paired_delta_nohead": {
+    "mean": -2.700298000000003,
+    "positive": 0,
+    "n": 30,
+    "range": [
+     -2.973699999999994,
+     -2.500140000000002
+    ]
+   },
+   "artifact_sha256": "416288eec8898a8b4a2ce4e7110bee14bd709cba614c25ea884201057dfbf4dd"
+  },
+  "cont-s1/40": {
+   "n": 30,
+   "team_mean": 86.05319466666667,
+   "team_sd": 0.536024754933586,
+   "paired_delta_trunk": {
+    "mean": -0.08839533333333426,
+    "positive": 17,
+    "range": [
+     -2.813340000000011,
+     0.12130000000000507
+    ]
+   },
+   "paired_delta_comparator": {
+    "mean": 4.418822,
+    "positive": 30,
+    "range": [
+     1.0863200000000006,
+     5.477580000000003
+    ]
+   },
+   "trunk_team_mean": 86.14159,
+   "worst_streak_mean": 41.766666666666666,
+   "worst_streak_max": 1000,
+   "aborted_seeds": [
+    905007
+   ],
+   "f053_events": [
+    905007
+   ],
+   "trunk_worst_streak_max": 219,
+   "dispersion_together_mean": 0.49038453333333343,
+   "paired_delta_nohead": {
+    "mean": -2.954170666666668,
+    "positive": 0,
+    "n": 30,
+    "range": [
+     -5.708380000000005,
+     -2.7193800000000152
+    ]
+   },
+   "artifact_sha256": "416288eec8898a8b4a2ce4e7110bee14bd709cba614c25ea884201057dfbf4dd"
+  }
+ },
+ "missing": [
+  "cont-s1/100",
+  "cont-s2/20",
+  "cont-s2/40",
+  "cont-s4/20",
+  "cont-s4/40"
+ ]
+}

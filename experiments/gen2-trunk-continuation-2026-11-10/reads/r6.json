@@ -171,14 +171,29 @@
        "share": true
       }
      }
+    },
+    {
+     "seating": "cont-s1",
+     "ticks": 19998720,
+     "team": 86.05319466666667,
+     "delta_trunk": {
+      "mean": -0.08839533333333426,
+      "positive": 17,
+      "n": 30,
+      "range": [
+       -2.813340000000011,
+       0.12130000000000507
+      ]
+     },
+     "worst_streak_max": 1000,
+     "artifact_sha256": "416288eec8898a8b4a2ce4e7110bee14bd709cba614c25ea884201057dfbf4dd"
     }
    ],
    "missing": [
     "r6-cont-s1-u3906",
     "r6-cont-s1-u4557",
     "r6-cont-s1-u5208",
-    "r6-cont-s1-u5859",
-    "cont-s1"
+    "r6-cont-s1-u5859"
    ]
   }
  },
