@@ -2969,5 +2969,27 @@ worst probe streak 268 (update 2,449; the line is 300), lowest nash
 the cells changed 3.0% of acts at the last bin's check. Final
 `artifacts/p2-needs-s1/policy-final.pt`, sha256 dbccacd79e9ca559.
 Its legs (20, 40, then 100) follow on the same word (§13 step 3).
+LEGS 2026-11-14T12:16Z–12:19Z (`run_legs_p2.sh p2u-needs-s1 --only
+20,40`, then `--only 100`; the driver's verdict lines and raw-field
+reads of the rows, no reader yet): the 20×20 leg clean (30 worlds,
+worst distress streak 201); the 40×40 scout clean (3 worlds, worst
+130); the 40×40 leg clean by the abort line and close to it: worst
+streak 908 (world 905012, seat 2, need `eat`, moving on 0.002 of the
+streak's ticks), with 337 (905004) and 427 (905030) on `cuddle`; the
+no-head, act15 and both arms' seed-1 legs read 0–205 on those three
+worlds.
+**SCOUT MISS at 100×100 — owner-routed, the leg did not run.** Two of
+the three scout worlds crossed the F-053 line: 905002 aborted at tick
+7,423 (seat 0's streak at 1,000, seat 1 at 415) and 905003 at tick
+17,421 (seat 2 at 1,000, seats 1 and 3 at 483 and 627); 905001 ran
+whole with a 910 streak. The need is `cuddle` on every streak of 300
+or more (one `eat` streak of 274 on 905001). On the same three worlds
+the recorded seed-1 legs' worst streaks are 122 / 446 / 39 (no-head),
+397 / 281 / 150 (act15) and 493 / 681 / 475 (both); none aborted there
+(their 100×100 legs aborted on 905009, none, and 905014 / 905019).
+About 0.22M covered cat-ticks lived in the scout; 6.3M in the 20×20
+and 40×40 legs and the 40×40 scout. The 100×100 leg (3.0M) stays
+unrun until her word.
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
-TRAINED; legs RUNNING — OPEN.
+TRAINED; legs at 20 and 40 RECORDED, 100×100 STOPPED at its scout,
+with her; the reads owed (§13 step 4) — OPEN.
