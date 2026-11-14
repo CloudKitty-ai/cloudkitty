@@ -1281,6 +1281,12 @@ consent BC comparison ride the trunk.
   "As recommended": only the two 20×20 legs of seeds 2 and 4 run; the
   other 40×40 legs and the 100×100 do not; the held ladder rungs close
   unrun (entry 34 CLOSED); P49, §8.1 and P56 stay unscored (entry 31).
+  2026-11-14: both 20×20 legs clean; at 20×20 the continued finals
+  read −0.000 / −0.017 / +0.263 against their trunk seeds (P48 NOT
+  MET) and 0 of 30 against the no-head arm on every seed. The re-anchor
+  scout DRAFTED (`gen2-reanchor-scout-2026-11-14/DECLARATION.md`: one
+  arm, the anchor moved alone, two bins from trunk seed 1; about 20M
+  covered cat-ticks); six calls with her, nothing declared.
 
 ## Flagged follow-ups (owner's word to start)
 

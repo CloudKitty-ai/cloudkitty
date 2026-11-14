@@ -28,8 +28,8 @@ other resets before (b) is written into any recipe.
 Phase 2's no-head arm restarted training from the trunk and gained
 about 2.8 happiness at 20×20 over a trunk that had plateaued. The
 continuation trained the same trunk seeds 12M ticks further without
-the restart and gained nothing. The restart changed five things at
-once (§2.2). This arc asks one question: **is moving the anchor to the
+the restart and gained nothing. The restart changed several things
+at once (§2.2). This arc asks one question: **is moving the anchor to the
 trunk, alone, enough to reproduce the gain?** A yes makes "re-anchor at
 the plateau" a recipe candidate with nothing else attached. A no sends
 the question to the other resets.
@@ -168,8 +168,8 @@ ticks need to be trained under a pinned anchor to find out.
   first at 40), paired per world against trunk seed 1; at 40×40 also
   against `cont-s1`'s 10M rung and the no-head arm's 2M checkpoint.
 - **R-C, distance from the clone (dump-only, zero covered cost).** On
-  the recorded observations of trunk seed 1's 20×20 leg: KL to the BC
-  clone of the trunk, the no-head final, the continued final and this
+  the recorded observations of the no-head arm's seed 1 20×20 leg: KL
+  to the BC clone of the trunk, the no-head final, the continued final and this
   arm's final. Reported beside the legs' recorded behaviour shares.
   This is the cost side of §2.5; it scores nothing.
 
