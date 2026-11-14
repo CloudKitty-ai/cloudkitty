@@ -2452,6 +2452,47 @@ is +2.776 in seed mean, the same sign on all three, beyond the edge
 (P49's 20×20 half, a description: P49 and §8.1 do not score). At
 40×40, seed 1 only, an aborted world in it: −0.088 against the trunk,
 −2.954 against the no-head arm, 0 of 30.
+INVESTIGATION of the two aborts (her question 2026-11-14: "what is the
+cause of the distress? Vision radius solvable eat? Deadlock? Should we
+discard and replace?"; `diag_abort.py` → `reads/diag-abort.json`; one
+replay per world from the recorded acts, nothing covered decides; a
+diagnostic read with no guard of its own — its streak lengths sit one
+tick under the legs' recorded rows on all eight streak seats):
+
+- WHAT: hunger alone, the whole pack. Final leg, world 905007: all five
+  seats' streaks begin inside ticks 12,595–12,726 and run to the abort;
+  eat need 100 throughout, eat legal on 0 ticks for every seat. 12M
+  scout, world 905002: three seats, the same.
+- WHERE THE FOOD WAS: the world held 24 bowls (the config's minimum,
+  five servings each, a bowl vanishes when empty). The nearest bowl to
+  any streak seat was 9.9–14.0 tiles away in a straight line (12–17
+  walking) at every sampled tick of the final's window, 7.1–14.4 at
+  12M; the vision radius at 40×40 is 5. Chow was in sight and in
+  memory on 0.0 of the window for all five seats (the last sight of a
+  bowl: ticks 12,379–12,495). Not the "relief just beyond vision"
+  shape: no bowl stood within 8 tiles.
+- WHAT THEY DID: the pack stayed inside a 2–4 tile box near (33, 32)
+  — the 12M pair near (39, 37) — partnered on 0.70–0.77 of ticks
+  (sleeping, grooming and resting with each other). A move was legal
+  on 0.24–0.29 of their ticks; four of the five proposed 0–2 moves in
+  868 ticks. The fifth proposed 169 and stayed inside a 6×6 box.
+- THE CONTRAST: over the whole world, with no chow in sight or memory
+  and eat need at 50 or more, the continued final had a move legal on
+  0.36 of 5,270 cat-ticks and proposed one on 0.23 of those (0.54 at
+  12M); the no-head arm on the same world met that state on 103
+  cat-ticks, had a move legal on 0.83 and proposed one on 0.88. Its
+  longest run without chow in sight or memory is 98–150 ticks; the
+  continued final's is 1,098–1,214.
+- READING: a soft lock, not a hard one and not a vision-radius miss.
+  The pack eats out the bowls it knows (five cats, five servings),
+  loses its food memory together, settles 10+ tiles from the nearest
+  bowl and re-partners instead of searching. The habit belongs to the
+  continued policy: trunk seed 1 reads a worst streak of 0 on both
+  worlds (77 / 219 over its 20×20 / 40×40 legs, the cleanest of the
+  three trunk seeds: seed 2 holds a 1,000 at 20×20, seed 4 a 535 and a
+  687), and the 10M checkpoint's leg was clean. Kin to F-063 (a learned
+  distress habit is a per-network trait) and to entry 25's lost-food
+  shape, with the pack in place of one cat.
 Status: OPEN until the write-up is gated — three finals at the cap;
 R-1 (four legs; P48 NOT MET; P49 / §8.1 unscored), R-2, R-3 read; the
 40×40 legs of cont-s2 / cont-s4 and cont-s1's 100×100 NOT RUN on her

@@ -1,0 +1,562 @@
+{
+ "cont-s1 final": {
+  "seating": "cont-s1",
+  "seed": 905007,
+  "ticks": 13594,
+  "streaks": {
+   "0": {
+    "length": 915,
+    "span": [
+     12679,
+     13593
+    ],
+    "eat_flag_share": 1.0
+   },
+   "1": {
+    "length": 868,
+    "span": [
+     12726,
+     13593
+    ],
+    "eat_flag_share": 1.0
+   },
+   "2": {
+    "length": 999,
+    "span": [
+     12595,
+     13593
+    ],
+    "eat_flag_share": 1.0
+   },
+   "3": {
+    "length": 923,
+    "span": [
+     12671,
+     13593
+    ],
+    "eat_flag_share": 1.0
+   },
+   "4": {
+    "length": 909,
+    "span": [
+     12685,
+     13593
+    ],
+    "eat_flag_share": 1.0
+   }
+  },
+  "window": {
+   "span": [
+    12726,
+    13593
+   ],
+   "seats": {
+    "0": {
+     "eat_need_mean": 100.0,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.275,
+     "moves_proposed": 1,
+     "partnered_share": 0.766,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 12379,
+     "pos_mean": [
+      32.8,
+      31.6
+     ],
+     "pos_range": [
+      3.0,
+      2.0
+     ]
+    },
+    "1": {
+     "eat_need_mean": 99.8,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.24,
+     "moves_proposed": 0,
+     "partnered_share": 0.759,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 12472,
+     "pos_mean": [
+      32.9,
+      32.6
+     ],
+     "pos_range": [
+      3.0,
+      3.0
+     ]
+    },
+    "2": {
+     "eat_need_mean": 100.0,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.293,
+     "moves_proposed": 2,
+     "partnered_share": 0.699,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 12472,
+     "pos_mean": [
+      32.8,
+      32.4
+     ],
+     "pos_range": [
+      2.0,
+      3.0
+     ]
+    },
+    "3": {
+     "eat_need_mean": 100.0,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.54,
+     "moves_proposed": 169,
+     "partnered_share": 0.361,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 12472,
+     "pos_mean": [
+      35.6,
+      36.2
+     ],
+     "pos_range": [
+      6.0,
+      6.0
+     ]
+    },
+    "4": {
+     "eat_need_mean": 100.0,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.266,
+     "moves_proposed": 0,
+     "partnered_share": 0.734,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 12495,
+     "pos_mean": [
+      33.6,
+      32.1
+     ],
+     "pos_range": [
+      4.0,
+      4.0
+     ]
+    }
+   }
+  },
+  "bowls": [
+   {
+    "tick": 12726,
+    "bowls": 24,
+    "nearest_straight": [
+     12.0,
+     12.0,
+     11.3,
+     12.0,
+     12.6
+    ],
+    "nearest_walk": [
+     17,
+     17,
+     16,
+     12,
+     16
+    ]
+   },
+   {
+    "tick": 12899,
+    "bowls": 24,
+    "nearest_straight": [
+     12.0,
+     9.9,
+     10.6,
+     14.0,
+     10.6
+    ],
+    "nearest_walk": [
+     17,
+     14,
+     15,
+     15,
+     15
+    ]
+   },
+   {
+    "tick": 13072,
+    "bowls": 24,
+    "nearest_straight": [
+     10.6,
+     9.9,
+     10.6,
+     14.0,
+     11.3
+    ],
+    "nearest_walk": [
+     15,
+     14,
+     15,
+     15,
+     16
+    ]
+   },
+   {
+    "tick": 13246,
+    "bowls": 24,
+    "nearest_straight": [
+     12.2,
+     11.7,
+     10.8,
+     11.2,
+     12.5
+    ],
+    "nearest_walk": [
+     17,
+     16,
+     15,
+     15,
+     17
+    ]
+   },
+   {
+    "tick": 13419,
+    "bowls": 24,
+    "nearest_straight": [
+     12.2,
+     11.7,
+     11.4,
+     11.2,
+     12.1
+    ],
+    "nearest_walk": [
+     17,
+     16,
+     16,
+     15,
+     16
+    ]
+   },
+   {
+    "tick": 13593,
+    "bowls": 24,
+    "nearest_straight": [
+     12.2,
+     11.7,
+     10.3,
+     11.2,
+     12.5
+    ],
+    "nearest_walk": [
+     17,
+     16,
+     14,
+     15,
+     17
+    ]
+   }
+  ],
+  "search": {
+   "foodless": {
+    "cat_ticks": 25218,
+    "move_legal_share": 0.594,
+    "move_proposed_when_legal": 0.356,
+    "partnered_share": 0.307
+   },
+   "foodless_eat50": {
+    "cat_ticks": 5270,
+    "move_legal_share": 0.359,
+    "move_proposed_when_legal": 0.23,
+    "partnered_share": 0.627
+   },
+   "foodless_eat90": {
+    "cat_ticks": 4614,
+    "move_legal_share": 0.327,
+    "move_proposed_when_legal": 0.149,
+    "partnered_share": 0.658
+   }
+  },
+  "longest_foodless_run": [
+   1214,
+   1120,
+   1121,
+   1121,
+   1098
+  ]
+ },
+ "cont-s1 at 12M": {
+  "seating": "r6-cont-s1-u3906",
+  "seed": 905002,
+  "ticks": 15802,
+  "streaks": {
+   "0": {
+    "length": 0,
+    "span": null,
+    "eat_flag_share": null
+   },
+   "1": {
+    "length": 0,
+    "span": null,
+    "eat_flag_share": null
+   },
+   "2": {
+    "length": 999,
+    "span": [
+     14803,
+     15801
+    ],
+    "eat_flag_share": 1.0
+   },
+   "3": {
+    "length": 935,
+    "span": [
+     14867,
+     15801
+    ],
+    "eat_flag_share": 1.0
+   },
+   "4": {
+    "length": 374,
+    "span": [
+     15428,
+     15801
+    ],
+    "eat_flag_share": 1.0
+   }
+  },
+  "window": {
+   "span": [
+    15428,
+    15801
+   ],
+   "seats": {
+    "2": {
+     "eat_need_mean": 100.0,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.564,
+     "moves_proposed": 116,
+     "partnered_share": 0.321,
+     "chow_in_sight_share": 0.024,
+     "chow_in_memory_share": 0.024,
+     "last_tick_chow_in_sight": 15519,
+     "pos_mean": [
+      34.1,
+      36.8
+     ],
+     "pos_range": [
+      12.0,
+      7.0
+     ]
+    },
+    "3": {
+     "eat_need_mean": 100.0,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.225,
+     "moves_proposed": 6,
+     "partnered_share": 0.719,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 14660,
+     "pos_mean": [
+      38.9,
+      37.3
+     ],
+     "pos_range": [
+      1.0,
+      2.0
+     ]
+    },
+    "4": {
+     "eat_need_mean": 99.7,
+     "eat_legal_ticks": 0,
+     "move_legal_share": 0.227,
+     "moves_proposed": 9,
+     "partnered_share": 0.738,
+     "chow_in_sight_share": 0.0,
+     "chow_in_memory_share": 0.0,
+     "last_tick_chow_in_sight": 15206,
+     "pos_mean": [
+      38.9,
+      36.3
+     ],
+     "pos_range": [
+      2.0,
+      2.0
+     ]
+    }
+   }
+  },
+  "bowls": [
+   {
+    "tick": 15428,
+    "bowls": 24,
+    "nearest_straight": [
+     13.4,
+     14.4,
+     13.6
+    ],
+    "nearest_walk": [
+     18,
+     20,
+     19
+    ]
+   },
+   {
+    "tick": 15502,
+    "bowls": 24,
+    "nearest_straight": [
+     9.5,
+     10.2,
+     10.0
+    ],
+    "nearest_walk": [
+     12,
+     12,
+     11
+    ]
+   },
+   {
+    "tick": 15577,
+    "bowls": 24,
+    "nearest_straight": [
+     12.4,
+     12.4,
+     11.4
+    ],
+    "nearest_walk": [
+     15,
+     15,
+     14
+    ]
+   },
+   {
+    "tick": 15651,
+    "bowls": 24,
+    "nearest_straight": [
+     7.1,
+     12.4,
+     11.4
+    ],
+    "nearest_walk": [
+     8,
+     15,
+     14
+    ]
+   },
+   {
+    "tick": 15726,
+    "bowls": 24,
+    "nearest_straight": [
+     7.1,
+     12.4,
+     11.4
+    ],
+    "nearest_walk": [
+     8,
+     15,
+     14
+    ]
+   },
+   {
+    "tick": 15801,
+    "bowls": 24,
+    "nearest_straight": [
+     12.2,
+     12.4,
+     11.4
+    ],
+    "nearest_walk": [
+     14,
+     15,
+     14
+    ]
+   }
+  ],
+  "search": {
+   "foodless": {
+    "cat_ticks": 25944,
+    "move_legal_share": 0.625,
+    "move_proposed_when_legal": 0.372,
+    "partnered_share": 0.227
+   },
+   "foodless_eat50": {
+    "cat_ticks": 3653,
+    "move_legal_share": 0.505,
+    "move_proposed_when_legal": 0.541,
+    "partnered_share": 0.355
+   },
+   "foodless_eat90": {
+    "cat_ticks": 2593,
+    "move_legal_share": 0.454,
+    "move_proposed_when_legal": 0.475,
+    "partnered_share": 0.411
+   }
+  },
+  "longest_foodless_run": [
+   146,
+   176,
+   850,
+   1141,
+   595
+  ]
+ },
+ "no-head s1 final": {
+  "seating": "p2u-nohead-s1",
+  "seed": 905007,
+  "ticks": 20000,
+  "streaks": {
+   "0": {
+    "length": 0,
+    "span": null,
+    "eat_flag_share": null
+   },
+   "1": {
+    "length": 0,
+    "span": null,
+    "eat_flag_share": null
+   },
+   "2": {
+    "length": 0,
+    "span": null,
+    "eat_flag_share": null
+   },
+   "3": {
+    "length": 0,
+    "span": null,
+    "eat_flag_share": null
+   },
+   "4": {
+    "length": 4,
+    "span": [
+     19699,
+     19702
+    ],
+    "eat_flag_share": 0.0
+   }
+  },
+  "search": {
+   "foodless": {
+    "cat_ticks": 32946,
+    "move_legal_share": 0.593,
+    "move_proposed_when_legal": 0.289,
+    "partnered_share": 0.237
+   },
+   "foodless_eat50": {
+    "cat_ticks": 103,
+    "move_legal_share": 0.835,
+    "move_proposed_when_legal": 0.884,
+    "partnered_share": 0.029
+   },
+   "foodless_eat90": {
+    "cat_ticks": 0,
+    "move_legal_share": null,
+    "move_proposed_when_legal": null,
+    "partnered_share": null
+   }
+  },
+  "longest_foodless_run": [
+   126,
+   125,
+   98,
+   110,
+   150
+  ]
+ }
+}

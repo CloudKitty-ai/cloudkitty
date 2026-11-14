@@ -92,6 +92,16 @@ anchor, (b) the entropy restart, (c) the optimiser and critic reset,
   streak of 869–1,000 ticks). The trunk reads 0 on both worlds. The
   continuation's 10M checkpoint, the length this arm ends at, ran its
   40×40 leg clean (worst streak 86).
+- The cause, read off both aborted worlds (entry 31's investigation,
+  `gen2-trunk-continuation-2026-11-10/reads/diag-abort.json`): the pack
+  eats out the bowls it knows, loses its food memory together, settles
+  10 or more tiles from the nearest bowl (vision radius 5) and
+  re-partners instead of searching. With no chow in sight or memory
+  and eat need at 50 or more, the continued final proposed a move on
+  0.23 of the ticks a move was legal; the no-head arm on the same
+  world, 0.88. Trunk seed 1 itself is the cleanest of the three trunk
+  seeds on its legs (worst streak 77 / 219 at 20×20 / 40×40; seed 2
+  holds a 1,000, seed 4 a 535 and a 687).
 
 ### 2.5 What the leash is for
 
@@ -172,6 +182,14 @@ ticks need to be trained under a pinned anchor to find out.
   to the BC clone of the trunk, the no-head final, the continued final and this
   arm's final. Reported beside the legs' recorded behaviour shares.
   This is the cost side of §2.5; it scores nothing.
+- **R-D, search when foodless (replay of the arm's own legs, zero
+  covered cost).** `diag_abort.py`'s search table on every world of
+  the arm's 40×40 leg: with no chow in sight or memory and eat need at
+  50 or more, how often a move was legal and how often one was
+  proposed; the longest run without chow in sight or memory. Read
+  beside the no-head arm's and the continued final's. It is the harm
+  diagnostic for the lock of §2.4 on worlds where no streak trips; it
+  scores nothing.
 
 ## 7. Predictions (to be registered at DECLARED, before any number)
 
