@@ -65,7 +65,49 @@ def n5():
     raise AssertionError("a partial leg was scored")
 
 
-GUARDS = {"n1": n1, "n2": n2, "n3": n3, "n4": n4, "n5": n5}
+def n6():
+    """The trigger read. (a) Phase 2's needs-leg reader, which steps the dual-head arm's heads, reads this arm's leg
+    as the arm's own cells would: on world 905001 of the recorded 20×20 leg its pooled grave rows and bias equal the
+    same accumulation over the needs arm's own online cells at the arm's own offset; a leg not seating the arm's final is
+    refused before any replay. (b) The read fires when either
+    version shows the signature: the trainer's recorded probe at update 1,899 (in sight INSUFFICIENT, all rows
+    SIGNATURE) fires, and the last probe (CLEAR, CLEAR) does not."""
+    import numpy as np
+    import read_trigger_needs as T
+    RC, C = T.RC, T.C
+    import heads_online as HO
+    import train_ppo_p2 as P
+    import data_act as D
+    import replay as RP
+    sys.path.insert(0, str(C.EXPTS / "minifriend-phase1-2026-10-22"))
+    import strata as S
+    try:
+        T.leg(20, [905001], final=T.P2 / "artifacts" / "p2-both-s1" / "policy-final.pt")
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("the trigger read ran on a leg whose header was not fenced")
+    got = T.leg(20, [905001])["pooled"]["by_version"]
+    rows, _h = RP.leg_rows(T.SEATING, 20, None)
+    acc, heads, off = P.new_needs_acc(), HO.OnlineHeads("needs", C.ROSTER), HO.needs_off("needs")
+    friend_j = np.array([j for k in range(C.ROSTER) for j in range(C.ROSTER) if j != k])
+    for rec in RP.replay(RP.acts_path(T.SEATING, 20, 905001, None), C.LEG_TOML[20], want_obs=True, check_row=rows[905001]):
+        cells = heads.step(rec["obs"]).reshape(C.ROSTER * C.N_ROWS, -1)
+        blk = rec["obs"][:, C.SELF_BLOCK:C.SELF_BLOCK + C.N_ROWS * C.KITTY_W].reshape(C.ROSTER, C.N_ROWS, C.KITTY_W)
+        bias = (cells[:, off:off + 5] * 100.0 - rec["pre"][0][friend_j, :5]).mean(1)
+        P.needs_accumulate(acc, bias, S.stratum(rec["pre"][0], rec["pre"][1])[friend_j], friend_j, HO.row_states(blk).reshape(-1) == D.SEEN)
+    own = P.needs_eval(acc)["by_version"]
+    for v in ("visible", "all"):
+        a, b = (got[v]["n_grave"], got[v]["n_common"]), (own[v]["n_grave"], own[v]["n_common"])
+        assert a == b and abs(got[v]["common"] - own[v]["common"]) < 1e-4, \
+            f"the needs-leg read differs from the arm's own cells ({v}): rows {a} against {b}, common bias {got[v]['common']} against {own[v]['common']}"
+    series = {s["update"]: {v: c["state"] for v, c in s["cumulative"].items()} for s in RC.trajectory((C.ARTS / T.SLOT / "metrics.jsonl").read_text().splitlines())}
+    last = series[max(series)]
+    assert series[1899] == {"visible": "INSUFFICIENT", "all": "SIGNATURE"} and last == {"visible": "CLEAR", "all": "CLEAR"}, (series[1899], last)
+    assert T.fires(series[1899]) and not T.fires(last), f"the trigger's read at probe 1,899 fires: {T.fires(series[1899])}; at the last probe: {T.fires(last)}"
+
+
+GUARDS = {"n1": n1, "n2": n2, "n3": n3, "n4": n4, "n5": n5, "n6": n6}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)
