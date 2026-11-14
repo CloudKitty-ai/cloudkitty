@@ -3040,7 +3040,37 @@ At the training probes the cumulative all-rows read showed the
 SIGNATURE at 11 of 78 probes (updates 1,899–2,399), then CLEAR at the
 30 probes after; the in-sight read never did (48 INSUFFICIENT, 30
 CLEAR). Logged, never a stop (shape (ii), §4).
+BLOCK READ, 2026-11-14 (`read_blocks_needs.py`, entry 33's reader
+imported for its forward and constants; blocks at C = 9: needs at
+cells 0–7, ticks-since-live at cell 8; guards n4, n5; the read is
+`reads/blocks/score.md`, two legs × 30 worlds, 1 tie). Fences on every
+world: the recorded act is a maximiser of the replayed logits, and all
+cells zeroed equals the trainer's own cells-in-use count. Four cycles
+through `scripts/mutate.sh --expect`, prediction first (logs
+`results-raw/reds/red-blocks-*.log`):
+
+| mutation (in `read_blocks_needs.py`) | predicted red | got |
+|---|---|---|
+| seat i's rows read against seat i+1's legal mask | `the replayed arm act differs from the record` | as predicted |
+| the ablated forward taken without the legal mask | `FENCE: p2u-needs-s1 20 world 905001: all cells zeroed changes` | as predicted |
+| the needs block at the dual-head arm's offset | `the blocks do not partition the arm's 9 cells` | as predicted |
+| a one-world leg scored | `a partial leg was scored` | as predicted |
+
+As read: zeroing the needs cells changes 0.0287 of all acts at 20×20
+and 0.0252 at 40×40 (0.0514 / 0.0414 of free-choice rows); permuting
+them, 0.0196 / 0.0204. On flagged rows (2,794 / 27,670) the zeroed
+share is 0.0966 / 0.0917 against 0.0286 / 0.0246 unflagged. The
+ticks-since-live cell changes no row. **N3 holds at both sizes read**
+(100×100 not run, so N3 as declared "at every size" is not fully
+scored). Descriptive, one seed: the worlds ranked by needs share
+against the paired needs − no-head delta give Spearman −0.390 /
+−0.539; the delta is −0.208 / −0.220 / −0.277 in the bottom / mid /
+top tercile of needs share at 20×20 and −0.367 / −0.410 / −0.548 at
+40×40. The more the cells drive the acts in a world, the further the
+arm sits under no-head there; as in entry 33, a world going badly may
+raise the share, so the direction is not separable in this read.
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
-TRAINED; legs at 20 and 40 RECORDED; R-1 READ (N1, N2 NOT MET) and
-the trigger READ (N4 MET on the legs read); 100×100 STOPPED at its
-scout, with her; the block read (N3) owed — OPEN.
+TRAINED; legs at 20 and 40 RECORDED; R-1, the trigger and the block
+read READ (N1, N2 NOT MET; N3 holds and N4 MET on the sizes read);
+100×100 STOPPED at its scout, with her; §8's reading with her; the
+gated write-up owed — OPEN.

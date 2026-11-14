@@ -1,0 +1,125 @@
+{
+ "legs": {
+  "20": {
+   "size": 20,
+   "worlds": 30,
+   "rows": 3000000,
+   "free_rows": 1674629,
+   "flagged_rows": 2794,
+   "ties": 0,
+   "share": {
+    "zero/needs": {
+     "all_rows": 0.028669333333333335,
+     "free_choice": 0.05135943543316161,
+     "flagged": 0.09663564781675017,
+     "unflagged": 0.02860597503141259
+    },
+    "zero/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "flagged": 0.0,
+     "unflagged": 0.0
+    },
+    "zero/all": {
+     "all_rows": 0.028669333333333335,
+     "free_choice": 0.05135943543316161,
+     "flagged": 0.09663564781675017,
+     "unflagged": 0.02860597503141259
+    },
+    "perm/needs": {
+     "all_rows": 0.019617,
+     "free_choice": 0.035142709220967745,
+     "flagged": 0.10128847530422333,
+     "unflagged": 0.019540865726279742
+    },
+    "perm/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "flagged": 0.0,
+     "unflagged": 0.0
+    },
+    "perm/all": {
+     "all_rows": 0.019679333333333333,
+     "free_choice": 0.035254375745314336,
+     "flagged": 0.10093056549749463,
+     "unflagged": 0.01960359081090856
+    }
+   },
+   "needs_share_vs_delta_nohead": {
+    "paired_delta_mean": -0.23502133333333386,
+    "terciles": {
+     "bottom": -0.2079640000000012,
+     "mid": -0.22011800000000079,
+     "top": -0.27698199999999956
+    },
+    "spearman": -0.38954393770856505
+   },
+   "N3": {
+    "a_share_at_least_0.010": true,
+    "b_flagged_above_unflagged": true
+   }
+  },
+  "40": {
+   "size": 40,
+   "worlds": 30,
+   "rows": 3000000,
+   "free_rows": 1823717,
+   "flagged_rows": 27670,
+   "ties": 1,
+   "share": {
+    "zero/needs": {
+     "all_rows": 0.025178,
+     "free_choice": 0.04141761029808901,
+     "flagged": 0.09168774846404047,
+     "unflagged": 0.024558847772622825
+    },
+    "zero/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "flagged": 0.0,
+     "unflagged": 0.0
+    },
+    "zero/all": {
+     "all_rows": 0.025178,
+     "free_choice": 0.04141761029808901,
+     "flagged": 0.09168774846404047,
+     "unflagged": 0.024558847772622825
+    },
+    "perm/needs": {
+     "all_rows": 0.020436,
+     "free_choice": 0.033617057909752446,
+     "flagged": 0.08117094325984821,
+     "unflagged": 0.01987060656118264
+    },
+    "perm/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "flagged": 0.0,
+     "unflagged": 0.0
+    },
+    "perm/all": {
+     "all_rows": 0.020446,
+     "free_choice": 0.033633507830436414,
+     "flagged": 0.08160462594868088,
+     "unflagged": 0.0198766624163535
+    }
+   },
+   "needs_share_vs_delta_nohead": {
+    "paired_delta_mean": -0.4417339999999991,
+    "terciles": {
+     "bottom": -0.36716799999999666,
+     "mid": -0.4100820000000027,
+     "top": -0.547951999999998
+    },
+    "spearman": -0.539043381535039
+   },
+   "N3": {
+    "a_share_at_least_0.010": true,
+    "b_flagged_above_unflagged": true
+   }
+  }
+ },
+ "missing": [
+  100
+ ]
+}
