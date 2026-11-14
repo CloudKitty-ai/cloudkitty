@@ -1287,6 +1287,14 @@ consent BC comparison ride the trunk.
   scout DRAFTED (`gen2-reanchor-scout-2026-11-14/DECLARATION.md`: one
   arm, the anchor moved alone, two bins from trunk seed 1; about 20M
   covered cat-ticks); six calls with her, nothing declared.
+- 2026-11-14: her word on the re-anchor draft's calls ("Yes to the
+  rest"; call 3, the seed, open on her question, answered from
+  `diag_abort.py`: a pack food-desert soft lock that belongs to the
+  continued policy). The needs-only scout stopped clean at the plateau
+  rule (12,002,304 ticks; entry 36). Its 20×20 and 40×40 legs read
+  below the no-head arm (−0.235, −0.442; 0 of 30 worlds at each; N1,
+  N2 NOT MET); its 100×100 scout missed (two of three worlds aborted
+  on cuddle streaks), the leg unrun and with her.
 
 ## Flagged follow-ups (owner's word to start)
 

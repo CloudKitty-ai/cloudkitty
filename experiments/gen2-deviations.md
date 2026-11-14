@@ -2990,6 +2990,35 @@ the recorded seed-1 legs' worst streaks are 122 / 446 / 39 (no-head),
 About 0.22M covered cat-ticks lived in the scout; 6.3M in the 20×20
 and 40×40 legs and the 40×40 scout. The 100×100 leg (3.0M) stays
 unrun until her word.
+R-1 READER AND READ, 2026-11-14 (`minifriend-needs-arm-2026-11-12/
+read_r1_needs.py`, guards n1–n3 in `test_needs_reads.py`; the read is
+`reads/r1.{json,md}`). Seven cycles through `scripts/mutate.sh
+--expect`, prediction first (logs `results-raw/reds/red-r1-*.log`):
+
+| mutation (in `read_r1_needs.py`) | predicted red | got |
+|---|---|---|
+| the header's artifact sha256 not compared | `the header's artifact sha256 is not compared` (n1) | as predicted |
+| the final asked for ignored | the same (n1) | as predicted |
+| the two-by-two's recorded cell paired with no-head | `both − act15 reads [0.008, 0.026, 0.203]` (n2) | as predicted |
+| N1 met when any size is inside the edge | `R-1 scores ({'20': True, '40': False}, True` (n3) | as predicted |
+| N2's line at 10 worlds | `…, {'20': 14, '40': 11}, True` (n3) | as predicted |
+| §8's BELOW on any size | `False, 'BELOW')` (n3) | as predicted |
+| scored with the 40×40 leg missing | `KeyError: 's1/40'` (n3) | as predicted |
+
+As read, the scout against the same-seed recorded legs, paired per
+world: needs − no-head −0.235 at 20×20 (0 of 30 worlds positive,
+[−0.447, −0.040]) and −0.442 at 40×40 (0 of 30, [−0.914, −0.246]);
+needs − act15 −0.010 (14 of 30) and −0.089 (11 of 30); needs − both
+−0.243 and −0.468 (0 of 30 each); over the trunk +2.465 and +2.424
+(30 of 30 each). **N1 NOT MET** (inside the 0.326 edge at 20×20,
+beyond the 0.325 edge at 40×40). **N2 NOT MET** (14 and 11 worlds
+against a line of 25). The two-by-two: the needs cells without the act
+head −0.235 / −0.442, with it (both − act15, recorded) +0.233 /
++0.379 — opposite signs. §8's reading: the arm is below no-head at
+both sizes and beyond the edge at 40×40 only, which is none of §8's
+four cases as worded (the reader prints NOT COVERED); put to her as
+that, not rounded to a case. One seed.
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
-TRAINED; legs at 20 and 40 RECORDED, 100×100 STOPPED at its scout,
-with her; the reads owed (§13 step 4) — OPEN.
+TRAINED; legs at 20 and 40 RECORDED and R-1 READ (N1, N2 NOT MET);
+100×100 STOPPED at its scout, with her; the trigger trajectory (N4)
+and the block read (N3) owed — OPEN.
