@@ -271,6 +271,12 @@ and world are the trunk's.
 
 ## 12. Owner calls (recommendation first; her word rules)
 
+Her word 2026-11-14: "3: what is the cause of the distress? Vision
+radius solvable eat? Deadlock? Should we discard and replace? Yes to
+the rest". Calls 1, 2, 4, 5 and 6 are RULED as recommended; call 3 is
+OPEN, her question answered in §2.4 and entry 31's investigation. The
+arc is declared when call 3 is ruled.
+
 1. **Declare this** (after her edits). Recommended.
 2. **One arm first, the anchor alone.** The entropy and optimiser arms
    run only if it misses (§8). Recommended over running all three at
