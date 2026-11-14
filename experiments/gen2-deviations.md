@@ -2960,5 +2960,14 @@ to both": `run_arm.sh p2-needs-s1`, pid 52018, HEAD b1a95064, log
 `minifriend-phase2-2026-11-06/artifacts/p2-needs-s1.log`. Update 0 as
 expected of a graft with zero head weights: KL 0.0000, cells 0.000.
 Seeds 2 and 4 stay on a later word (§12).
+SCOUT STOPPED 2026-11-14 at the plateau rule, update 3,906,
+12,002,304 ticks (60.0M covered cat-ticks of training): three flat
+bins after the floor (bins 10, 11, 12; return 0.9019 / 0.9001 /
+0.8995 against 0.9013 at bin 9). No welfare stop tripped: 78 probes,
+worst probe streak 268 (update 2,449; the line is 300), lowest nash
+0.8826. KL to the anchor 0.338 over the last bin; cells norm 2.37;
+the cells changed 3.0% of acts at the last bin's check. Final
+`artifacts/p2-needs-s1/policy-final.pt`, sha256 dbccacd79e9ca559.
+Its legs (20, 40, then 100) follow on the same word (§13 step 3).
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
-TRAINING — OPEN.
+TRAINED; legs RUNNING — OPEN.
