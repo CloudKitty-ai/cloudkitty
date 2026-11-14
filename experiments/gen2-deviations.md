@@ -2427,9 +2427,35 @@ grammar are declared on 20×20 AND 40×40 across three seeds and do NOT
 score; their 20×20 half is reported as a description, labelled so.
 The two 20×20 legs launched 2026-11-14 (`run_legs_cont.sh cont-s2
 --only 20`, then cont-s4).
-Status: OPEN — three finals at the cap; R-2 / R-3 read; R-1: the two
-20×20 legs RUNNING; the 40×40 legs of cont-s2 / cont-s4 and cont-s1's
-100×100 NOT RUN on her word.
+R-1 READ ON THE LEGS HER WORD LEFT, 2026-11-14 (`reads/r1.{json,md}`).
+Both 20×20 legs ran clean (worst streak 16 on cont-s2, 8 on cont-s4).
+The reader's scoring is split out (`read_r1_cont.score`) to score what
+the legs allow, per the deviation above; a world-count lookup in P48's
+scoring that no run had reached (`v["n"]`, a key the leg summary's pair
+does not carry) is fixed. Guard g25, five cycles through
+`scripts/mutate.sh --expect`, prediction first:
+
+| mutation (in `read_r1_cont.score`) | predicted red | got |
+|---|---|---|
+| a size described when any seed's leg exists | `KeyError: 'cont-s2/40'` | as predicted |
+| P48 on any positive world | `R-1 scores ({'1': True, '2': True, '4': True}, False` | as predicted |
+| P49 scored with legs missing | `KeyError: '40'` | as predicted |
+| P48 scored without three 20×20 legs | `KeyError: 20` | as predicted |
+| the world count read off the pair | `KeyError: 'n'` | as predicted |
+
+As read at 20×20, the continued final against its own trunk seed:
+−0.000 (17 of 30 worlds positive) / −0.017 (5 of 30) / +0.263 (30 of
+30) on seeds 1 / 2 / 4, seed mean +0.082, no seed beyond the 0.326
+edge. **P48 NOT MET.** Against the no-head arm: −2.700 / −3.137 /
+−2.490, 0 of 30 on every seed; the no-head arm minus the continuation
+is +2.776 in seed mean, the same sign on all three, beyond the edge
+(P49's 20×20 half, a description: P49 and §8.1 do not score). At
+40×40, seed 1 only, an aborted world in it: −0.088 against the trunk,
+−2.954 against the no-head arm, 0 of 30.
+Status: OPEN until the write-up is gated — three finals at the cap;
+R-1 (four legs; P48 NOT MET; P49 / §8.1 unscored), R-2, R-3 read; the
+40×40 legs of cont-s2 / cont-s4 and cont-s1's 100×100 NOT RUN on her
+word.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
