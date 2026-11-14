@@ -34,9 +34,9 @@ def paired(rows, other):
     return {"mean": float(np.mean(d)), "positive": int(sum(v > 0 for v in d)), "n": len(d), "range": [float(min(d)), float(max(d))]}
 
 
-def leg(k, size, root=RAW):
+def leg(k, size, root=RAW, final=None):
     rows, header = RP.leg_rows(f"cont-s{k}", size, root)
-    final = HERE / "artifacts" / f"cont-s{k}" / "policy-final.pt"
+    final = Path(final or HERE / "artifacts" / f"cont-s{k}" / "policy-final.pt")
     sha = hashlib.sha256(final.read_bytes()).hexdigest()
     assert header["seats"] == [f"g2:cont-s{k}"] * 5 and header["provenance"]["artifacts"] == {f"g2:cont-s{k}": sha}, \
         f"cont-s{k} {size}: the leg seats {header['seats'][0]} at {header['provenance']['artifacts']}, the continued final is {sha}"

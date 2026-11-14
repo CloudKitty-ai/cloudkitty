@@ -172,7 +172,8 @@ def g7():
     for n, r in trunk.items():
         if r["stop_reason"] == "plateau":
             assert r["rules"]["frozen"]["ticks"] == r["stop_ticks"] == (9_000_960 if n.endswith("s7") else 8_002_560), (n, r["rules"]["frozen"], r["stop_ticks"])
-    assert len([n for n in out if n.startswith("p2-")]) == 12
+    p2 = [n for n in out if n.startswith("p2-") and not n.startswith("p2-needs-")]         # Phase 2's twelve; Phase 2b reads its own
+    assert len(p2) == 12, f"Phase 2 series read: {len(p2)}"
     # the continuations (entries 31 / 32): replayed on their lineage; P52 is read on the first three bins after §4's floor
     cont = {n: r for n, r in out.items() if n.startswith("cont-")}
     assert sorted(cont) == ["cont-s1", "cont-s2", "cont-s4"], f"continuations read: {sorted(cont)}"
@@ -271,8 +272,20 @@ def g23():
     assert got == [True, False, False, False], f"P56 on gradual / step / negative / peaked reads {got}"
 
 
+def g24():
+    """R-1's reader refuses a leg whose header names another file than the seed's continued final: cont-s1's recorded
+    20×20 leg reads under its own final, and raises when the final asked for is cont-s2's."""
+    import read_r1_cont as R
+    R.leg(1, 20)
+    try:
+        R.leg(1, 20, final=HERE / "artifacts" / "cont-s2" / "policy-final.pt")
+    except AssertionError:
+        return
+    raise AssertionError("cont-s1's leg was read as cont-s2's final: the header's artifact sha256 is not compared")
+
+
 GUARDS = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g16": g16, "g17": g17,
-          "g18": g18, "g19": g19, "g20": g20, "g21": g21, "g22": g22, "g23": g23}
+          "g18": g18, "g19": g19, "g20": g20, "g21": g21, "g22": g22, "g23": g23, "g24": g24}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)
