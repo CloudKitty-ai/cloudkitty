@@ -41,7 +41,31 @@ def n3():
     assert short == {}, f"with the 40×40 leg absent R-1 scores {sorted(short)}"
 
 
-GUARDS = {"n1": n1, "n2": n2, "n3": n3}
+def n4():
+    """The block read replays one world of the scout's recorded 20×20 leg under both fences (the recorded act is a
+    maximiser of the replayed masked logits; all cells zeroed equals the trainer's own cells-in-use count) and its
+    blocks partition the arm's 9 cells with the needs cells at offset 0."""
+    import read_blocks_needs as B
+    assert B.BLOCKS == {"needs": (0, 8), "tsl": (8, 9), "all": (0, 9)} and B.PG == 7, f"blocks {B.BLOCKS}, P(grave) cell {B.PG}"
+    w = B.leg(20, [905001])["worlds"][0]
+    assert w["rows"] == 100_000 and w["zero"]["all"]["changed"] == w["trainer_changed"] > 0, f"world 905001 reads {w}"
+
+
+def n5():
+    """A partial leg is never scored: a one-world leg file in a scratch directory raises at the score."""
+    import json
+    import tempfile
+    import read_blocks_needs as B
+    with tempfile.TemporaryDirectory() as td:
+        (Path(td) / f"{B.SEATING}-20.json").write_text(json.dumps(B.leg(20, [905001])))
+        try:
+            B.score(Path(td))
+        except AssertionError:
+            return
+    raise AssertionError("a partial leg was scored")
+
+
+GUARDS = {"n1": n1, "n2": n2, "n3": n3, "n4": n4, "n5": n5}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)
