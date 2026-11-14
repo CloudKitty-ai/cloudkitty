@@ -1273,6 +1273,14 @@ consent BC comparison ride the trunk.
   re-anchoring is a candidate for the recipe once a one-factor scout
   separates the anchor from the entropy and optimiser resets (its
   declaration is being drafted; nothing of it runs unruled).
+  2026-11-14, the continuation's R-1: cont-s1's 40×40 leg STOPPED on
+  the F-053 abort (world 905007, all five seats in a hunger streak of
+  869–1,000 ticks; the trunk reads 0 there), the lineage's second at
+  40×40. Seed 1 read: −0.000 against its trunk at 20×20, −0.088 at
+  40×40; −2.700 / −2.954 against the no-head arm, 0 of 30. Her word
+  "As recommended": only the two 20×20 legs of seeds 2 and 4 run; the
+  other 40×40 legs and the 100×100 do not; the held ladder rungs close
+  unrun (entry 34 CLOSED); P49, §8.1 and P56 stay unscored (entry 31).
 
 ## Flagged follow-ups (owner's word to start)
 

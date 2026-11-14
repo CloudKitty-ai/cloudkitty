@@ -2414,9 +2414,22 @@ the trunk −0.088, 17 of 30, [−2.813, +0.121] (the minimum is world
 905007); against the no-head arm −2.954, 0 of 30. R-6's cont-s1 ladder
 gains its final rung (`reads/r6.{json,md}`: 10M rung +0.139, final
 −0.088; four rungs not run, no summit and no P56).
-Status: OPEN — three finals at the cap; R-2 / R-3 read; R-1: cont-s1
-read at 20×20 and (with an aborted world) at 40×40; five legs not run,
-HELD for her word.
+HER WORD 2026-11-14, "As recommended", on the five legs not run. The
+recommendation put to her: run only the two 20×20 legs (cont-s2,
+cont-s4; 6M covered cat-ticks); hold the two 40×40 legs and cont-s1's
+100×100, which add little to the answer and are where the aborts
+happen, the cost being that the declared predictions needing them stay
+unscored, recorded as a deviation; close the held ladder rungs unrun
+(entry 34). DEVIATION from §6 R-1 / §7 / §8.1 as declared: R-1 is read
+on three 20×20 legs and one 40×40 leg (cont-s1's, an aborted world in
+it). P48 is a 20×20 prediction and scores. P49 and §8.1's reading
+grammar are declared on 20×20 AND 40×40 across three seeds and do NOT
+score; their 20×20 half is reported as a description, labelled so.
+The two 20×20 legs launched 2026-11-14 (`run_legs_cont.sh cont-s2
+--only 20`, then cont-s4).
+Status: OPEN — three finals at the cap; R-2 / R-3 read; R-1: the two
+20×20 legs RUNNING; the 40×40 legs of cont-s2 / cont-s4 and cont-s1's
+100×100 NOT RUN on her word.
 
 ## 32. Trunk continuation: the floor's cost and its stop bin, found while starting the driver (2026-11-11)
 Found after the declaration froze (667b4107) and before any instrument
@@ -2766,8 +2779,16 @@ legs. This is the declaration's unscored expectation "no F-053 event
 at 20 or 40" failing on an intermediate checkpoint. Noted, not
 claimed: the no-head arm's dip (−0.070) also sits at update 3,906 on
 its own clock.
-Status: RULED 2026-11-12 — no-head ladder READ; cont-s1 rung legs HELD
-after the 12M scout miss, her word asked; OPEN.
+CONT-S1 RUNGS CLOSED UNRUN, 2026-11-14, her word "As recommended"
+(the recommendation: close the held 14M / 16M / 18M rungs unrun; the
+final shows no gain, so there is nothing for the ladder to locate). The
+12M leg stays unrun on the gate's own stop. The ladder's final rung is
+R-1's 40×40 leg of cont-s1 (entry 31): −0.088 against the trunk, an
+aborted world in it. Two rungs read (10M +0.139, final −0.088); no
+summit and P56 does NOT score (four of six rungs not run). About 13.2M
+covered cat-ticks of declared legs not lived.
+Status: CLOSED 2026-11-14 — no-head ladder READ (P54 MET); cont-s1
+ladder closed at two rungs on her word, P56 unscored.
 
 ## 35. The welfare-based stop: its line ruled, the rest of the rule owed (2026-11-12)
 Entry 32 carried her question of a welfare test every 2M ticks in

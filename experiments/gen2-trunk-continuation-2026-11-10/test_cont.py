@@ -284,8 +284,21 @@ def g24():
     raise AssertionError("cont-s1's leg was read as cont-s2's final: the header's artifact sha256 is not compared")
 
 
+def g25():
+    """R-1's scoring on the legs her word left (entry 31): P48 scores on the three 20×20 legs alone and reads the
+    recorded legs NOT MET (seed 1 is 17 of 30 positive, seed 4 the only 30 of 30); a size is described only when all
+    three seeds' legs exist; P49 and the grammar do not score while a declared leg is missing."""
+    import read_r1_cont as R
+    L = {n: v for n, v in R.read()["legs"].items() if n in ("cont-s1/20", "cont-s2/20", "cont-s4/20", "cont-s1/40")}
+    out = R.score(L, ["cont-s2/40"])
+    got = (out["P48"]["positive_30_of_30"], out["P48"]["met"], sorted(out["by_size"]), "P49" in out, "grammar" in out)
+    assert got == ({"1": False, "2": False, "4": True}, False, ["20"], False, False), f"R-1 scores {got}"
+    short = R.score({n: v for n, v in L.items() if n != "cont-s4/20"}, ["cont-s4/20"])
+    assert "P48" not in short and short["by_size"] == {}, f"with cont-s4's 20×20 leg absent R-1 scores {sorted(short)}"
+
+
 GUARDS = {"g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g16": g16, "g17": g17,
-          "g18": g18, "g19": g19, "g20": g20, "g21": g21, "g22": g22, "g23": g23, "g24": g24}
+          "g18": g18, "g19": g19, "g20": g20, "g21": g21, "g22": g22, "g23": g23, "g24": g24, "g25": g25}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)

@@ -84,13 +84,108 @@
     ]
    },
    "artifact_sha256": "416288eec8898a8b4a2ce4e7110bee14bd709cba614c25ea884201057dfbf4dd"
+  },
+  "cont-s2/20": {
+   "n": 30,
+   "team_mean": 87.23990466666667,
+   "team_sd": 0.0955799786686456,
+   "paired_delta_trunk": {
+    "mean": -0.016600666666666087,
+    "positive": 5,
+    "range": [
+     -0.2985000000000042,
+     2.243959999999987
+    ]
+   },
+   "paired_delta_comparator": {
+    "mean": 5.319345999999999,
+    "positive": 30,
+    "range": [
+     4.460799999999992,
+     6.820899999999995
+    ]
+   },
+   "trunk_team_mean": 87.25650533333334,
+   "worst_streak_mean": 0.5333333333333333,
+   "worst_streak_max": 16,
+   "aborted_seeds": [],
+   "f053_events": [],
+   "trunk_worst_streak_max": 1000,
+   "dispersion_together_mean": 0.5435549999999999,
+   "paired_delta_nohead": {
+    "mean": -3.136889333333335,
+    "positive": 0,
+    "n": 30,
+    "range": [
+     -3.331860000000006,
+     -2.9732800000000026
+    ]
+   },
+   "artifact_sha256": "386ef2e2edd19d32bbecdf14d611e25843064ebc8310c4e325f478a5d741ed8d"
+  },
+  "cont-s4/20": {
+   "n": 30,
+   "team_mean": 88.00929933333332,
+   "team_sd": 0.06457307872551842,
+   "paired_delta_trunk": {
+    "mean": 0.2630046666666663,
+    "positive": 30,
+    "range": [
+     0.08408000000000015,
+     0.7085200000000071
+    ]
+   },
+   "paired_delta_comparator": {
+    "mean": 6.088740666666666,
+    "positive": 30,
+    "range": [
+     5.175839999999994,
+     7.613820000000004
+    ]
+   },
+   "trunk_team_mean": 87.74629466666667,
+   "worst_streak_mean": 0.26666666666666666,
+   "worst_streak_max": 8,
+   "aborted_seeds": [],
+   "f053_events": [],
+   "trunk_worst_streak_max": 535,
+   "dispersion_together_mean": 0.5324326666666667,
+   "paired_delta_nohead": {
+    "mean": -2.4897006666666672,
+    "positive": 0,
+    "n": 30,
+    "range": [
+     -2.6928199999999975,
+     -2.1943800000000095
+    ]
+   },
+   "artifact_sha256": "3ea563d4473b031d2878b9d68a7a4ed8d6a2978a1ef5e052a536b27d839863ec"
   }
  },
  "missing": [
   "cont-s1/100",
-  "cont-s2/20",
   "cont-s2/40",
-  "cont-s4/20",
   "cont-s4/40"
- ]
+ ],
+ "P48": {
+  "positive_30_of_30": {
+   "1": false,
+   "2": false,
+   "4": true
+  },
+  "beyond_edge": {
+   "1": false,
+   "2": false,
+   "4": false
+  },
+  "met": false
+ },
+ "by_size": {
+  "20": {
+   "seed_mean_delta_trunk": 0.08200244444444359,
+   "nohead_minus_cont_seed_mean": 2.775629333333335,
+   "same_sign_all_three": true,
+   "beyond_edge": true
+  }
+ }
 }

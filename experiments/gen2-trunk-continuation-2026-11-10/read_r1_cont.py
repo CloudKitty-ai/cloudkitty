@@ -46,25 +46,25 @@ def leg(k, size, root=RAW, final=None):
     return out
 
 
-def read(root=RAW):
-    out = {"edge": {str(z): e for z, e in EDGE.items()}, "legs": {}, "missing": []}
-    for k, sizes in SIZES.items():
-        for size in sizes:
-            if (RP.legs_dir(f"cont-s{k}", size, root) / f"cont-s{k}-g2cmp-30x20000.jsonl").exists():
-                out["legs"][f"cont-s{k}/{size}"] = leg(k, size, root)          # a leg without its final raises here
-            else:
-                out["missing"].append(f"cont-s{k}/{size}")
-    if out["missing"]:
-        return out
-    L = out["legs"]
-    tr = {z: {k: L[f"cont-s{k}/{z}"]["paired_delta_trunk"] for k in SIZES} for z in (20, 40)}
-    nh = {z: {k: L[f"cont-s{k}/{z}"]["paired_delta_nohead"] for k in SIZES} for z in (20, 40)}
+def score(L, missing):
+    """The predictions and descriptions the legs present allow (gen2-deviations entry 31, 2026-11-14: the 40×40 legs
+    of seeds 2 / 4 and the 100×100 are not run on her word). P48 is declared on 20×20 alone and scores once all three
+    20×20 legs exist; `by_size` describes each size whose three legs exist; P49 and §8.1's grammar are declared on
+    20×20 AND 40×40 and score only when no declared leg is missing."""
+    out = {}
     mean = lambda d: float(np.mean([v["mean"] for v in d.values()]))
-    out["P48"] = {"positive_30_of_30": {str(k): v["positive"] == v["n"] == 30 for k, v in tr[20].items()},
-                  "beyond_edge": {str(k): v["mean"] > EDGE[20] for k, v in tr[20].items()}}
-    out["P48"]["met"] = all(out["P48"]["positive_30_of_30"].values()) and sum(out["P48"]["beyond_edge"].values()) >= 2
-    out["P49"] = {str(z): {"nohead_minus_cont_seed_mean": -mean(nh[z]), "same_sign_all_three": all(v["mean"] < 0 for v in nh[z].values()),
-                           "beyond_edge": -mean(nh[z]) > EDGE[z]} for z in (20, 40)}
+    done = [z for z in (20, 40) if all(f"cont-s{k}/{z}" in L for k in SIZES)]
+    tr = {z: {k: L[f"cont-s{k}/{z}"]["paired_delta_trunk"] for k in SIZES} for z in done}
+    nh = {z: {k: L[f"cont-s{k}/{z}"]["paired_delta_nohead"] for k in SIZES} for z in done}
+    if 20 in done:
+        out["P48"] = {"positive_30_of_30": {str(k): v["positive"] == L[f"cont-s{k}/20"]["n"] == 30 for k, v in tr[20].items()},
+                      "beyond_edge": {str(k): v["mean"] > EDGE[20] for k, v in tr[20].items()}}
+        out["P48"]["met"] = all(out["P48"]["positive_30_of_30"].values()) and sum(out["P48"]["beyond_edge"].values()) >= 2
+    out["by_size"] = {str(z): {"seed_mean_delta_trunk": mean(tr[z]), "nohead_minus_cont_seed_mean": -mean(nh[z]),
+                               "same_sign_all_three": all(v["mean"] < 0 for v in nh[z].values()), "beyond_edge": -mean(nh[z]) > EDGE[z]} for z in done}
+    if missing:
+        return out
+    out["P49"] = {str(z): {k: v for k, v in out["by_size"][str(z)].items() if k != "seed_mean_delta_trunk"} for z in (20, 40)}
     out["P49"]["met"] = all(v["same_sign_all_three"] and v["beyond_edge"] for v in (out["P49"]["20"], out["P49"]["40"]))
     above_trunk = all(mean(tr[z]) > EDGE[z] for z in (20, 40))
     near_trunk = all(abs(mean(tr[z])) <= EDGE[z] for z in (20, 40))
@@ -77,6 +77,17 @@ def read(root=RAW):
     return out
 
 
+def read(root=RAW):
+    out = {"edge": {str(z): e for z, e in EDGE.items()}, "legs": {}, "missing": []}
+    for k, sizes in SIZES.items():
+        for size in sizes:
+            if (RP.legs_dir(f"cont-s{k}", size, root) / f"cont-s{k}-g2cmp-30x20000.jsonl").exists():
+                out["legs"][f"cont-s{k}/{size}"] = leg(k, size, root)          # a leg without its final raises here
+            else:
+                out["missing"].append(f"cont-s{k}/{size}")
+    return out | score(out["legs"], out["missing"])
+
+
 def md(out):
     L = ["# R-1 — the continuation's welfare read (uniform legs, 30 worlds × 20k ticks, paired per world id)", "",
          "| leg | team mean | Δ vs trunk (mean, positive, range) | Δ vs no-head (mean, positive, range) | Δ vs scripted | worst streak mean / max | aborted | edge |",
@@ -86,11 +97,17 @@ def md(out):
         L.append(f"| {name} | {v['team_mean']:.3f} | {p(v['paired_delta_trunk'])} | {p(v['paired_delta_nohead'])} | {v['paired_delta_comparator']['mean']:+.3f} | "
                  f"{v['worst_streak_mean']:.1f} / {v['worst_streak_max']} | {v['aborted_seeds'] or '—'} | {out['edge'][name.split('/')[1]]} |")
     L += ["", "Not run: " + (", ".join(out["missing"]) or "none") + "."]
+    if "P48" in out:
+        L += ["", f"**P48 {'MET' if out['P48']['met'] else 'NOT MET'}** (30 of 30 positive at 20×20: {out['P48']['positive_30_of_30']}; beyond the edge: {out['P48']['beyond_edge']})."]
+    for z, v in out["by_size"].items():
+        L += ["", f"{z}×{z}, three seeds: seed-mean Δ vs trunk {v['seed_mean_delta_trunk']:+.3f}; no-head minus continuation {v['nohead_minus_cont_seed_mean']:+.3f} "
+              f"(same sign in all three: {v['same_sign_all_three']}; beyond the {out['edge'][z]} edge: {v['beyond_edge']})."]
     if "grammar" in out:
         g = out["grammar"]
-        L += ["", f"**P48 {'MET' if out['P48']['met'] else 'NOT MET'}** (30 of 30 positive at 20×20: {out['P48']['positive_30_of_30']}; beyond the edge: {out['P48']['beyond_edge']}). "
-              f"**P49 {'MET' if out['P49']['met'] else 'NOT MET'}** ({json.dumps({z: out['P49'][z] for z in ('20', '40')})}). "
+        L += ["", f"**P49 {'MET' if out['P49']['met'] else 'NOT MET'}** ({json.dumps({z: out['P49'][z] for z in ('20', '40')})}). "
               f"**§8.1 reads {g['reading']}** (seed-mean Δ vs trunk {g['seed_mean_delta_trunk']}, vs no-head {g['seed_mean_delta_nohead']})."]
+    else:
+        L += ["", "P49 and §8.1 are declared on 20×20 and 40×40 across three seeds and do not score on these legs (gen2-deviations entry 31)."]
     return "\n".join(L) + "\n"
 
 
@@ -103,4 +120,4 @@ if __name__ == "__main__":
     a.out.write_text(json.dumps(out, indent=1) + "\n")
     if a.md:
         a.out.with_suffix(".md").write_text(md(out))
-    print(json.dumps({k: out[k] for k in ("missing", "P48", "P49", "grammar") if k in out}, indent=1))
+    print(json.dumps({k: out[k] for k in ("missing", "P48", "by_size", "P49", "grammar") if k in out}, indent=1))
