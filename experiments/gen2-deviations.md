@@ -3331,5 +3331,16 @@ cat-ticks, both runs somewhat slower), or queue it behind that run":
 shares the machine's cores with it; neither run's ticks or schedules
 depend on wall time.
 
-Status: DECLARED 2026-11-14; instruments red-proven; launch RULED
-2026-11-15 — OPEN.
+LAUNCHED 2026-11-15T07:46:31Z at HEAD 71482fb0, pid 99308, with the
+driver's documented command (`OMP_NUM_THREADS=1` was also set in the
+shell; the trainer sets its own four threads, as it did for `cont-s1`,
+so the variable changes nothing). The manifest names run index 125,
+the stripe 2,600,000,000–2,619,999,999, the anchor's sha256 and stop
+update 3,256. The first row is the one guard a3 asserts (update 2,605,
+segment 1, entropy coefficient 0.0063986, lr 0.0003, β 0.04) with KL
+to the anchor 0.0049; by update 2,680 the KL reads 0.23–0.25, where
+`cont-s1`'s log reads 0.52–0.55 to the clone at the same updates. The
+first probe (update 2,649): no distress streak.
+
+Status: DECLARED 2026-11-14; instruments red-proven; the arm TRAINING
+since 2026-11-15T07:46Z — OPEN.
