@@ -3414,10 +3414,13 @@ dumps, no covered cost; they score nothing; `reads/rc.md`,
   final 0.756, the continued final 0.711. Longest run without chow in
   sight or memory: 246, 268, 1,214. No lock on this arm's leg.
 
-Owed: RESULTS and its gate; the recipe question to her with R-C.
+RESULTS GATED 2026-11-15 (`RESULTS.md`; accuracy gate PASS on round
+2; round 1 failed on a cost total that left out the probes; two WEAK
+sentences disclosed in the stamp). With her: seeds 2 and 4 of this
+arm, the second-restart scout, the recipe question with R-C.
 
-Status: DECLARED 2026-11-14; trained, legs run, R-A to R-D read:
-A1–A3 MET; the gated RESULTS owed — OPEN.
+Status: DECLARED 2026-11-14; A1–A3 MET; RESULTS gated; §8's
+consequences with her — OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 

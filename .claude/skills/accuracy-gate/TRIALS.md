@@ -2118,3 +2118,30 @@ Lessons:
     provenance, not only at current text.** Rounds 2–3 found what round
     1 could not because the brief said so.
 
+## 2026-11-15 — re-anchor scout RESULTS (Experiments; the whole document, one section)
+
+`experiments/gen2-reanchor-scout-2026-11-14/RESULTS.md`, deviations
+entry 38. Two rounds, fresh subagents, the Read fence only (three
+readers and a grep of the training log; about 7 minutes a round).
+Fresh JSON byte-identical to the recorded reads in both rounds.
+
+- Round 1: **FAIL**. One CONTRADICTED arithmetic claim: the covered-cost
+  total read 19.6M against the declared 20M because it left out the
+  thirteen probes (0.39M), a line of the declaration's own cost table.
+  Fixed in the document.
+- Round 2: **PASS**. About 122 arithmetic, 6 threshold, 14
+  characterisation (2 WEAK, outside Decision rules: "with one change" /
+  "with nothing else reset" omit the arm's fresh episode-seed stripe),
+  1 undecidable (scout verdicts), 17 provenance. The WEAK sentences
+  were left as gated and named in the stamp, not rewritten (lesson
+  116). Raw-dir hash v1:1dee3d0f5cdd5fa9.
+
+Lessons:
+
+121. **A cost total owes every line of the declared cost table.** The
+    write-up summed what the session ran by hand (training, legs) and
+    dropped what the trainer ran for it (probes). Rebuild the total
+    from the declaration's table, line by line.
+122. **A WEAK sentence can be disclosed instead of rewritten.** Naming
+    it in the stamp keeps the gated text gated and costs no third
+    round; rewrite only when the sentence would mislead a decision.
