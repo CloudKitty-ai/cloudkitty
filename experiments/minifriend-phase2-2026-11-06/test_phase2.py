@@ -348,9 +348,13 @@ def g10():
         assert slot == f"p2-{arm}-s{k}", slot
         assert {"act15": 107, "act10": 110, "nohead": 113, "both": 117, "needs": 121, "truth": 124}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
     assert {P.SLOTS[s][0] for s in P.SLOTS} == set(HO.ARMS) == {"act15", "act10", "nohead", "both", "needs", "truth"}, set(HO.ARMS)
-    # entry 37: the truth arm is a measurement — one uniform seating, in no roster-shaped one
+    # entry 37: the truth arm is a measurement — uniform seatings only (its final and its 12M bin checkpoint, the
+    # equal-length read), in no roster-shaped one
     truth_seatings = sorted(n for n, v in H.SEATINGS.items() if any("truth" in s for s in v))
-    assert truth_seatings == ["p2u-truth-s1"] and H.SEATINGS["p2u-truth-s1"] == ["p2:p2-truth-s1"] * 5, truth_seatings
+    assert truth_seatings == ["p2u-truth-s1", "p2u-truth-s1-u3906"] and H.SEATINGS["p2u-truth-s1"] == ["p2:p2-truth-s1"] * 5, truth_seatings
+    rung = H.SEATINGS["p2u-truth-s1-u3906"]
+    assert rung == ["p2:p2-truth-s1@u3906"] * 5 and H.artifact_path(rung[0]) == HERE / "artifacts" / "p2-truth-s1" / "ckpt-u3906.pt" \
+        and (3906 + 1) * 3072 == 12_002_304, f"the truth arm's equal-length seating seats {H.artifact_path(rung[0])}"
     # entries 25 / 26: the halted p2-nohead-s1 and p2-act10-s1 seat nowhere; each replacement takes its arm's s1 seat
     # in both seatings, and the trainer refuses each halted slot by name with its entry and its replacement
     assert P.HALTED_SLOTS == {"p2-nohead-s1": "p2-nohead-s1r", "p2-act10-s1": "p2-act10-s1r"}, P.HALTED_SLOTS

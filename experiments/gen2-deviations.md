@@ -3278,3 +3278,29 @@ registered and §9's mutants and predicted reds written there. The
 launch is a separate word (the declaration's status line).
 
 Welfare-cost line (DECLARATION §5): about 20M covered cat-ticks.
+
+Instruments (no trainer file edited; the true-needs scout was training
+and none of its imports was touched): `train_ppo_reanchor.py`, a thin
+driver over the continuation's own `prepare` and `apply_deltas`, the
+anchor set by pinning the trainer's init to the trunk's final, the
+stop taken before update 3,256's first fragment; harness seatings
+`reanchor-s1` and `r6-nohead-s1-u651` (call 5's 2M rung); guards a1–a6
+in `test_reanchor.py`, green. The one-update run reads KL to the
+anchor 0.0049 (§9's line: under 0.01; cont-s1's first update read
+0.483 to the clone) and cont-s1's first-row schedule exactly (entropy
+coefficient 0.006399, lr 3e-4, β 0.04).
+
+Kept behaviour on the edited harness: the continuation's `test_cont.py`
+(18 passed), Phase 2's g10, g3 and g14d, `test_cert_state_key.py` and
+`test_g2_battery.py`. One kept guard went red for a reason outside the
+edit and is corrected here: the continuation's g7 counts "Phase 2's
+twelve" training series by directory name and read 13, the thirteenth
+being the true-needs scout's (`p2-truth-s1`, Phase 2c). Its filter
+already left Phase 2b's series out; Phase 2c's now joins it. The count
+asserted is unchanged.
+
+In the same harness edit, for entry 37: the seating
+`p2u-truth-s1-u3906` (the true-needs scout's 12M bin checkpoint, its
+equal-length read), asserted in Phase 2's g10. Predicted red, written
+before the mutant: with the seating resolved to the final,
+`the truth arm's equal-length seating seats`.

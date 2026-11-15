@@ -90,6 +90,9 @@ P2_ARC = EXPTS / "minifriend-phase2-2026-11-06"
 # The trunk continuation's finals (`g2:cont-s<k>`, gen2-trunk-continuation-2026-11-10/DECLARATION.md §6 R-1): the
 # trunk's own policy class and seat kind, the artifact under that arc.
 CONT_ARC = EXPTS / "gen2-trunk-continuation-2026-11-10"
+# The re-anchor scout's final (`g2:reanchor-s1`, gen2-reanchor-scout-2026-11-14/DECLARATION.md §6 R-B): the trunk's
+# policy class and seat kind, the artifact under that arc.
+REANCHOR_ARC = EXPTS / "gen2-reanchor-scout-2026-11-14"
 V6_KINDS = ("g2:", "p2:")
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
 
@@ -103,6 +106,8 @@ def artifact_path(spec):
     if kind == "g2":
         if name.startswith("cont-"):
             return CONT_ARC / "artifacts" / name / leaf
+        if name.startswith("reanchor-"):
+            return REANCHOR_ARC / "artifacts" / name / leaf
         return G2_ARTS / f"ppo-g2-{name}" / leaf
     if kind == "p2":
         return P2_ARC / "artifacts" / name / leaf
@@ -162,6 +167,8 @@ SEATINGS = {
     # Phase 2c's true-needs arm (minifriend-true-needs-arm-2026-11-14/DECLARATION.md §6, deviations entry 37): the scout
     # seed, uniform ONLY — its seat reads the engine's state, a measurement that never shares a roster or is served.
     "p2u-truth-s1": ["p2:p2-truth-s1"] * 5,
+    # its equal-length read (DECLARATION §6 R-1): the scout's bin checkpoint at update 3,906 (12,002,304 ticks).
+    "p2u-truth-s1-u3906": ["p2:p2-truth-s1@u3906"] * 5,
     **{f"p2r-{arm}": [f"p2:p2-{arm}-s2", f"p2:p2-{arm}-s4", "g2:trunk-s6", "g2:trunk-s7",
                       f"p2:p2-{arm}-s1" + ("r" if arm in ("nohead", "act10") else "")]
        for arm in ("act15", "act10", "nohead", "both")},
@@ -174,7 +181,10 @@ SEATINGS = {
     # of trunk seed k in all five seats, paired with the recorded g2-s<k> and p2u-nohead-s<k> uniform rows.
     **{f"cont-s{k}": [f"g2:cont-s{k}"] * 5 for k in (1, 2, 4)},
     # R-6's checkpoint ladder (gen2-deviations.md entry 34): one bin checkpoint of a run in all five seats, at 40x40.
-    **{f"r6-nohead-s1-u{u}": [f"p2:p2-nohead-s1r@u{u}"] * 5 for u in (1302, 2604, 3906)},
+    # u651 (2,002,944 ticks): the re-anchor scout's call 5 (gen2-reanchor-scout-2026-11-14 §6 R-B, deviations entry 38).
+    **{f"r6-nohead-s1-u{u}": [f"p2:p2-nohead-s1r@u{u}"] * 5 for u in (651, 1302, 2604, 3906)},
+    # The re-anchor scout (entry 38): its final in all five seats.
+    "reanchor-s1": ["g2:reanchor-s1"] * 5,
     **{f"r6-cont-s1-u{u}": [f"g2:cont-s1@u{u}"] * 5 for u in (3255, 3906, 4557, 5208, 5859)},
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
