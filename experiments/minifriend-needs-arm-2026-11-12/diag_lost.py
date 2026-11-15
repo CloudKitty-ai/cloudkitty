@@ -56,8 +56,8 @@ def l1(a, b):
 
 
 def world(job):
-    arm, seating, sub, size, seed = job
-    acts_p = C.RAW / "legs" / seating / sub / f"size{size}" / "acts" / f"acts-{seed}.npz"
+    arm, seating, sub, size, seed, *root = job              # a sixth element names another arc's results-raw (the truth arm's)
+    acts_p = (Path(root[0]) if root else C.RAW) / "legs" / seating / sub / f"size{size}" / "acts" / f"acts-{seed}.npz"
     need, pos, part, flag, act, mask, row, spoke, refused, water, chow = [], [], [], [], [], [], [], [], [], [], {}
     for rec in RP.replay(acts_p, C.LEG_TOML[size], want_obs=True):
         p, o = rec["pre"], rec["obs"]
@@ -157,9 +157,9 @@ def world(job):
         for t in np.nonzero(lost[:-1, k])[0]:
             for j in others[k]:
                 if moved[t, j] and not part[t, j]:
-                    res.append((heard[t, j, others[j].index(k)], l1(pos[t + 1, j], pos[t, k]) < dist[t, j, k], need[t, j].max()))
+                    res.append((heard[t, j, others[j].index(k)], l1(pos[t + 1, j], pos[t, k]) < dist[t, j, k] - 0.5, need[t, j].max()))   # walks are whole tiles; a two-tile step can leave the walk equal
     res = np.asarray(res, float).reshape(-1, 3)
-    out["rescue"] = {"friend_moves": len(res), "hears_the_lost_cat": r(res[:, 0].mean()) if len(res) else None,
+    out["rescue"] = {"friend_moves": len(res), "closed_moves": int(res[:, 1].sum()), "hears_the_lost_cat": r(res[:, 0].mean()) if len(res) else None,
                      "closed_when_hearing": [r(res[res[:, 0] > 0, 1].mean()), int((res[:, 0] > 0).sum())] if (res[:, 0] > 0).any() else None,
                      "closed_when_content": [r(res[(res[:, 0] > 0) & (res[:, 2] < 50), 1].mean()), int(((res[:, 0] > 0) & (res[:, 2] < 50)).sum())] if ((res[:, 0] > 0) & (res[:, 2] < 50)).any() else None,
                      "lost_cat_ticks": int(lost.sum())}

@@ -3276,8 +3276,61 @@ here: the final's 40×40 leg gets its own 3-world scout (scouts-first on
 a displaced size), 0.3M covered that the table's 6.0M row does not
 carry. Covered so far: training 75.0M, probes 2.9M.
 
+LEGS RUN 2026-11-15 (about 12:20–12:50Z), every row on disk:
+
+| seating | size | verdict |
+|---|---|---|
+| `p2u-truth-s1-u3906` (12M checkpoint) | 20×20 leg | clean, worst streak 9 |
+| | 40×40 scout, leg | clean, 67; clean, 95 |
+| | 100×100 scout (3 worlds, tail read only) | 905001 streak 751, 905002 streak 576, **905003 ABORTED at tick 18,498** |
+| `r6-nohead-s1-u3906` (call 5) | 20×20 leg | **LEG STOP: world 905029 ABORTED at tick 1,299** (a 1,000-tick streak from tick 299, on the served size); the other 29 worlds whole, streak 0 |
+| `p2u-truth-s1` (the final) | 20×20 leg | clean, worst streak 134 |
+| | 40×40 scout, leg | clean, 110; clean, 478 |
+
+The no-head 12M checkpoint's stop is owner-routed and with her; the
+leg was that seating's only one here, so nothing of it was left to
+run. The session's chain was joined with `&&` and so halted before the
+final's legs; they ran afterwards under the same declared step (a
+different seating; the stop rule is per seating). Covered in legs:
+3.0 + 0.3 + 3.0 + 0.3 (less the abort's 1,502 ticks × 5) + 3.0 (less
+18,701 ticks × 5) + 3.0 + 0.3 + 3.0 = about 15.8M.
+
+Readers, built before the first read (§9's last paragraph), each
+importing the needs arm's or the re-anchor reader's functions:
+`read_r1_truth.py` (R-1: equal length at the 12M checkpoint, the final
+beside it; T1, T2, §8; pairs are the worlds whole in both legs),
+`read_blocks_truth.py` (the block read; T3), `read_tail_truth.py`
+(the tail read through `diag_lost.world`; T4), guards w1–w8 in
+`test_truth_reads.py`. `diag_lost.py` (the needs arc's) takes an
+optional results-raw root and reports `closed_moves`.
+
+Found by w8 on its first run, before any truth read: `diag_lost.py`
+compared walks as floats, and a cat can step two tiles in a tick
+(1,824 of 34,148 moves on the needs scout's 100×100 world 905001), so
+a move that leaves the walk equal was scored closing or not by float
+noise. The read counted 2,982 closing moves of 5,225 where whole-tile
+arithmetic counts 2,979. Fixed with a half-tile margin on the rescue
+compare; the needs arc's recorded `reads/diag-lost.json` predates the
+fix and is re-read (entry 36's closing shares can move in the third
+decimal).
+
+Predictions for the readers' reds, written before any mutant ran
+(each through `scripts/mutate.sh --expect`):
+
+| guard | mutant (file) | predicted red |
+|---|---|---|
+| w1 | the checkpoint seating named as the final's (`read_r1_truth.py`) | `the equal-length leg is not the 12M checkpoint's` |
+| w2 | a mean at the edge read as beyond it, `<=` to `<` (`read_r1_truth.py`) | `§8 reads` with (0.326, 0.325) as `ABOVE` |
+| w3 | aborted worlds kept in the pairing (`read_r1_truth.py`) | `an aborted world was paired: 30 worlds` |
+| w4 | the grave flag read off the bath cell (`read_blocks_truth.py`) | `grave rows differ from the engine's` |
+| w5 | the whole-leg assert dropped (`read_blocks_truth.py`) | `a partial leg was scored` |
+| w6 | grave `>` others loosened to `>=` (`read_blocks_truth.py`) | `T3 scores its five cases as [True, False, True, None, False]` |
+| w7 | under 0.70 loosened to at most 0.70 (`read_tail_truth.py`) | `T4 scores its three cases as [True, True, None]` |
+| w8 | closing moves counted from the hearing column (`diag_lost.py`) | `closing moves differ` |
+
 Status: DECLARED 2026-11-14; instruments red-proven; the scout ended
-clean at 15.0M; legs running; readers and reads owed — OPEN.
+clean at 15.0M; legs run (one comparator leg stopped, with her);
+readers' reds and the reads owed — OPEN.
 
 ## 38. The re-anchor scout: declared (2026-11-14)
 
