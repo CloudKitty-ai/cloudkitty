@@ -3342,8 +3342,23 @@ to the anchor 0.0049; by update 2,680 the KL reads 0.23–0.25, where
 `cont-s1`'s log reads 0.52–0.55 to the clone at the same updates. The
 first probe (update 2,649): no distress streak.
 
+THE READER of R-A and R-B (`read_reanchor.py`, guards
+`test_read_reanchor.py` u1–u3; the leg runner `run_legs_reanchor.sh`),
+written while the arm trains and before any number of its own is
+read. Predicted reds, written before any mutant runs:
+
+| guard | asserts | mutant | predicted red |
+|---|---|---|---|
+| u1 | a leg whose header names another file is refused | the header check removed | `the reader took a leg whose header names another file` |
+| u2 | A1's lines: 0.005 over the trunk's last bin, KL between 0.10 and 0.30 | the step line read at 0.0005 | `A1 scores` |
+| u3 | A2's lines: 25 of 30 worlds, both means beyond the edge | the world line read at 20 | `A2 scores its four cases as` |
+| u3 | A3's line: half of the no-head checkpoint's gain | the share read at a quarter | `A3 does not read half of the no-head gain` |
+
+One case the frozen §8 does not name, fixed here before a number: A2
+met with A1 missed prints as outside the grammar and goes to her.
+
 Status: DECLARED 2026-11-14; instruments red-proven; the arm TRAINING
-since 2026-11-15T07:46Z — OPEN.
+since 2026-11-15T07:46Z; the reader's reds owed — OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 
