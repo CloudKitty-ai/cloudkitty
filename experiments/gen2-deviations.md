@@ -3229,3 +3229,15 @@ g13 and g3 once each), plus g0c's one 20k-tick trunk leg. Owed before
 their first read, each with its own red: the equal-length paired read
 on a checkpoint, the block read on truly-grave rows, `diag_lost.py`'s
 arm list.
+
+SCOUT LAUNCHED 2026-11-15T05:42:23Z (2026-11-14 evening, local) on
+her "Yes as drafted. … While that runs, …" as read above (call 7, the
+session's reading, told to her before the launch with "say stop if you
+meant calls 1–6 only"): `run_arm.sh p2-truth-s1`, pid 95231, HEAD
+defb9b0e, log `minifriend-phase2-2026-11-06/artifacts/p2-truth-s1.log`.
+Manifest: arm `truth`, 9 cells, no head, run index 124, seed base
+2,580,000,000. Update 0 as expected of a graft with zero cell weights:
+KL 0.0000, cells 0.000.
+
+Status: DECLARED 2026-11-14; instruments red-proven; the scout
+TRAINING — OPEN.

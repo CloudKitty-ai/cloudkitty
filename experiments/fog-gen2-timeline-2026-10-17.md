@@ -1303,6 +1303,8 @@ consent BC comparison ride the trunk.
   needs arm's nine cells holding the engine's true needs, the scout
   seed only, read at equal length against the needs scout. A
   measurement: never seated, served or a teacher.
+  Instruments red-proven (g14a–g14e, g10; eight reds as predicted);
+  the scout `p2-truth-s1` LAUNCHED 2026-11-15T05:42Z.
 
 ## Flagged follow-ups (owner's word to start)
 
