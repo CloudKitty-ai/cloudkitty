@@ -3134,11 +3134,28 @@ no guard of its own):
 - LIMITS: one seed an arm; the six worlds were picked for the needs
   arm's streaks, so the needs side is the selected side.
 
+RULED 2026-11-14 on the calls put to her after the scout's read ("1)
+as recommended 2) no 3) agreed 4) keep", answering the session's
+walk-through of the four open calls in that order):
+
+- **The 100×100 leg is not run** ("as recommended": "I recommend not
+  running it and recording that as a deviation"). This departs from
+  §13 step 3 and call 5 as ruled on 2026-11-13: the scout's miss stands
+  as the arm's 100×100 record (three worlds, two aborted at the
+  1,000-tick line). 3.0M covered cat-ticks not spent.
+- **Seeds 2 and 4 are not run** ("no"). Run indices 122 and 123 stay
+  claimed in `SEED-BANDS.md` and unburned. The arm is one seed; nothing
+  it reads is replicated.
+- **The dual-head seeds 2 and 4 stay held** ("agreed") until the
+  true-needs scout reads (entry 37); the hold and Phase 1f go back to
+  her with that read.
+- The fourth ("keep") is the re-anchor scout's seed: entry 38.
+
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
 TRAINED; legs at 20 and 40 RECORDED; R-1, the trigger and the block
 read READ (N1, N2 NOT MET; N3 holds and N4 MET on the sizes read);
-100×100 STOPPED at its scout, with her; §8's reading with her; the
-streaks DIAGNOSED; the gated write-up owed — OPEN.
+the 100×100 leg and seeds 2 and 4 NOT RUN on her word; the streaks
+DIAGNOSED; the gated write-up owed — OPEN.
 
 ## 37. Mini-friend Phase 2c, the true-needs arm: declared (2026-11-14)
 
@@ -3241,3 +3258,23 @@ KL 0.0000, cells 0.000.
 
 Status: DECLARED 2026-11-14; instruments red-proven; the scout
 TRAINING — OPEN.
+
+## 38. The re-anchor scout: declared (2026-11-14)
+
+`gen2-reanchor-scout-2026-11-14/DECLARATION.md` is declared: one arm,
+`reanchor-s1`, trunk seed 1's checkpoint resumed exactly as `cont-s1`
+was with the anchor moved from the BC clone to the trunk's final, two
+bins (to lineage tick 10,002,432), run index 125 (stripe
+2,600,000,000–2,619,999,999, `SEED-BANDS.md`). Her words, verbatim:
+2026-11-13 "Let's incorporate that going forward. What do you need
+from me before we proceed?" (the draft); 2026-11-14 "3: what is the
+cause of the distress? Vision radius solvable eat? Deadlock? Should we
+discard and replace? … Yes to the rest" (calls 1, 2, 4, 5, 6 as
+recommended); 2026-11-14 "4) keep" (call 3: seed 1, after the answer
+from `diag_abort.py`: the distress on this lineage was a pack
+food-desert lock in the continued policy, not the trunk seed).
+§3–§9 frozen at the declaring commit, §7's predictions A1–A3
+registered and §9's mutants and predicted reds written there. The
+launch is a separate word (the declaration's status line).
+
+Welfare-cost line (DECLARATION §5): about 20M covered cat-ticks.

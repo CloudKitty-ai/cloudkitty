@@ -1,10 +1,12 @@
-# Gen 2 re-anchor scout: which of the restart's resets bought its gain (DRAFT 2026-11-14; nothing built, nothing trained)
+# Gen 2 re-anchor scout: which of the restart's resets bought its gain (DECLARED 2026-11-14)
 
-Status: **DRAFT 2026-11-14**, written on her direction "Let's
-incorporate that going forward". Nothing here is declared, built or
-run. §12 holds the calls; her word on them declares it, and the arm's
-launch is a separate word after that. No seed-band row is claimed and
-no deviations entry is opened until then.
+Status: **DECLARED 2026-11-14** on her "Yes to the rest" (calls 1, 2,
+4, 5, 6) and "4) keep" (call 3: seed 1). §3–§9 are frozen from this
+commit (§7's predictions registered, §9's mutants and predicted reds
+written here, before any number); a change to them is a
+`gen2-deviations.md` entry on her word. Run index 125 is claimed in
+`SEED-BANDS.md`; the record is deviations entry 38. **The arm's launch
+is a separate word**, asked for once the reds are on record.
 
 ## 0. Her words, verbatim and in order
 
@@ -16,6 +18,12 @@ no deviations entry is opened until then.
   from me before we proceed?"
 - 2026-11-14: "As recommended" (the continuation's remaining legs:
   entry 31; not a word on this arc).
+- 2026-11-14, on the draft's six calls: "3: what is the cause of the
+  distress? Vision radius solvable eat? Deadlock? Should we discard and
+  replace? … Yes to the rest".
+- 2026-11-14, on the session's "Re-anchor scout, which seed … I
+  recommend keeping seed 1 … Your word here declares that scout": "4)
+  keep".
 
 The session's reading, hers to correct: the direction covers (a) no
 ticks past a plateau under a pinned anchor, (b) staged training, the
@@ -120,8 +128,9 @@ own resume path, the trunk's optimiser and critic state, the schedules
 continuing from progress 0.40, no warm-up, β 0.04), with **one change:
 the anchor is trunk seed 1's final policy, not the BC clone.**
 
-Against `cont-s1` the arm differs by the anchor and by its episode
-seeds (a fresh stripe, claimed at DECLARED; §2.3 shows fresh seeds move
+Run index 125 (stripe 2,600,000,000–2,619,999,999; segment 1 by the
+trainer's resume rule). Against `cont-s1` the arm differs by the anchor
+and by its episode seeds (a fresh stripe, claimed at DECLARED; §2.3 shows fresh seeds move
 the return by at most 0.003). Against the no-head arm it lacks the
 entropy restart, the optimiser and critic reset, the warm-up and the
 inert cell.
@@ -191,7 +200,7 @@ ticks need to be trained under a pinned anchor to find out.
   diagnostic for the lock of §2.4 on worlds where no streak trips; it
   scores nothing.
 
-## 7. Predictions (to be registered at DECLARED, before any number)
+## 7. Predictions (the session's; registered at DECLARED 2026-11-14, before any number)
 
 - **A1, the mechanism.** The arm's first bin is at least 0.005 above
   the trunk's last bin (the plateau rule's own line), and its KL to
@@ -241,6 +250,21 @@ her word and R-C beside it.
 - The harness seating seats the arm's final in all five seats; the
   reader refuses a leg whose header names another file.
 
+Written at DECLARED, each through `scripts/mutate.sh --expect`:
+
+| guard | the bullet above | mutant | predicted red |
+|---|---|---|---|
+| a1 | the resume record | the `flat_streak` reset dropped | `the resume record differs from cont-s1's` |
+| a2 | the anchor | the anchor pin left at the BC clone | `the anchor is not trunk seed 1's final` |
+| a3 | the first update's schedule | the run's total ticks set to the arm's end, so the schedules restart their progress | `the first update's schedule differs from cont-s1's` |
+| a4 | the run's end | the stop taken one update late | `the run ends at update` (one past the stop asked for) |
+| a5 | the stripe | the slot given run index 124 | `overlaps a claimed stripe` |
+| a6 | the seating | the seating resolved in the continuation's artifacts | `reanchor-s1 seats` |
+
+a2's KL line and a3 and a4 read a one-update run in a scratch
+directory (3,072 ticks, the arm's own stripe). The reader's refusal is
+built with the reader, before its first read, with its own red.
+
 ## 10. Blind spots (declared)
 
 - One seed, and it is the seed with the harm history of §2.4.
@@ -273,9 +297,10 @@ and world are the trunk's.
 
 Her word 2026-11-14: "3: what is the cause of the distress? Vision
 radius solvable eat? Deadlock? Should we discard and replace? Yes to
-the rest". Calls 1, 2, 4, 5 and 6 are RULED as recommended; call 3 is
-OPEN, her question answered in §2.4 and entry 31's investigation. The
-arc is declared when call 3 is ruled.
+the rest". Calls 1, 2, 4, 5 and 6 RULED as recommended; her question
+on call 3 answered in §2.4 and entry 31's investigation. **Call 3
+RULED 2026-11-14, "4) keep": seed 1.** All six ruled; the arc is
+declared.
 
 1. **Declare this** (after her edits). Recommended.
 2. **One arm first, the anchor alone.** The entropy and optimiser arms

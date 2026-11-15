@@ -1310,6 +1310,12 @@ consent BC comparison ride the trunk.
   hand-written rescue laid over the no-head final at evaluation, with
   a placebo; 13.2–16.5M covered cat-ticks; five calls with her,
   nothing declared).
+- 2026-11-14: her rulings on the four open calls ("1) as recommended
+  2) no 3) agreed 4) keep"): the needs arm's 100×100 leg and its seeds
+  2 and 4 NOT RUN, the dual-head seeds held until the true-needs scout
+  reads (entry 36); seed 1 kept for the re-anchor scout, which is
+  DECLARED (entry 38; `gen2-reanchor-scout-2026-11-14/`, run index
+  125). Its launch is a separate word.
 
 ## Flagged follow-ups (owner's word to start)
 
