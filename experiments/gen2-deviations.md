@@ -3256,8 +3256,28 @@ Manifest: arm `truth`, 9 cells, no head, run index 124, seed base
 2,580,000,000. Update 0 as expected of a graft with zero cell weights:
 KL 0.0000, cells 0.000.
 
-Status: DECLARED 2026-11-14; instruments red-proven; the scout
-TRAINING — OPEN.
+SCOUT ENDED CLEAN 2026-11-15 (about 11:50Z): `PLATEAU: 3 flat
+1000000-tick bins after the floor at 15000576 ticks`, update 4,882
+inclusive, no harm stop. 97 probes; the worst distress streak is 199
+(line 300), the next 134 and 116. `policy-final.pt` sha256 begins
+e33b7698b270375b; the 12M checkpoint `ckpt-u3906.pt` begins
+5f444f574b95a4a1. The run ended at the no-head final's own length
+(15,000,576 ticks), past 12.0M, so §13 step 4's final legs run.
+
+Legs, §13 step 4, under the declaring word (commit before data):
+`minifriend-true-needs-arm-2026-11-14/run_legs_truth.sh`, Phase 2's
+leg runner with this arc's out-dir (Phase 2's results-raw is
+hash-stamped). In order: `p2u-truth-s1-u3906` leg 20, scout 40, leg
+40; its 100×100 scout alone (905001–905003; the runner's scout stage
+called directly, since no 100×100 leg is declared); call 5's leg
+`run_legs_cont.sh r6-nohead-s1-u3906 --only 20`; `p2u-truth-s1` (the
+final) leg 20, scout 40, leg 40. One line over §5's table, recorded
+here: the final's 40×40 leg gets its own 3-world scout (scouts-first on
+a displaced size), 0.3M covered that the table's 6.0M row does not
+carry. Covered so far: training 75.0M, probes 2.9M.
+
+Status: DECLARED 2026-11-14; instruments red-proven; the scout ended
+clean at 15.0M; legs running; readers and reads owed — OPEN.
 
 ## 38. The re-anchor scout: declared (2026-11-14)
 
