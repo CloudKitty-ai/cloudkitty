@@ -3304,3 +3304,25 @@ In the same harness edit, for entry 37: the seating
 equal-length read), asserted in Phase 2's g10. Predicted red, written
 before the mutant: with the seating resolved to the final,
 `the truth arm's equal-length seating seats`.
+
+REDS ON RECORD 2026-11-14, all seven as predicted, each `RED
+CONFIRMED · baseline == restored`:
+
+| guard | red observed |
+|---|---|
+| a1 | `the resume record differs from cont-s1's: flat_streak 3` |
+| a2 | `the anchor is not trunk seed 1's final (… anchor equals the clone: True)` |
+| a3 | `the first update's schedule differs from cont-s1's` (entropy coefficient 0.0028 against 0.0064) |
+| a4 | `the run ends at update 2606 after 2 updates (stop asked: 2606)` |
+| a5 | `the stripe of run index 124 overlaps a claimed stripe: [(2580000000, 2599999999)]` |
+| a6 | `reanchor-s1 seats …/gen2-trunk-continuation-2026-11-10/artifacts/reanchor-s1/policy-final.pt` |
+| g10 (entry 37's rung seating) | `the truth arm's equal-length seating seats …/p2-truth-s1/policy-final.pt` |
+
+Guard cost, outside §5's line: about 0.15M covered cat-ticks (ten
+one-update runs of 3,072 ticks over the build and the cycles, in
+scratch directories, on the arm's own stripe). Owed before its first
+read, with its own red: the reader of §6 and its refusal of a leg
+whose header names another file.
+
+Status: DECLARED 2026-11-14; instruments red-proven; NOT LAUNCHED,
+the launch asked of her — OPEN.
