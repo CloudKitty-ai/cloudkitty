@@ -3078,8 +3078,64 @@ checkpoint leg (`r6-nohead-s1-u3906`, entry 34) the scout reads +0.032
 gain from 12M to 15M (+0.474, entry 34). Against it: the dual-head
 seed also stopped at 12.0M and sits +0.468 above the scout. Each is
 one checkpoint. No 12M no-head leg exists at 20×20.
+THE STREAKS DIAGNOSED (her words 2026-11-14: "Let's dig in on the eat
+and cuddle failure cases we saw, likely causes and possible solutions.
+That is a level of fragility that is undesirable.", then "Run the
+replay reads."; `diag_lost.py` → `reads/diag-lost.{json,md}`; one replay
+per world from the recorded acts, nothing covered decides; the needs
+scout's three 40×40 streak worlds and three 100×100 scout worlds, the
+no-head seed-1 leg on the same six beside them; a diagnostic read with
+no guard of its own):
+
+- THE CUDDLE STREAKS ARE ONE LOST CAT EACH. Nine cuddle streaks of
+  300+ ticks: the nearest friend 29.0–71.8 tiles away on average (the
+  vision radius is 5 / 6), a friend in sight on 0.000–0.022 of the
+  streak, a cuddle act legal on 0.000–0.007 of it, proposed on 1.0 of
+  the ticks it was legal, refused on 0.0. Not consent, not a deadlock.
+- THE PLACE WAS KNOWN. Hearing is global and a heard friend's row
+  points at its last call inside the 30-tick digest window
+  (docs/encodings.md): a friend was heard on 1.0 of every streak and
+  on every lonely tick read (cuddle 50+, unpartnered, no friend in
+  sight), all four friends on 99% of a lonely cat's moves; the row's
+  place sat a median 0.0 tiles from the friend's true tile.
+- CLOSING FALLS WITH THE WALK. The share of a lonely cat's moves that
+  shorten its walk to the nearest heard friend, by that walk in tiles
+  (0–10 / 10–20 / 20–40 / 40–70 / 70+): needs 40×40 0.938 / 0.798 /
+  0.550 / 0.605 / —, needs 100×100 0.943 / 0.835 / 0.578 / 0.487 /
+  0.439; no-head 40×40 0.920 / 0.873 / 0.766 / (3 moves) / —, no-head
+  100×100 0.976 / 0.919 / 0.741 / 0.699 / 0.556. Over all such moves
+  0.651 / 0.595 against 0.861 / 0.805; inside the long streaks 0.475 /
+  0.489 (no-head's one streak, 446 ticks at 100×100: 0.562). Every
+  arm here trained on 20×20, where no walk exceeds 38.
+- NOT STALE CALLS, NOT A SWITCHING TARGET. 98% of those moves had a
+  call under 10 ticks old and closing does not move with the friend's
+  walk from its call place (0–2 tiles on 83% of moves); the nearest
+  heard friend is the same friend on the next move 0.876 / 0.927
+  (needs) and 0.857 / 0.915 (no-head). The needs cat's lonely runs are
+  less straight: net displacement per move 0.288 / 0.336 against
+  0.517 / 0.700. The call-age column rests on a reconstruction that
+  matches the row's place on 0.74–0.84 of rows; the walk columns read
+  the row itself.
+- NOBODY COMES. While a cat is lost (lonely, cuddle 90+) its
+  unpartnered friends hear it on 0.92–1.0 of their moves and close on
+  it on 0.52–0.66 of them (needs; 0.36–0.73 no-head, fewer rows). The
+  reward is the team's Nash welfare broadcast to every seat
+  (`crates/cloudkitty-rl/src/reward.rs`), so the incentive is there.
+- THE EAT STREAK IS A CAT DRINKING WITHOUT THIRST. World 905012 seat
+  2, 984 ticks (any flag; the eat flag alone is the leg's 908): thirst
+  0.5, hunger 97.4, cuddle 86.9, sleep 74.1; on its 496 free-choice
+  ticks a move was legal on 1.0 and it chose `drink` on 464; it moved
+  on 0.002 of the streak; the nearest bowl 7–13 tiles' walk (vision
+  5). Over each whole world, on free ticks with thirst under 10 and
+  `drink` legal, the needs arm proposes `drink` on 0.066–0.186 with no
+  own distress flag up and on 0.673–0.917 with one up (no-head
+  0.056–0.082 against 0.176–0.750 on 9–152 ticks). The reward is a
+  function of needs alone: a drink without thirst is paid nothing.
+- LIMITS: one seed an arm; the six worlds were picked for the needs
+  arm's streaks, so the needs side is the selected side.
+
 Status: DECLARED 2026-11-13; instruments red-proven; the scout
 TRAINED; legs at 20 and 40 RECORDED; R-1, the trigger and the block
 read READ (N1, N2 NOT MET; N3 holds and N4 MET on the sizes read);
 100×100 STOPPED at its scout, with her; §8's reading with her; the
-gated write-up owed — OPEN.
+streaks DIAGNOSED; the gated write-up owed — OPEN.

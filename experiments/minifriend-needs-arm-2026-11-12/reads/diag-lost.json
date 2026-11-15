@@ -1,0 +1,2709 @@
+{
+ "pooled": {
+  "needs/40": {
+   "moves": 3308,
+   "closed": 0.651,
+   "closed_in_long_streaks": [
+    0.475,
+    451
+   ],
+   "by_walk_to_stamp": {
+    "0-10": [
+     0.938,
+     242
+    ],
+    "10-20": [
+     0.798,
+     919
+    ],
+    "20-40": [
+     0.55,
+     1947
+    ],
+    "40-70": [
+     0.605,
+     200
+    ],
+    "70+": null
+   },
+   "by_stamp_age": {
+    "0-10": [
+     0.653,
+     3212
+    ],
+    "10-20": [
+     0.543,
+     81
+    ],
+    "20-31": [
+     0.6,
+     15
+    ]
+   },
+   "by_friend_walk_from_stamp": {
+    "0-2": [
+     0.653,
+     2718
+    ],
+    "2-6": [
+     0.65,
+     531
+    ],
+    "6+": [
+     0.525,
+     59
+    ]
+   },
+   "by_friends_heard": {
+    "3": [
+     0.579,
+     19
+    ],
+    "4": [
+     0.651,
+     3289
+    ]
+   },
+   "friend_walk_from_stamp_median": 0.0,
+   "stamp_age_median": 3.0,
+   "same_target_next_move": 0.876,
+   "runs_50plus": 31,
+   "run_length_median_max": [
+    102.0,
+    868
+   ],
+   "straightness_median": 0.288,
+   "rescue": {
+    "hears_the_lost_cat": [
+     0.921,
+     1.0,
+     1.0
+    ],
+    "closed_when_hearing": [
+     [
+      0.56,
+      1019
+     ],
+     [
+      0.657,
+      627
+     ],
+     [
+      0.602,
+      826
+     ]
+    ],
+    "closed_when_content": [
+     [
+      0.56,
+      905
+     ],
+     [
+      0.654,
+      621
+     ],
+     [
+      0.602,
+      826
+     ]
+    ],
+    "lost_cat_ticks": [
+     946,
+     450,
+     736
+    ]
+   },
+   "drink": {
+    "proposed_share": [
+     0.05,
+     0.042,
+     0.04
+    ],
+    "proposed_with_thirst_under_10": [
+     0.718,
+     0.647,
+     0.644
+    ],
+    "idle_drink_rate_no_flag": [
+     [
+      0.088,
+      7187
+     ],
+     [
+      0.077,
+      7464
+     ],
+     [
+      0.066,
+      7053
+     ]
+    ],
+    "idle_drink_rate_flagged": [
+     [
+      0.917,
+      521
+     ],
+     [
+      0.673,
+      107
+     ],
+     [
+      0.825,
+      154
+     ]
+    ]
+   },
+   "stamp_check": [
+    {
+     "rows": 698,
+     "row_place_is_the_last_call_place": 0.841,
+     "lonely_ticks": 1898,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.53
+    },
+    {
+     "rows": 1515,
+     "row_place_is_the_last_call_place": 0.809,
+     "lonely_ticks": 2148,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.806
+    },
+    {
+     "rows": 1095,
+     "row_place_is_the_last_call_place": 0.833,
+     "lonely_ticks": 1814,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.743
+    }
+   ]
+  },
+  "needs/100": {
+   "moves": 9913,
+   "closed": 0.595,
+   "closed_in_long_streaks": [
+    0.489,
+    2266
+   ],
+   "by_walk_to_stamp": {
+    "0-10": [
+     0.943,
+     279
+    ],
+    "10-20": [
+     0.835,
+     1697
+    ],
+    "20-40": [
+     0.578,
+     4215
+    ],
+    "40-70": [
+     0.487,
+     3075
+    ],
+    "70+": [
+     0.439,
+     647
+    ]
+   },
+   "by_stamp_age": {
+    "0-10": [
+     0.598,
+     9708
+    ],
+    "10-20": [
+     0.447,
+     170
+    ],
+    "20-31": [
+     0.6,
+     35
+    ]
+   },
+   "by_friend_walk_from_stamp": {
+    "0-2": [
+     0.597,
+     8199
+    ],
+    "2-6": [
+     0.595,
+     1581
+    ],
+    "6+": [
+     0.481,
+     133
+    ]
+   },
+   "by_friends_heard": {
+    "3": [
+     0.638,
+     47
+    ],
+    "4": [
+     0.595,
+     9866
+    ]
+   },
+   "friend_walk_from_stamp_median": 0.0,
+   "stamp_age_median": 3.0,
+   "same_target_next_move": 0.927,
+   "runs_50plus": 69,
+   "run_length_median_max": [
+    118.0,
+    1099
+   ],
+   "straightness_median": 0.336,
+   "rescue": {
+    "hears_the_lost_cat": [
+     0.994,
+     1.0,
+     1.0
+    ],
+    "closed_when_hearing": [
+     [
+      0.572,
+      5192
+     ],
+     [
+      0.52,
+      1980
+     ],
+     [
+      0.612,
+      3678
+     ]
+    ],
+    "closed_when_content": [
+     [
+      0.556,
+      4216
+     ],
+     [
+      0.513,
+      1856
+     ],
+     [
+      0.601,
+      3368
+     ]
+    ],
+    "lost_cat_ticks": [
+     3797,
+     1621,
+     2987
+    ]
+   },
+   "drink": {
+    "proposed_share": [
+     0.065,
+     0.054,
+     0.058
+    ],
+    "proposed_with_thirst_under_10": [
+     0.791,
+     0.757,
+     0.768
+    ],
+    "idle_drink_rate_no_flag": [
+     [
+      0.186,
+      6855
+     ],
+     [
+      0.108,
+      2161
+     ],
+     [
+      0.138,
+      5493
+     ]
+    ],
+    "idle_drink_rate_flagged": [
+     [
+      0.729,
+      885
+     ],
+     [
+      0.732,
+      399
+     ],
+     [
+      0.733,
+      829
+     ]
+    ]
+   },
+   "stamp_check": [
+    {
+     "rows": 4960,
+     "row_place_is_the_last_call_place": 0.775,
+     "lonely_ticks": 8065,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.722
+    },
+    {
+     "rows": 1408,
+     "row_place_is_the_last_call_place": 0.824,
+     "lonely_ticks": 2758,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.647
+    },
+    {
+     "rows": 3545,
+     "row_place_is_the_last_call_place": 0.783,
+     "lonely_ticks": 5668,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.739
+    }
+   ]
+  },
+  "nohead/40": {
+   "moves": 509,
+   "closed": 0.861,
+   "closed_in_long_streaks": null,
+   "by_walk_to_stamp": {
+    "0-10": [
+     0.92,
+     137
+    ],
+    "10-20": [
+     0.873,
+     245
+    ],
+    "20-40": [
+     0.766,
+     124
+    ],
+    "40-70": [
+     1.0,
+     3
+    ],
+    "70+": null
+   },
+   "by_stamp_age": {
+    "0-10": [
+     0.855,
+     491
+    ],
+    "10-20": [
+     1.0,
+     14
+    ],
+    "20-31": [
+     1.0,
+     4
+    ]
+   },
+   "by_friend_walk_from_stamp": {
+    "0-2": [
+     0.852,
+     420
+    ],
+    "2-6": [
+     0.895,
+     86
+    ],
+    "6+": [
+     1.0,
+     3
+    ]
+   },
+   "by_friends_heard": {
+    "4": [
+     0.861,
+     509
+    ]
+   },
+   "friend_walk_from_stamp_median": 0.0,
+   "stamp_age_median": 3.0,
+   "same_target_next_move": 0.857,
+   "runs_50plus": 4,
+   "run_length_median_max": [
+    64.0,
+    99
+   ],
+   "straightness_median": 0.517,
+   "rescue": {
+    "hears_the_lost_cat": [
+     null,
+     1.0,
+     null
+    ],
+    "closed_when_hearing": [
+     null,
+     [
+      0.361,
+      36
+     ],
+     null
+    ],
+    "closed_when_content": [
+     null,
+     [
+      0.361,
+      36
+     ],
+     null
+    ],
+    "lost_cat_ticks": [
+     0,
+     42,
+     0
+    ]
+   },
+   "drink": {
+    "proposed_share": [
+     0.045,
+     0.044,
+     0.045
+    ],
+    "proposed_with_thirst_under_10": [
+     0.651,
+     0.646,
+     0.647
+    ],
+    "idle_drink_rate_no_flag": [
+     [
+      0.08,
+      8851
+     ],
+     [
+      0.079,
+      8420
+     ],
+     [
+      0.082,
+      8508
+     ]
+    ],
+    "idle_drink_rate_flagged": [
+     null,
+     [
+      0.75,
+      24
+     ],
+     null
+    ]
+   },
+   "stamp_check": [
+    {
+     "rows": 67,
+     "row_place_is_the_last_call_place": 0.806,
+     "lonely_ticks": 83,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.905
+    },
+    {
+     "rows": 259,
+     "row_place_is_the_last_call_place": 0.834,
+     "lonely_ticks": 382,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.764
+    },
+    {
+     "rows": 183,
+     "row_place_is_the_last_call_place": 0.743,
+     "lonely_ticks": 227,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.897
+    }
+   ]
+  },
+  "nohead/100": {
+   "moves": 5000,
+   "closed": 0.805,
+   "closed_in_long_streaks": [
+    0.562,
+    160
+   ],
+   "by_walk_to_stamp": {
+    "0-10": [
+     0.976,
+     375
+    ],
+    "10-20": [
+     0.919,
+     1545
+    ],
+    "20-40": [
+     0.741,
+     2239
+    ],
+    "40-70": [
+     0.699,
+     778
+    ],
+    "70+": [
+     0.556,
+     63
+    ]
+   },
+   "by_stamp_age": {
+    "0-10": [
+     0.805,
+     4917
+    ],
+    "10-20": [
+     0.807,
+     83
+    ],
+    "20-31": null
+   },
+   "by_friend_walk_from_stamp": {
+    "0-2": [
+     0.806,
+     4108
+    ],
+    "2-6": [
+     0.792,
+     821
+    ],
+    "6+": [
+     0.859,
+     71
+    ]
+   },
+   "by_friends_heard": {
+    "3": [
+     1.0,
+     4
+    ],
+    "4": [
+     0.805,
+     4996
+    ]
+   },
+   "friend_walk_from_stamp_median": 0.0,
+   "stamp_age_median": 3.0,
+   "same_target_next_move": 0.915,
+   "runs_50plus": 48,
+   "run_length_median_max": [
+    78.0,
+    539
+   ],
+   "straightness_median": 0.7,
+   "rescue": {
+    "hears_the_lost_cat": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "closed_when_hearing": [
+     [
+      0.579,
+      432
+     ],
+     [
+      0.532,
+      990
+     ],
+     [
+      0.734,
+      124
+     ]
+    ],
+    "closed_when_content": [
+     [
+      0.519,
+      343
+     ],
+     [
+      0.507,
+      815
+     ],
+     [
+      0.69,
+      71
+     ]
+    ],
+    "lost_cat_ticks": [
+     269,
+     618,
+     62
+    ]
+   },
+   "drink": {
+    "proposed_share": [
+     0.039,
+     0.042,
+     0.039
+    ],
+    "proposed_with_thirst_under_10": [
+     0.6,
+     0.624,
+     0.605
+    ],
+    "idle_drink_rate_no_flag": [
+     [
+      0.056,
+      7089
+     ],
+     [
+      0.06,
+      7524
+     ],
+     [
+      0.059,
+      7249
+     ]
+    ],
+    "idle_drink_rate_flagged": [
+     [
+      0.176,
+      34
+     ],
+     [
+      0.533,
+      152
+     ],
+     [
+      0.222,
+      9
+     ]
+    ]
+   },
+   "stamp_check": [
+    {
+     "rows": 1632,
+     "row_place_is_the_last_call_place": 0.76,
+     "lonely_ticks": 2251,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.77
+    },
+    {
+     "rows": 1823,
+     "row_place_is_the_last_call_place": 0.77,
+     "lonely_ticks": 2804,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.719
+    },
+    {
+     "rows": 1545,
+     "row_place_is_the_last_call_place": 0.748,
+     "lonely_ticks": 2039,
+     "lonely_no_friend_heard": 0.0,
+     "lonely_free_move_proposed": 0.841
+    }
+   ]
+  }
+ },
+ "worlds": [
+  {
+   "arm": "needs",
+   "size": 40,
+   "seed": 905012,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 0
+    },
+    "1": {
+     "streak": 0
+    },
+    "2": {
+     "streak": 984,
+     "need": "eat",
+     "span": [
+      4341,
+      5324
+     ],
+     "flag_share": {
+      "eat": 0.923,
+      "sleep": 0.424,
+      "cuddle": 0.789,
+      "bath": 0.004
+     },
+     "needs_mean": {
+      "eat": 97.4,
+      "drink": 0.5,
+      "sleep": 74.1,
+      "play": 37.9,
+      "cuddle": 86.9,
+      "bath": 43.2
+     },
+     "nearest_friend_mean": 22.7,
+     "friend_in_sight": 0.097,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.025,
+     "partner_act_proposed_when_legal": 0.88,
+     "refused_when_proposed": 0.0,
+     "moved": 0.002,
+     "pos_range": [
+      1.0,
+      1.0
+     ],
+     "on_water": 0.0,
+     "free_ticks": 496,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.998,
+      "eat": 0.002
+     },
+     "free_chosen": {
+      "drink": 464,
+      "play_solo": 13,
+      "sleep_with_kitty_0": 12,
+      "play_critter_0": 3,
+      "chase_kitty_0": 2
+     },
+     "nearest_bowl_walk": {
+      "mean": 9.0,
+      "range": [
+       7.0,
+       13.0
+      ]
+     }
+    },
+    "3": {
+     "streak": 0
+    },
+    "4": {
+     "streak": 116
+    }
+   },
+   "stamp_check": {
+    "rows": 698,
+    "row_place_is_the_last_call_place": 0.841,
+    "lonely_ticks": 1898,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.53
+   },
+   "runs": [
+    [
+     94,
+     59,
+     0.542
+    ],
+    [
+     868,
+     28,
+     0.429
+    ],
+    [
+     110,
+     29,
+     0.345
+    ],
+    [
+     102,
+     77,
+     0.065
+    ],
+    [
+     71,
+     42,
+     0.548
+    ],
+    [
+     68,
+     57,
+     0.316
+    ],
+    [
+     53,
+     34,
+     0.441
+    ],
+    [
+     162,
+     90,
+     0.322
+    ],
+    [
+     81,
+     66,
+     0.288
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 1107,
+    "hears_the_lost_cat": 0.921,
+    "closed_when_hearing": [
+     0.56,
+     1019
+    ],
+    "closed_when_content": [
+     0.56,
+     905
+    ],
+    "lost_cat_ticks": 946
+   },
+   "drink": {
+    "proposed_share": 0.05,
+    "proposed_with_thirst_under_10": 0.718,
+    "idle_drink_rate_no_flag": [
+     0.088,
+     7187
+    ],
+    "idle_drink_rate_flagged": [
+     0.917,
+     521
+    ]
+   }
+  },
+  {
+   "arm": "needs",
+   "size": 40,
+   "seed": 905004,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 7
+    },
+    "1": {
+     "streak": 55
+    },
+    "2": {
+     "streak": 337,
+     "need": "cuddle",
+     "span": [
+      748,
+      1084
+     ],
+     "flag_share": {
+      "eat": 0.053,
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 32.0,
+      "drink": 14.3,
+      "sleep": 36.7,
+      "play": 8.0,
+      "cuddle": 99.6,
+      "bath": 14.7
+     },
+     "nearest_friend_mean": 35.1,
+     "friend_in_sight": 0.015,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.006,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.757,
+     "pos_range": [
+      32.0,
+      5.0
+     ],
+     "on_water": 0.003,
+     "free_ticks": 295,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.064,
+      "eat": 0.051
+     },
+     "free_chosen": {
+      "move_east": 102,
+      "move_west": 96,
+      "move_south": 22,
+      "move_north": 21,
+      "eat": 15
+     },
+     "nearest_bowl_walk": {
+      "mean": 9.3,
+      "range": [
+       7.0,
+       12.0
+      ]
+     }
+    },
+    "3": {
+     "streak": 37
+    },
+    "4": {
+     "streak": 0
+    }
+   },
+   "stamp_check": {
+    "rows": 1515,
+    "row_place_is_the_last_call_place": 0.809,
+    "lonely_ticks": 2148,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.806
+   },
+   "runs": [
+    [
+     104,
+     86,
+     0.035
+    ],
+    [
+     83,
+     63,
+     0.032
+    ],
+    [
+     80,
+     59,
+     0.271
+    ],
+    [
+     147,
+     111,
+     0.018
+    ],
+    [
+     79,
+     47,
+     0.17
+    ],
+    [
+     112,
+     82,
+     0.11
+    ],
+    [
+     432,
+     295,
+     0.064
+    ],
+    [
+     129,
+     97,
+     0.247
+    ],
+    [
+     113,
+     85,
+     0.282
+    ],
+    [
+     109,
+     81,
+     0.346
+    ],
+    [
+     54,
+     31,
+     0.581
+    ],
+    [
+     53,
+     18,
+     0.222
+    ],
+    [
+     68,
+     39,
+     0.41
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 627,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.657,
+     627
+    ],
+    "closed_when_content": [
+     0.654,
+     621
+    ],
+    "lost_cat_ticks": 450
+   },
+   "drink": {
+    "proposed_share": 0.042,
+    "proposed_with_thirst_under_10": 0.647,
+    "idle_drink_rate_no_flag": [
+     0.077,
+     7464
+    ],
+    "idle_drink_rate_flagged": [
+     0.673,
+     107
+    ]
+   }
+  },
+  {
+   "arm": "needs",
+   "size": 40,
+   "seed": 905030,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 0
+    },
+    "1": {
+     "streak": 0
+    },
+    "2": {
+     "streak": 138
+    },
+    "3": {
+     "streak": 51
+    },
+    "4": {
+     "streak": 427,
+     "need": "cuddle",
+     "span": [
+      2496,
+      2922
+     ],
+     "flag_share": {
+      "eat": 0.218,
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 47.1,
+      "drink": 8.1,
+      "sleep": 39.9,
+      "play": 10.5,
+      "cuddle": 99.8,
+      "bath": 31.3
+     },
+     "nearest_friend_mean": 34.6,
+     "friend_in_sight": 0.012,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.005,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.473,
+     "pos_range": [
+      14.0,
+      14.0
+     ],
+     "on_water": 0.0,
+     "free_ticks": 316,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.307,
+      "eat": 0.057
+     },
+     "free_chosen": {
+      "move_east": 82,
+      "drink": 76,
+      "move_west": 72,
+      "move_north": 25,
+      "move_south": 23
+     },
+     "nearest_bowl_walk": {
+      "mean": 9.2,
+      "range": [
+       1.0,
+       13.0
+      ]
+     }
+    }
+   },
+   "stamp_check": {
+    "rows": 1095,
+    "row_place_is_the_last_call_place": 0.833,
+    "lonely_ticks": 1814,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.743
+   },
+   "runs": [
+    [
+     82,
+     67,
+     0.433
+    ],
+    [
+     69,
+     49,
+     0.776
+    ],
+    [
+     57,
+     36,
+     0.583
+    ],
+    [
+     231,
+     28,
+     0.393
+    ],
+    [
+     61,
+     32,
+     0.719
+    ],
+    [
+     103,
+     69,
+     0.203
+    ],
+    [
+     146,
+     118,
+     0.059
+    ],
+    [
+     479,
+     246,
+     0.13
+    ],
+    [
+     191,
+     128,
+     0.125
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 826,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.602,
+     826
+    ],
+    "closed_when_content": [
+     0.602,
+     826
+    ],
+    "lost_cat_ticks": 736
+   },
+   "drink": {
+    "proposed_share": 0.04,
+    "proposed_with_thirst_under_10": 0.644,
+    "idle_drink_rate_no_flag": [
+     0.066,
+     7053
+    ],
+    "idle_drink_rate_flagged": [
+     0.825,
+     154
+    ]
+   }
+  },
+  {
+   "arm": "needs",
+   "size": 100,
+   "seed": 905001,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 86
+    },
+    "1": {
+     "streak": 910,
+     "need": "cuddle",
+     "span": [
+      13191,
+      14100
+     ],
+     "flag_share": {
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 15.1,
+      "drink": 16.4,
+      "sleep": 25.5,
+      "play": 17.5,
+      "cuddle": 99.8,
+      "bath": 22.2
+     },
+     "nearest_friend_mean": 58.9,
+     "friend_in_sight": 0.005,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.002,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.705,
+     "pos_range": [
+      45.0,
+      28.0
+     ],
+     "on_water": 0.038,
+     "free_ticks": 776,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.098,
+      "eat": 0.049
+     },
+     "free_chosen": {
+      "move_west": 234,
+      "move_east": 193,
+      "move_south": 87,
+      "chase_critter_0": 78,
+      "move_north": 40
+     },
+     "nearest_bowl_walk": {
+      "mean": 7.1,
+      "range": [
+       1.0,
+       14.0
+      ]
+     }
+    },
+    "2": {
+     "streak": 382,
+     "need": "cuddle",
+     "span": [
+      12443,
+      12824
+     ],
+     "flag_share": {
+      "eat": 0.838,
+      "sleep": 0.089,
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 93.7,
+      "drink": 4.3,
+      "sleep": 59.3,
+      "play": 29.7,
+      "cuddle": 99.6,
+      "bath": 51.0
+     },
+     "nearest_friend_mean": 29.0,
+     "friend_in_sight": 0.016,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.0,
+     "partner_act_proposed_when_legal": null,
+     "refused_when_proposed": null,
+     "moved": 0.149,
+     "pos_range": [
+      6.0,
+      10.0
+     ],
+     "on_water": 0.0,
+     "free_ticks": 223,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.664,
+      "eat": 0.013
+     },
+     "free_chosen": {
+      "drink": 145,
+      "move_south": 25,
+      "move_north": 22,
+      "move_west": 8,
+      "play_solo": 8
+     },
+     "nearest_bowl_walk": {
+      "mean": 12.9,
+      "range": [
+       12.0,
+       16.0
+      ]
+     }
+    },
+    "3": {
+     "streak": 326,
+     "need": "eat",
+     "span": [
+      16945,
+      17270
+     ],
+     "flag_share": {
+      "eat": 0.84,
+      "sleep": 0.129,
+      "cuddle": 0.736,
+      "bath": 0.04
+     },
+     "needs_mean": {
+      "eat": 85.4,
+      "drink": 5.8,
+      "sleep": 54.1,
+      "play": 28.7,
+      "cuddle": 92.4,
+      "bath": 46.7
+     },
+     "nearest_friend_mean": 34.3,
+     "friend_in_sight": 0.018,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.006,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.304,
+     "pos_range": [
+      8.0,
+      34.0
+     ],
+     "on_water": 0.003,
+     "free_ticks": 211,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.498,
+      "eat": 0.014
+     },
+     "free_chosen": {
+      "drink": 93,
+      "move_south": 40,
+      "move_west": 31,
+      "move_east": 21,
+      "sleep_solo": 8
+     },
+     "nearest_bowl_walk": {
+      "mean": 13.3,
+      "range": [
+       9.0,
+       16.0
+      ]
+     }
+    },
+    "4": {
+     "streak": 159
+    }
+   },
+   "stamp_check": {
+    "rows": 4960,
+    "row_place_is_the_last_call_place": 0.775,
+    "lonely_ticks": 8065,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.722
+   },
+   "runs": [
+    [
+     72,
+     46,
+     0.261
+    ],
+    [
+     135,
+     95,
+     0.189
+    ],
+    [
+     180,
+     128,
+     0.336
+    ],
+    [
+     53,
+     33,
+     0.545
+    ],
+    [
+     79,
+     65,
+     0.369
+    ],
+    [
+     151,
+     105,
+     0.305
+    ],
+    [
+     104,
+     62,
+     0.677
+    ],
+    [
+     75,
+     67,
+     0.418
+    ],
+    [
+     705,
+     392,
+     0.265
+    ],
+    [
+     65,
+     37,
+     0.216
+    ],
+    [
+     1005,
+     707,
+     0.088
+    ],
+    [
+     299,
+     168,
+     0.095
+    ],
+    [
+     209,
+     128,
+     0.336
+    ],
+    [
+     343,
+     223,
+     0.229
+    ],
+    [
+     234,
+     181,
+     0.077
+    ],
+    [
+     72,
+     42,
+     0.881
+    ],
+    [
+     60,
+     48,
+     0.938
+    ],
+    [
+     54,
+     48,
+     0.979
+    ],
+    [
+     476,
+     112,
+     0.152
+    ],
+    [
+     128,
+     7,
+     0.857
+    ],
+    [
+     209,
+     31,
+     0.645
+    ],
+    [
+     135,
+     78,
+     0.603
+    ],
+    [
+     239,
+     104,
+     0.183
+    ],
+    [
+     131,
+     20,
+     0.85
+    ],
+    [
+     72,
+     51,
+     0.196
+    ],
+    [
+     334,
+     95,
+     0.389
+    ],
+    [
+     69,
+     48,
+     0.417
+    ],
+    [
+     53,
+     42,
+     0.929
+    ],
+    [
+     76,
+     58,
+     0.259
+    ],
+    [
+     95,
+     67,
+     0.627
+    ],
+    [
+     211,
+     175,
+     0.194
+    ],
+    [
+     73,
+     53,
+     0.094
+    ],
+    [
+     107,
+     73,
+     0.452
+    ],
+    [
+     181,
+     144,
+     0.042
+    ],
+    [
+     93,
+     67,
+     0.627
+    ],
+    [
+     87,
+     67,
+     0.09
+    ],
+    [
+     70,
+     46,
+     0.326
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 5225,
+    "hears_the_lost_cat": 0.994,
+    "closed_when_hearing": [
+     0.572,
+     5192
+    ],
+    "closed_when_content": [
+     0.556,
+     4216
+    ],
+    "lost_cat_ticks": 3797
+   },
+   "drink": {
+    "proposed_share": 0.065,
+    "proposed_with_thirst_under_10": 0.791,
+    "idle_drink_rate_no_flag": [
+     0.186,
+     6855
+    ],
+    "idle_drink_rate_flagged": [
+     0.729,
+     885
+    ]
+   }
+  },
+  {
+   "arm": "needs",
+   "size": 100,
+   "seed": 905002,
+   "ticks": 7423,
+   "seats": {
+    "0": {
+     "streak": 999,
+     "need": "cuddle",
+     "span": [
+      6424,
+      7422
+     ],
+     "flag_share": {
+      "eat": 0.052,
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 26.1,
+      "drink": 5.8,
+      "sleep": 30.5,
+      "play": 21.6,
+      "cuddle": 99.9,
+      "bath": 25.4
+     },
+     "nearest_friend_mean": 71.8,
+     "friend_in_sight": 0.0,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.0,
+     "partner_act_proposed_when_legal": null,
+     "refused_when_proposed": null,
+     "moved": 0.31,
+     "pos_range": [
+      34.0,
+      75.0
+     ],
+     "on_water": 0.026,
+     "free_ticks": 649,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.439,
+      "eat": 0.057
+     },
+     "free_chosen": {
+      "drink": 233,
+      "move_west": 101,
+      "move_east": 91,
+      "move_south": 89,
+      "sleep_solo": 36
+     },
+     "nearest_bowl_walk": {
+      "mean": 7.0,
+      "range": [
+       1.0,
+       12.0
+      ]
+     }
+    },
+    "1": {
+     "streak": 415,
+     "need": "cuddle",
+     "span": [
+      1952,
+      2366
+     ],
+     "flag_share": {
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 31.8,
+      "drink": 12.2,
+      "sleep": 27.2,
+      "play": 20.8,
+      "cuddle": 99.7,
+      "bath": 28.0
+     },
+     "nearest_friend_mean": 45.7,
+     "friend_in_sight": 0.022,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.007,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.542,
+     "pos_range": [
+      33.0,
+      15.0
+     ],
+     "on_water": 0.005,
+     "free_ticks": 320,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.297,
+      "eat": 0.031
+     },
+     "free_chosen": {
+      "move_west": 90,
+      "move_east": 64,
+      "drink": 54,
+      "move_north": 28,
+      "move_south": 19
+     },
+     "nearest_bowl_walk": {
+      "mean": 9.4,
+      "range": [
+       1.0,
+       12.0
+      ]
+     }
+    },
+    "2": {
+     "streak": 49
+    },
+    "3": {
+     "streak": 83
+    },
+    "4": {
+     "streak": 38
+    }
+   },
+   "stamp_check": {
+    "rows": 1408,
+    "row_place_is_the_last_call_place": 0.824,
+    "lonely_ticks": 2758,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.647
+   },
+   "runs": [
+    [
+     118,
+     77,
+     0.753
+    ],
+    [
+     1099,
+     362,
+     0.221
+    ],
+    [
+     123,
+     80,
+     0.4
+    ],
+    [
+     506,
+     303,
+     0.036
+    ],
+    [
+     118,
+     65,
+     0.354
+    ],
+    [
+     140,
+     24,
+     0.375
+    ],
+    [
+     174,
+     95,
+     0.558
+    ],
+    [
+     70,
+     52,
+     0.096
+    ],
+    [
+     70,
+     60,
+     0.867
+    ],
+    [
+     87,
+     78,
+     0.141
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 1980,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.52,
+     1980
+    ],
+    "closed_when_content": [
+     0.513,
+     1856
+    ],
+    "lost_cat_ticks": 1621
+   },
+   "drink": {
+    "proposed_share": 0.054,
+    "proposed_with_thirst_under_10": 0.757,
+    "idle_drink_rate_no_flag": [
+     0.108,
+     2161
+    ],
+    "idle_drink_rate_flagged": [
+     0.732,
+     399
+    ]
+   }
+  },
+  {
+   "arm": "needs",
+   "size": 100,
+   "seed": 905003,
+   "ticks": 17421,
+   "seats": {
+    "0": {
+     "streak": 92
+    },
+    "1": {
+     "streak": 483,
+     "need": "cuddle",
+     "span": [
+      895,
+      1377
+     ],
+     "flag_share": {
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 17.3,
+      "drink": 14.7,
+      "sleep": 23.6,
+      "play": 17.8,
+      "cuddle": 99.7,
+      "bath": 20.1
+     },
+     "nearest_friend_mean": 47.1,
+     "friend_in_sight": 0.012,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.004,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.72,
+     "pos_range": [
+      14.0,
+      19.0
+     ],
+     "on_water": 0.0,
+     "free_ticks": 413,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.056,
+      "eat": 0.048
+     },
+     "free_chosen": {
+      "move_west": 116,
+      "move_east": 109,
+      "move_south": 50,
+      "chase_critter_0": 41,
+      "move_north": 28
+     },
+     "nearest_bowl_walk": {
+      "mean": 9.0,
+      "range": [
+       1.0,
+       14.0
+      ]
+     }
+    },
+    "2": {
+     "streak": 999,
+     "need": "cuddle",
+     "span": [
+      16422,
+      17420
+     ],
+     "flag_share": {
+      "eat": 0.103,
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 29.7,
+      "drink": 10.8,
+      "sleep": 23.8,
+      "play": 12.6,
+      "cuddle": 99.9,
+      "bath": 19.2
+     },
+     "nearest_friend_mean": 55.8,
+     "friend_in_sight": 0.0,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.0,
+     "partner_act_proposed_when_legal": null,
+     "refused_when_proposed": null,
+     "moved": 0.534,
+     "pos_range": [
+      52.0,
+      78.0
+     ],
+     "on_water": 0.005,
+     "free_ticks": 773,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.288,
+      "eat": 0.06
+     },
+     "free_chosen": {
+      "move_west": 211,
+      "move_east": 201,
+      "drink": 126,
+      "move_south": 94,
+      "play_critter_0": 51
+     },
+     "nearest_bowl_walk": {
+      "mean": 8.1,
+      "range": [
+       4.0,
+       12.0
+      ]
+     }
+    },
+    "3": {
+     "streak": 627,
+     "need": "cuddle",
+     "span": [
+      2038,
+      2664
+     ],
+     "flag_share": {
+      "eat": 0.419,
+      "cuddle": 1.0,
+      "bath": 0.041
+     },
+     "needs_mean": {
+      "eat": 60.4,
+      "drink": 1.6,
+      "sleep": 24.4,
+      "play": 38.7,
+      "cuddle": 99.8,
+      "bath": 38.5
+     },
+     "nearest_friend_mean": 34.1,
+     "friend_in_sight": 0.01,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.005,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.112,
+     "pos_range": [
+      13.0,
+      19.0
+     ],
+     "on_water": 0.129,
+     "free_ticks": 337,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.769,
+      "eat": 0.033
+     },
+     "free_chosen": {
+      "drink": 232,
+      "move_south": 20,
+      "move_east": 18,
+      "move_west": 18,
+      "move_north": 14
+     },
+     "nearest_bowl_walk": {
+      "mean": 12.0,
+      "range": [
+       3.0,
+       17.0
+      ]
+     }
+    },
+    "4": {
+     "streak": 121
+    }
+   },
+   "stamp_check": {
+    "rows": 3545,
+    "row_place_is_the_last_call_place": 0.783,
+    "lonely_ticks": 5668,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.739
+   },
+   "runs": [
+    [
+     73,
+     33,
+     0.788
+    ],
+    [
+     163,
+     136,
+     0.213
+    ],
+    [
+     81,
+     63,
+     0.857
+    ],
+    [
+     182,
+     152,
+     0.059
+    ],
+    [
+     577,
+     416,
+     0.043
+    ],
+    [
+     144,
+     86,
+     0.291
+    ],
+    [
+     475,
+     350,
+     0.194
+    ],
+    [
+     61,
+     38,
+     0.605
+    ],
+    [
+     80,
+     71,
+     0.169
+    ],
+    [
+     57,
+     50,
+     0.58
+    ],
+    [
+     105,
+     68,
+     0.574
+    ],
+    [
+     1099,
+     588,
+     0.119
+    ],
+    [
+     117,
+     88,
+     0.852
+    ],
+    [
+     51,
+     46,
+     0.283
+    ],
+    [
+     721,
+     143,
+     0.238
+    ],
+    [
+     56,
+     44,
+     0.432
+    ],
+    [
+     202,
+     91,
+     0.308
+    ],
+    [
+     95,
+     70,
+     0.314
+    ],
+    [
+     127,
+     97,
+     0.454
+    ],
+    [
+     75,
+     50,
+     0.9
+    ],
+    [
+     51,
+     39,
+     0.974
+    ],
+    [
+     171,
+     98,
+     0.49
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 3678,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.612,
+     3678
+    ],
+    "closed_when_content": [
+     0.601,
+     3368
+    ],
+    "lost_cat_ticks": 2987
+   },
+   "drink": {
+    "proposed_share": 0.058,
+    "proposed_with_thirst_under_10": 0.768,
+    "idle_drink_rate_no_flag": [
+     0.138,
+     5493
+    ],
+    "idle_drink_rate_flagged": [
+     0.733,
+     829
+    ]
+   }
+  },
+  {
+   "arm": "nohead",
+   "size": 40,
+   "seed": 905012,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 0
+    },
+    "1": {
+     "streak": 0
+    },
+    "2": {
+     "streak": 0
+    },
+    "3": {
+     "streak": 0
+    },
+    "4": {
+     "streak": 0
+    }
+   },
+   "stamp_check": {
+    "rows": 67,
+    "row_place_is_the_last_call_place": 0.806,
+    "lonely_ticks": 83,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.905
+   },
+   "runs": [],
+   "rescue": {
+    "friend_moves": 0,
+    "hears_the_lost_cat": null,
+    "closed_when_hearing": null,
+    "closed_when_content": null,
+    "lost_cat_ticks": 0
+   },
+   "drink": {
+    "proposed_share": 0.045,
+    "proposed_with_thirst_under_10": 0.651,
+    "idle_drink_rate_no_flag": [
+     0.08,
+     8851
+    ],
+    "idle_drink_rate_flagged": null
+   }
+  },
+  {
+   "arm": "nohead",
+   "size": 40,
+   "seed": 905004,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 0
+    },
+    "1": {
+     "streak": 0
+    },
+    "2": {
+     "streak": 0
+    },
+    "3": {
+     "streak": 11
+    },
+    "4": {
+     "streak": 67
+    }
+   },
+   "stamp_check": {
+    "rows": 259,
+    "row_place_is_the_last_call_place": 0.834,
+    "lonely_ticks": 382,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.764
+   },
+   "runs": [
+    [
+     76,
+     44,
+     0.727
+    ],
+    [
+     99,
+     61,
+     0.279
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 36,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.361,
+     36
+    ],
+    "closed_when_content": [
+     0.361,
+     36
+    ],
+    "lost_cat_ticks": 42
+   },
+   "drink": {
+    "proposed_share": 0.044,
+    "proposed_with_thirst_under_10": 0.646,
+    "idle_drink_rate_no_flag": [
+     0.079,
+     8420
+    ],
+    "idle_drink_rate_flagged": [
+     0.75,
+     24
+    ]
+   }
+  },
+  {
+   "arm": "nohead",
+   "size": 40,
+   "seed": 905030,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 0
+    },
+    "1": {
+     "streak": 0
+    },
+    "2": {
+     "streak": 0
+    },
+    "3": {
+     "streak": 0
+    },
+    "4": {
+     "streak": 0
+    }
+   },
+   "stamp_check": {
+    "rows": 183,
+    "row_place_is_the_last_call_place": 0.743,
+    "lonely_ticks": 227,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.897
+   },
+   "runs": [
+    [
+     51,
+     29,
+     0.759
+    ],
+    [
+     50,
+     39,
+     0.308
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 0,
+    "hears_the_lost_cat": null,
+    "closed_when_hearing": null,
+    "closed_when_content": null,
+    "lost_cat_ticks": 0
+   },
+   "drink": {
+    "proposed_share": 0.045,
+    "proposed_with_thirst_under_10": 0.647,
+    "idle_drink_rate_no_flag": [
+     0.082,
+     8508
+    ],
+    "idle_drink_rate_flagged": null
+   }
+  },
+  {
+   "arm": "nohead",
+   "size": 100,
+   "seed": 905001,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 60
+    },
+    "1": {
+     "streak": 17
+    },
+    "2": {
+     "streak": 19
+    },
+    "3": {
+     "streak": 62
+    },
+    "4": {
+     "streak": 138
+    }
+   },
+   "stamp_check": {
+    "rows": 1632,
+    "row_place_is_the_last_call_place": 0.76,
+    "lonely_ticks": 2251,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.77
+   },
+   "runs": [
+    [
+     55,
+     34,
+     0.441
+    ],
+    [
+     106,
+     71,
+     0.606
+    ],
+    [
+     104,
+     66,
+     0.848
+    ],
+    [
+     84,
+     32,
+     0.594
+    ],
+    [
+     114,
+     76,
+     0.776
+    ],
+    [
+     108,
+     71,
+     0.845
+    ],
+    [
+     155,
+     83,
+     0.807
+    ],
+    [
+     60,
+     52,
+     0.942
+    ],
+    [
+     65,
+     49,
+     0.98
+    ],
+    [
+     61,
+     44,
+     0.773
+    ],
+    [
+     50,
+     31,
+     0.323
+    ],
+    [
+     142,
+     131,
+     0.046
+    ],
+    [
+     52,
+     46,
+     0.435
+    ],
+    [
+     86,
+     58,
+     0.776
+    ],
+    [
+     117,
+     71,
+     0.62
+    ],
+    [
+     65,
+     43,
+     0.233
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 432,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.579,
+     432
+    ],
+    "closed_when_content": [
+     0.519,
+     343
+    ],
+    "lost_cat_ticks": 269
+   },
+   "drink": {
+    "proposed_share": 0.039,
+    "proposed_with_thirst_under_10": 0.6,
+    "idle_drink_rate_no_flag": [
+     0.056,
+     7089
+    ],
+    "idle_drink_rate_flagged": [
+     0.176,
+     34
+    ]
+   }
+  },
+  {
+   "arm": "nohead",
+   "size": 100,
+   "seed": 905002,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 446,
+     "need": "cuddle",
+     "span": [
+      8347,
+      8792
+     ],
+     "flag_share": {
+      "eat": 0.072,
+      "sleep": 0.011,
+      "cuddle": 1.0
+     },
+     "needs_mean": {
+      "eat": 46.8,
+      "drink": 6.0,
+      "sleep": 35.1,
+      "play": 9.0,
+      "cuddle": 99.7,
+      "bath": 20.1
+     },
+     "nearest_friend_mean": 53.1,
+     "friend_in_sight": 0.016,
+     "friend_heard": 1.0,
+     "partner_act_legal": 0.004,
+     "partner_act_proposed_when_legal": 1.0,
+     "refused_when_proposed": 0.0,
+     "moved": 0.363,
+     "pos_range": [
+      44.0,
+      3.0
+     ],
+     "on_water": 0.007,
+     "free_ticks": 304,
+     "free_legal": {
+      "move": 1.0,
+      "drink": 0.319,
+      "eat": 0.049
+     },
+     "free_chosen": {
+      "move_east": 58,
+      "drink": 57,
+      "move_west": 46,
+      "play_critter_0": 46,
+      "chase_critter_0": 40
+     },
+     "nearest_bowl_walk": {
+      "mean": 13.1,
+      "range": [
+       9.0,
+       19.0
+      ]
+     }
+    },
+    "1": {
+     "streak": 68
+    },
+    "2": {
+     "streak": 61
+    },
+    "3": {
+     "streak": 34
+    },
+    "4": {
+     "streak": 102
+    }
+   },
+   "stamp_check": {
+    "rows": 1823,
+    "row_place_is_the_last_call_place": 0.77,
+    "lonely_ticks": 2804,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.719
+   },
+   "runs": [
+    [
+     539,
+     187,
+     0.225
+    ],
+    [
+     114,
+     37,
+     0.784
+    ],
+    [
+     110,
+     75,
+     0.453
+    ],
+    [
+     98,
+     69,
+     0.696
+    ],
+    [
+     162,
+     114,
+     0.333
+    ],
+    [
+     72,
+     52,
+     0.673
+    ],
+    [
+     56,
+     41,
+     0.634
+    ],
+    [
+     57,
+     37,
+     0.811
+    ],
+    [
+     80,
+     60,
+     0.433
+    ],
+    [
+     80,
+     64,
+     0.625
+    ],
+    [
+     55,
+     35,
+     0.657
+    ],
+    [
+     78,
+     27,
+     0.704
+    ],
+    [
+     63,
+     47,
+     0.255
+    ],
+    [
+     64,
+     49,
+     0.694
+    ],
+    [
+     54,
+     47,
+     0.957
+    ],
+    [
+     98,
+     74,
+     0.716
+    ],
+    [
+     75,
+     61,
+     0.23
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 990,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.532,
+     990
+    ],
+    "closed_when_content": [
+     0.507,
+     815
+    ],
+    "lost_cat_ticks": 618
+   },
+   "drink": {
+    "proposed_share": 0.042,
+    "proposed_with_thirst_under_10": 0.624,
+    "idle_drink_rate_no_flag": [
+     0.06,
+     7524
+    ],
+    "idle_drink_rate_flagged": [
+     0.533,
+     152
+    ]
+   }
+  },
+  {
+   "arm": "nohead",
+   "size": 100,
+   "seed": 905003,
+   "ticks": 20000,
+   "seats": {
+    "0": {
+     "streak": 10
+    },
+    "1": {
+     "streak": 0
+    },
+    "2": {
+     "streak": 39
+    },
+    "3": {
+     "streak": 34
+    },
+    "4": {
+     "streak": 8
+    }
+   },
+   "stamp_check": {
+    "rows": 1545,
+    "row_place_is_the_last_call_place": 0.748,
+    "lonely_ticks": 2039,
+    "lonely_no_friend_heard": 0.0,
+    "lonely_free_move_proposed": 0.841
+   },
+   "runs": [
+    [
+     52,
+     37,
+     0.757
+    ],
+    [
+     70,
+     47,
+     0.468
+    ],
+    [
+     103,
+     59,
+     0.78
+    ],
+    [
+     62,
+     51,
+     0.98
+    ],
+    [
+     52,
+     38,
+     0.974
+    ],
+    [
+     59,
+     36,
+     0.75
+    ],
+    [
+     78,
+     66,
+     0.924
+    ],
+    [
+     78,
+     57,
+     0.912
+    ],
+    [
+     135,
+     78,
+     0.141
+    ],
+    [
+     71,
+     59,
+     1.034
+    ],
+    [
+     91,
+     67,
+     0.672
+    ],
+    [
+     121,
+     86,
+     0.709
+    ],
+    [
+     83,
+     65,
+     0.738
+    ],
+    [
+     51,
+     47,
+     0.809
+    ],
+    [
+     60,
+     42,
+     0.167
+    ]
+   ],
+   "rescue": {
+    "friend_moves": 124,
+    "hears_the_lost_cat": 1.0,
+    "closed_when_hearing": [
+     0.734,
+     124
+    ],
+    "closed_when_content": [
+     0.69,
+     71
+    ],
+    "lost_cat_ticks": 62
+   },
+   "drink": {
+    "proposed_share": 0.039,
+    "proposed_with_thirst_under_10": 0.605,
+    "idle_drink_rate_no_flag": [
+     0.059,
+     7249
+    ],
+    "idle_drink_rate_flagged": [
+     0.222,
+     9
+    ]
+   }
+  }
+ ]
+}
