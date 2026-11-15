@@ -3357,8 +3357,14 @@ read. Predicted reds, written before any mutant runs:
 One case the frozen §8 does not name, fixed here before a number: A2
 met with A1 missed prints as outside the grammar and goes to her.
 
-Status: DECLARED 2026-11-14; instruments red-proven; the arm TRAINING
-since 2026-11-15T07:46Z; the reader's reds owed — OPEN.
+REDS ON RECORD 2026-11-15, all four as predicted, each `RED CONFIRMED
+· baseline == restored`: u1 `the reader took a leg whose header names
+another file`; u2 `A1 scores … as [True, True, False, False]`; u3 `A2
+scores its four cases as [True, True, False, False]`; u3 (A3) `A3 does
+not read half of the no-head gain`.
+
+Status: DECLARED 2026-11-14; instruments and reader red-proven; the
+arm TRAINING since 2026-11-15T07:46Z — OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 
