@@ -3550,6 +3550,36 @@ before its mutant only as the `--expect` argument of its
 | t4 | a leg file of another seating is refused | the seating check removed | `the reader took the baseline's file as the rescue's` |
 | t5 | a leg file of another size is refused | the config check removed | `the reader took a 100x100 leg as a 40x40 one` |
 
-Status: DECLARED 2026-11-15; four legs run, the P leg at 100×100
-stopped at its scout and with her; the reader red-proven, nothing read
-— OPEN.
+FIRST READ 2026-11-15 (`reads/rescue.json`, `reads/rescue.md`; not
+yet gated, no RESULTS written). The primary pair, T − P at 100×100, is
+missing with the P leg; §8's grammar is not applied and S1, S2 and S4
+are unscored.
+
+- T against the recorded baseline at 100×100, 29 worlds whole in both
+  (905009 aborted in the baseline): team happiness −0.019 (17 up, 12
+  down; interval −0.138 to +0.093). Lost cat-ticks 5,140 against
+  17,226 (−70%). Worlds with a 300+ streak 5 against 13; worst streak
+  557 against 1,000; no abort against one.
+- O against the baseline at 100×100: team happiness −0.172 (11 up, 18
+  down; interval −0.307 to −0.049). Lost cat-ticks 6,609 against
+  17,226 (−62%); 8 worlds with a 300+ streak; worst 906.
+- 40×40: T − P +0.014 (7 up, 3 down, 20 worlds identical: no mission
+  opened in them); lost cat-ticks T 235, P 916, baseline 1,081.
+- Missions. T at 100×100: 253 (8.4 a world), median 22 ticks, 0.937
+  ending in a partner act, the rule setting 0.22% of all acts; over
+  its mission ticks the rescuer's happiness sits 7.2 below the same
+  seat's over the same ticks of the baseline world. O: 1,052 missions,
+  0.285 ending in a partner act. P at 40×40: 15 missions, median 32
+  ticks, the rescuer 15.4 below.
+- Predictions. S3 NOT MET by its letter (7 worlds positive where
+  10–20 were predicted; the mean is inside ±0.15 and 20 worlds are
+  ties). S5 met by its letter only: it expected O to carry half of a
+  gain, and both differences are negative.
+- Outside the declared reads, named as such: the training reward
+  (team Nash welfare, ×100) reads −0.013 for T and −0.174 for O
+  against the baseline at 100×100; cat-ticks with any distress flag
+  16,497 for T against 25,604.
+
+Status: DECLARED 2026-11-15; four legs run and first-read; the P leg
+at 100×100 stopped at its scout and with her; RESULTS and its gate
+owed — OPEN.

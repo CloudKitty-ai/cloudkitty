@@ -1322,6 +1322,11 @@ consent BC comparison ride the trunk.
   scripted-rescue probe DECLARED (entry 39): five calls as
   recommended, 16.5M covered cat-ticks, legs to start on the guards'
   reds, scouts first.
+  Overlay, hook and guards built and red-proven (twelve reds); four
+  legs run clean, the placebo leg at 100×100 stopped at its scout
+  (world 905003 aborted) and is with her. First read (not gated): the
+  rescue on the facts cuts lost cat-ticks 70% at 100×100 and removes
+  the abort; team happiness is level (−0.019, 17 of 29 worlds up).
 
 ## Flagged follow-ups (owner's word to start)
 
