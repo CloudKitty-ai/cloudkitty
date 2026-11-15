@@ -1327,6 +1327,10 @@ consent BC comparison ride the trunk.
   (world 905003 aborted) and is with her. First read (not gated): the
   rescue on the facts cuts lost cat-ticks 70% at 100×100 and removes
   the abort; team happiness is level (−0.019, 17 of 29 worlds up).
+  The re-anchor scout ended clean at 10,002,432 lineage ticks; first
+  read (not gated): +1.841 over trunk s1 at 40×40 (30 of 30), against
+  +0.139 for the same resume under the old anchor and +1.678 for the
+  no-head 2M checkpoint; A1–A3 MET.
 
 ## Flagged follow-ups (owner's word to start)
 

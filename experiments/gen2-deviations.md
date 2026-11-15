@@ -3374,8 +3374,36 @@ reader, not here. Next under her launch word (§13 step 3): the legs at
 20×20 then 40×40 (scout first), and the no-head arm's 2M checkpoint
 leg at 40×40 (call 5).
 
-Status: DECLARED 2026-11-14; the arm trained to its end; legs RUNNING
-— OPEN.
+LEGS RUN 2026-11-15T08:39–08:42Z at HEAD d961130c, all clean:
+`reanchor-s1` at 20×20 (worst streak 106), its 40×40 scout (41) and
+leg (150); the no-head arm's 2M checkpoint `r6-nohead-s1-u651` at
+40×40, scout (309) and leg (worst 897, no abort). 3.0M + 3.3M + 3.3M
+covered cat-ticks.
+
+FIRST READ 2026-11-15 (`reads/reanchor.json`, `reads/reanchor.md`;
+not yet gated, no RESULTS written):
+
+- R-A. Trunk seed 1's last bin 0.8802. The arm's two bins 0.8931 and
+  0.8956 (KL to its anchor 0.237, 0.281): step +0.0129. `cont-s1`,
+  the same resume under the old anchor: 0.8814, 0.8820 (KL 0.537,
+  0.546), step +0.0011. The no-head arm: 0.8914, 0.8940 (KL 0.206,
+  0.298), step +0.0112.
+- R-B at 40×40, against trunk seed 1, paired by world: the arm +1.841
+  (30 of 30 worlds up); `cont-s1`'s 10M rung +0.139 (27 of 30); the
+  no-head arm's 2M checkpoint +1.678 (30 of 30). The arm over the
+  rung +1.702 (30 of 30), over the no-head checkpoint +0.163 (30 of
+  30). At 20×20 the arm reads +1.729 over the trunk (30 of 30).
+- The tail at 40×40: the arm has no world with a 300+ streak (worst
+  150); the no-head 2M checkpoint has 8 (worst 897).
+- A1 MET, A2 MET, A3 MET. §8: the anchor alone is sufficient on this
+  seed. One seed; put to her: seeds 2 and 4 of this arm, then the
+  second-restart scout.
+
+Owed: R-C and R-D (dump-only, they score nothing), RESULTS and its
+gate, the recipe question to her with R-C.
+
+Status: DECLARED 2026-11-14; trained, legs run and first-read: A1–A3
+MET; R-C, R-D and the gated RESULTS owed — OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 
