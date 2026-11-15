@@ -3207,3 +3207,25 @@ Predictions for the reds, written before any mutant ran (each through
 | g14e | the slot mapped to the needs arm (`train_ppo_p2.py`) | `the final names arm needs` |
 | g14e | the probe passes the state shifted one kitty (`train_ppo_p2.py`) | `the probe's dumped truth cells are not the friends' own needs` |
 | g10 | the truth slot given run index 123 (`train_ppo_p2.py`) | `run index [123] is claimed by two slots` |
+
+REDS ON RECORD 2026-11-14, all eight as predicted, each `RED
+CONFIRMED · baseline == restored`:
+
+| guard | red observed |
+|---|---|
+| g14a | `truth cells differ from the engine state's at tick 1, observer 0, friend 1` |
+| g14b (replay) | `truth cells lead the observation by a tick` |
+| g14b (runner) | `the runner's truth cells differ from world 1's own observations at tick 6 by 0.035` |
+| g14c | the guard's `AssertionError: truth step ran without a state` |
+| g14d | the step's `truth step ran without a state (the arm's cells are the engine's start-of-tick state)` |
+| g14e (slot) | `the final names arm needs` |
+| g14e (probe) | `the probe's dumped truth cells are not the friends' own needs` |
+| g10 | `run index [123] is claimed by two slots` |
+
+Guard cost, outside §5's line: about 0.1M covered cat-ticks (g14e's
+smoke run of an untrained graft, 2,048 ticks, eight times over the
+cycles; g14d's 300-tick harness leg five times; the kept suites' g5,
+g13 and g3 once each), plus g0c's one 20k-tick trunk leg. Owed before
+their first read, each with its own red: the equal-length paired read
+on a checkpoint, the block read on truly-grave rows, `diag_lost.py`'s
+arm list.
