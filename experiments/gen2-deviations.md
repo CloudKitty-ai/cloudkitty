@@ -3504,5 +3504,52 @@ Re-run 2026-11-15 on the fixed files: all twelve reds again as
 predicted, each `RED CONFIRMED · baseline == restored`. The legs
 restart at HEAD of this commit, in §4's order, scouts first.
 
-Status: DECLARED 2026-11-15; instruments red-proven; legs RUNNING —
-OPEN.
+LEGS RUN 2026-11-15T08:09–08:16Z at HEAD c876745e, §4's order, each
+its scout first:
+
+| leg | scout (3 worlds) | leg (30 worlds) |
+|---|---|---|
+| T, 100×100 | clean, worst streak 330 | clean, worst streak 557 |
+| P, 100×100 | **world 905003 ABORTED at tick 15,186** (seat 0 at the 1,000-tick line) | NOT RUN: the scout stops the leg and it goes to her |
+| T, 40×40 | clean, worst 0 | clean, worst 67 |
+| P, 40×40 | clean, worst 0 | clean, worst 296 |
+| O, 100×100 | clean, worst 206 | clean, worst 906 |
+
+The P scout's aborted cat (seat 0) was never a rescuer in that world
+(no mission tick of its own). Without the P leg at 100×100 the
+primary read (T − P at 100×100, §8) cannot be made; whether that leg
+runs past its scout is her word. Covered so far: 12.0M in the four
+legs, 1.5M in the five scouts less the aborted world's last 4,814
+ticks.
+
+THE READER (`read_rescue.py`, guards `test_read_rescue.py` t1–t5),
+written while the legs ran and before any leg was read. Two choices
+the frozen text leaves to the read, fixed before a number:
+
+- R-2 says lost is "no friend in sight"; §3's rule says "no other
+  kitty within the vision radius (Manhattan)". The reader counts both.
+  S1 is scored on R-2's own wording (sight: no kitty row present in
+  the cat's observation), with §3's count printed beside it.
+- §8 has no line for welfare up at the level with S1 not met. The
+  reader prints that case as outside the grammar; it goes to her as
+  it stands.
+
+Its reds, all five as predicted, each `RED CONFIRMED · baseline ==
+restored`. A slip in the record, as it happened: the edit that was to
+put this table in the entry before the mutants ran failed without a
+commit noticing (commit 85ad65ca's message says the predictions were
+written; they were not in this file). Each prediction was fixed
+before its mutant only as the `--expect` argument of its
+`scripts/mutate.sh` run.
+
+| guard | asserts | mutant | predicted and observed red |
+|---|---|---|---|
+| t1 | only worlds whole in both legs enter a pair | every world counted whole | `an aborted world entered a pair (10 worlds, mean 7.5)` |
+| t2 | the reader's lost counts equal counts made in the test from the engine's state (sight as the vision disc) | the cuddle line read at 50 | `the reader's lost cat-ticks differ from the count made here: 146 / 149 against 21 / 22` |
+| t3 | 21 of 30 is PAYS / COSTS, 20 of 30 is not | the level read at 20 of 30 | `the grammar reads 21 / 20 of 30 as ['PAYS', 'PAYS', …]` |
+| t4 | a leg file of another seating is refused | the seating check removed | `the reader took the baseline's file as the rescue's` |
+| t5 | a leg file of another size is refused | the config check removed | `the reader took a 100x100 leg as a 40x40 one` |
+
+Status: DECLARED 2026-11-15; four legs run, the P leg at 100×100
+stopped at its scout and with her; the reader red-proven, nothing read
+— OPEN.
