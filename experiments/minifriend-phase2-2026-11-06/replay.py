@@ -48,7 +48,8 @@ def kitty_truth(st, roster=C.ROSTER):
 
 
 def replay(acts_npz, config, want_obs=False, horizon=None, check_row=None, want_snapshot=False):
-    """Yield per tick dicts: tick, pre (truth before the step), post (truth after), acts (R, 2), recs (tick_records
+    """Yield per tick dicts: tick, pre (truth before the step), state (the raw v2 global state before the step, the
+    truth arm's step input), post (truth after), acts (R, 2), recs (tick_records
     per seat name), names, env (the live env, for forks), with want_obs the start-of-tick obs (R, 399) and masks
     (R, 51), with want_snapshot the pre-step snapshot bytes (restore into env.fork() for a one-tick branch). The actions are the record's; every seat is a policy seat (the Phase 2 legs seat no scripted cat).
     check_row: the leg's recorded row — its mean_happiness per seat is asserted against the replay's at the end."""
@@ -62,8 +63,9 @@ def replay(acts_npz, config, want_obs=False, horizon=None, check_row=None, want_
     assert list(env.possible_agents) == names, (names, list(env.possible_agents))
     hap_sum = np.zeros(len(names))
     for t in range(T):
-        pre = kitty_truth(env.state())
-        rec = {"tick": t, "pre": pre, "acts": acts[t], "names": names, "env": env, "seed": seed}
+        st = np.asarray(env.state(), np.float32)
+        pre = kitty_truth(st)
+        rec = {"tick": t, "pre": pre, "state": st, "acts": acts[t], "names": names, "env": env, "seed": seed}
         if want_obs:
             rec["obs"] = np.stack([np.asarray(obs[a], np.float32) for a in names])
             rec["mask"] = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)

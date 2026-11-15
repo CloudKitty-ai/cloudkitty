@@ -67,13 +67,18 @@ N_ACTIONS, N_MSGS = T.N_ACTIONS, T.N_MSGS
 # owner 2026-11-13 "1-5 on (4 needs only calls) yes as drafted"): the NF1e-h24-s2+p needs cells alone, run indices
 # 121-123 (stripes claimed 2026-11-13 before first burn); scouts-first — s1 alone until she rules on its read. Its
 # needs read is LOGGED, never a stop (entry 27's shape); no act head, so no act trigger; the welfare stops stay armed.
+# p2-truth-s1: Phase 2c's true-needs arm (minifriend-true-needs-arm-2026-11-14/DECLARATION.md, deviations entry 37,
+# owner 2026-11-14 "Yes as drafted."): the needs arm's nine cells holding the engine's true state, run index 124
+# (stripe claimed 2026-11-14 before first burn); the scout seed only. No head, so no act trigger and no needs read; the
+# welfare stops stay armed. A measurement: never seated, served or used as a teacher.
 SLOTS = {"p2-act15-s1": ("act15", 1, 107), "p2-act15-s2": ("act15", 2, 108), "p2-act15-s4": ("act15", 4, 109),
          "p2-act10-s1": ("act10", 1, 110), "p2-act10-s2": ("act10", 2, 111), "p2-act10-s4": ("act10", 4, 112),
          "p2-nohead-s1": ("nohead", 1, 113), "p2-nohead-s2": ("nohead", 2, 114), "p2-nohead-s4": ("nohead", 4, 115),
          "p2-nohead-s1r": ("nohead", 1, 116),
          "p2-both-s1": ("both", 1, 117), "p2-both-s2": ("both", 2, 118), "p2-both-s4": ("both", 4, 119),
          "p2-act10-s1r": ("act10", 1, 120),
-         "p2-needs-s1": ("needs", 1, 121), "p2-needs-s2": ("needs", 2, 122), "p2-needs-s4": ("needs", 4, 123)}
+         "p2-needs-s1": ("needs", 1, 121), "p2-needs-s2": ("needs", 2, 122), "p2-needs-s4": ("needs", 4, 123),
+         "p2-truth-s1": ("truth", 1, 124)}
 # halted -> replacement (entries 25, 26); the trainer refuses the halted one
 HALTED_SLOTS = {"p2-nohead-s1": "p2-nohead-s1r", "p2-act10-s1": "p2-act10-s1r"}
 HALTED_ENTRY = {"p2-nohead-s1": 25, "p2-act10-s1": 26}
@@ -166,7 +171,8 @@ class P2VecRunner(T.TrunkVecRunner):
         wide = np.zeros((self.n_worlds, MAX_SEATS, obs_dim), np.float32)
         wide[:, :, :C.OBS_DIM] = base
         for w in range(self.n_worlds):
-            wide[w, :, C.OBS_DIM:] = self.heads[w].step(base[w]).reshape(MAX_SEATS, -1)
+            state = self._state(w) if self.heads[w].truth else None    # the truth arm's cells: this world, this tick
+            wide[w, :, C.OBS_DIM:] = self.heads[w].step(base[w], state).reshape(MAX_SEATS, -1)
         return wide, mask, valid
 
 
@@ -382,7 +388,7 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, 
                 codes = S.stratum(needs_true, hap_true)                       # the friend's TRUE state the view was built from
                 o_np = np.stack([obs[a] for a in names]).astype(np.float32)
                 m_np = np.stack([infos[a]["mask"] for a in names]).astype(bool)
-                x_wide, cells = actor.widen(o_np)
+                x_wide, cells = actor.widen(o_np, st if actor.wants_state else None)
                 logits = policy(torch.from_numpy(x_wide))
                 act_ix = logits[:, :N_ACTIONS].masked_fill(~torch.from_numpy(m_np[:, :N_ACTIONS]), T.NEG_INF).argmax(-1).numpy()
                 msg_ix = logits[:, N_ACTIONS:].masked_fill(~torch.from_numpy(m_np[:, N_ACTIONS:]), T.NEG_INF).argmax(-1).numpy()
@@ -582,7 +588,7 @@ def main():
         branch_rng = np.random.default_rng(20261106 + run_index + 1000 * segment)
 
     seed_base = T.seed_stripe(run_index)[0] + segment * 1_000
-    assert T.seed_stripe(run_index)[1] < 2_580_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
+    assert T.seed_stripe(run_index)[1] < 2_600_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
     runner = P2VecRunner(arm, str(config_path), args.n_worlds, seed_base, horizon=args.horizon)
     obs_dim, mask_dim = runner.dims
     assert obs_dim == G.wide_dim(cells) and mask_dim == N_ACTIONS + N_MSGS, (obs_dim, mask_dim)
@@ -595,6 +601,8 @@ def main():
         "head": None if head_spec is None else {"arm": head_spec[0], "seed": head_spec[1], "sha256": HO.HEAD_SHA256[head_spec]},
         "needs_head": None if needs_spec is None else {"head": needs_spec[0], "seed": needs_spec[1], "sha256": list(HO.NEEDS_SHA256[needs_spec]),
                                                        "cells": f"seven estimates (0-1 scale) + P(grave), at cell offset {HO.needs_off(arm)}"},
+        "truth_cells": None if arm not in HO.TRUTH_ARMS else "five hidden needs, happiness, bath (engine state / 100) + GRAVE by strata.stratum, "
+                                                              "at the start of the tick, every friend; a measurement, never seated",
         "trunk_seed": trunk_seed, "trunk_final": str(C.trunk_final(trunk_seed)), "trunk_final_sha256": C.TRUNK_FINAL_SHA[trunk_seed],
         "init": str(init_path), "init_sha256": init_sha,
         "beta": BETA, "beta_schedule": "held from step 0 (ruled 2026-11-06)", "gamma": args.gamma,

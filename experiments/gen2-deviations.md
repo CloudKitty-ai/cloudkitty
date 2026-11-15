@@ -3189,3 +3189,21 @@ the guards not yet touched, g10 alone goes red (the slot table's run
 indices end at 123); every other Phase 2 guard and the needs arm's
 n1–n6 stay green. Observed: g10 red on
 `AssertionError: [107, …, 123, 124]`; the rest recorded below.
+Kept behaviour, run on the edited files: Phase 2's g0a–g13 (16 passed,
+g0c's trunk leg included), the needs arm's n1–n6 (6 passed), the
+harness's `test_cert_state_key.py` and `test_g2_battery.py` (all ok).
+New guards g14a–g14e and the extended g10 green.
+
+Predictions for the reds, written before any mutant ran (each through
+`scripts/mutate.sh --expect`):
+
+| guard | mutant (file) | predicted red |
+|---|---|---|
+| g14a | each row reads the next friend (`heads_online.py`) | `truth cells differ from the engine state's` |
+| g14b | the replay's state read after the step (`replay.py`) | `truth cells lead the observation by a tick` |
+| g14b | the runner passes world 0's state to every world (`train_ppo_p2.py`) | `the runner's truth cells differ from world 1's own observations` |
+| g14c | an absent state defaulted to zeros (`heads_online.py`) | the guard's own `AssertionError: truth step ran without a state` |
+| g14d | the harness seat passes no state (`cert_harness_fog.py`) | the step's refusal, `truth step ran without a state (the arm's cells` |
+| g14e | the slot mapped to the needs arm (`train_ppo_p2.py`) | `the final names arm needs` |
+| g14e | the probe passes the state shifted one kitty (`train_ppo_p2.py`) | `the probe's dumped truth cells are not the friends' own needs` |
+| g10 | the truth slot given run index 123 (`train_ppo_p2.py`) | `run index [123] is claimed by two slots` |

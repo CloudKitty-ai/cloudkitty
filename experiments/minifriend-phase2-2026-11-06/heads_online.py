@@ -20,6 +20,12 @@ Appended cells per friend row (DECLARATION §3 table):
   needs     (C = 9):  the needs head's eight cells alone (no act head, no act cells) ++ ticks-since-live — Phase 2b
                       (minifriend-needs-arm-2026-11-12/DECLARATION.md, deviations entry 36). The needs cells sit at
                       offset 0 (`needs_off`).
+  truth     (C = 9):  the needs arm's shape with the FACTS in place of a head's estimates — Phase 2c
+                      (minifriend-true-needs-arm-2026-11-14/DECLARATION.md §3, deviations entry 37): the friend's five
+                      hidden needs / 100, happiness / 100, bath / 100, 1 if she is GRAVE by strata.stratum, then
+                      ticks-since-live. No head is loaded; the step takes the engine's start-of-tick global state, which
+                      no other arm's step accepts. A MEASUREMENT: these networks act on facts no cat under fog has and
+                      are never seated, served or used as a teacher (DECLARATION §1, doctrine rule 5).
 ticks-since-live = (tick − last tick the row was seen or heard) / 40 clamped to 1 (docs/encodings.md element-memory
 staleness; never-live = 1). Record note (g1's consequence): the trunk's tokenizer pads a kitty row iff its 58 cells are
 all zero, so on a SILENT row every appended cell is inert — the cells act on SEEN and HEARD rows only.
@@ -39,6 +45,7 @@ import ladder_act as LA  # noqa: E402  (registers B15 in the act arc's tables)
 import train_act as TA  # noqa: E402
 import data_act as D  # noqa: E402
 import graft as G  # noqa: E402
+import replay as RP  # noqa: E402  (kitty_truth: the one decoder of the v2 global state's per-kitty block)
 
 LA.register()
 N_CLASSES = D.N_ACTS                                        # 11
@@ -53,13 +60,28 @@ ARMS = {"act15": {"head": ("B15", 2), "needs": None, "cells": ACT_CELLS + 1},
         "act10": {"head": ("B10", 3), "needs": None, "cells": ACT_CELLS + 1},
         "nohead": {"head": None, "needs": None, "cells": 1},
         "both": {"head": ("B15", 2), "needs": ("NF1e-h24", 2), "cells": ACT_CELLS + NEEDS_CELLS + 1},
-        "needs": {"head": None, "needs": ("NF1e-h24", 2), "cells": NEEDS_CELLS + 1}}
+        "needs": {"head": None, "needs": ("NF1e-h24", 2), "cells": NEEDS_CELLS + 1},
+        "truth": {"head": None, "needs": None, "cells": NEEDS_CELLS + 1}}
+TRUTH_ARMS = ("truth",)                                     # arms whose cells are the engine's state (step takes it)
 HEAD_SHA256 = {("B15", 2): "dd0e2d6e84e93052f04111cba5dbb9c58666f22b6aab7e41805208d055bbff08",
                ("B10", 3): "9bde78f8caf50d5926b9c5909d855beee91ab748c1d9ce92afa87e6fe6b09d6b"}
 NEEDS_SHA256 = {("NF1e-h24", 2): ("0ca9ccb43fec9e953a573b2cae79943847ed1545ad6a9bde672820e92ba74d9e",    # head-best.pt
                                   "00e533b7c38a9e95554cd6eebe733a05fbd5abf7ab674f10dec48c2cac34c305")}   # probe.pt
 P1E, P1 = C.EXPTS / "minifriend-phase1e-2026-11-01", C.EXPTS / "minifriend-phase1-2026-10-22"
 ROW0, ROW1 = C.SELF_BLOCK, C.SELF_BLOCK + C.N_ROWS * C.KITTY_W
+
+
+def truth_cells(state, roster=C.ROSTER):
+    """(R, 4, 8) from a v2 global state vector at the START of a tick: for observer k and friend row r (the other
+    kitties in index order, the observation's row order) the friend's TRUE five hidden needs / 100, happiness / 100,
+    bath / 100 and 1.0 if she is GRAVE by strata.stratum (the readers' own recipe on replay.kitty_truth)."""
+    if str(P1) not in sys.path:
+        sys.path.insert(0, str(P1))
+    import strata as S
+    needs, hap = RP.kitty_truth(state, roster)[:2]          # x100
+    grave = S.stratum(needs, hap) == S.GRAVE
+    per = np.concatenate([needs[:, :5] / 100.0, hap[:, None] / 100.0, needs[:, 5:6] / 100.0, grave[:, None]], 1).astype(np.float32)
+    return np.stack([per[[j for j in range(roster) if j != k]] for k in range(roster)])
 
 
 def needs_off(arm):
@@ -129,6 +151,8 @@ class OnlineHeads:
     def __init__(self, arm, n_obs):
         self.arm, self.n = arm, int(n_obs)
         self.cells = ARMS[arm]["cells"]
+        self.truth = arm in TRUTH_ARMS
+        assert not self.truth or self.n == C.ROSTER, f"a truth seat holds every kitty in index order: {self.n} rows"
         self.head, self.manifest = load_head(arm)
         self.needs = load_needs(arm)
         self.prior = None if self.head is None else freq_prior(self.manifest)
@@ -161,8 +185,10 @@ class OnlineHeads:
             pg = torch.sigmoid(probe(z))[0]
         return torch.cat([est, pg], -1).numpy().reshape(self.n, C.N_ROWS, NEEDS_CELLS)
 
-    def step(self, obs):
-        """obs (n, 399) float32 at the start of a tick -> cells (n, 4, C) float32; steps every head state once."""
+    def step(self, obs, state=None):
+        """obs (n, 399) float32 at the start of a tick -> cells (n, 4, C) float32; steps every head state once.
+        state: the engine's global state at the start of the same tick — a truth arm's step requires it, every other
+        arm's refuses it."""
         obs = np.asarray(obs, np.float32)
         assert obs.shape == (self.n, C.OBS_DIM), obs.shape
         rows = obs[:, ROW0:ROW1].reshape(self.n, C.N_ROWS, C.KITTY_W)
@@ -173,6 +199,10 @@ class OnlineHeads:
         tsl = np.ones((self.n, C.N_ROWS), np.float32)
         tsl[ever] = np.clip((self.t[:, None].repeat(C.N_ROWS, 1)[ever] - self.last_live[ever]) / C.STALENESS_NORMALISER, 0.0, 1.0)
         self.t += 1
+        if self.truth:
+            assert state is not None, "truth step ran without a state (the arm's cells are the engine's start-of-tick state)"
+            return np.concatenate([truth_cells(state), tsl[..., None]], -1).astype(np.float32)
+        assert state is None, f"a {self.arm} step takes no engine state"
         if self.head is None and self.needs is None:
             return tsl[..., None]
         x = torch.from_numpy(np.concatenate([np.repeat(obs[:, None, :C.SELF_BLOCK], C.N_ROWS, 1), rows], -1).reshape(1, self.n * C.N_ROWS, -1))
@@ -197,7 +227,8 @@ class P2Actor:
 
     def __init__(self, policy, heads=None, arm=None):
         assert heads is not None or arm is not None
-        self.policy, self.heads, self.arm = policy, heads, arm
+        self.policy, self.heads, self.arm = policy, heads, arm if arm is not None else heads.arm
+        self.wants_state = self.arm in TRUTH_ARMS          # the callers (trainer probe, harness seat, readers) pass the state iff set
         if heads is not None:
             assert policy.cells == heads.cells, (policy.cells, heads.cells)
         self.policy.eval()
@@ -206,22 +237,23 @@ class P2Actor:
         if self.heads is not None:
             self.heads.reset(rows)
 
-    def widen(self, obs):
+    def widen(self, obs, state=None):
         if self.heads is None:
             self.heads = OnlineHeads(self.arm, len(obs))
             assert self.policy.cells == self.heads.cells, (self.policy.cells, self.heads.cells)
         assert len(obs) == self.heads.n, f"{len(obs)} rows for a seat sized {self.heads.n}"
-        cells = self.heads.step(obs)
+        cells = self.heads.step(obs, state)
         return np.concatenate([np.asarray(obs, np.float32), cells.reshape(len(obs), -1)], 1), cells
 
-    def logits(self, obs):
-        x, _cells = self.widen(obs)
+    def logits(self, obs, state=None):
+        x, _cells = self.widen(obs, state)
         with torch.no_grad():
             return self.policy(torch.from_numpy(x)).numpy()
 
-    def __call__(self, rows, masks=None):
-        """The cert harness's seat callable: (rows, masks) -> logits; rows arrive in a fixed order every tick."""
-        return self.logits(rows)
+    def __call__(self, rows, masks=None, state=None):
+        """The cert harness's seat callable: (rows, masks) -> logits; rows arrive in a fixed order every tick. The
+        harness passes the engine's start-of-tick state iff `wants_state`."""
+        return self.logits(rows, state)
 
 
 def actor_from_artifact(path, n_obs=None):

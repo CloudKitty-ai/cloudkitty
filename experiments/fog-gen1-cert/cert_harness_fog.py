@@ -159,6 +159,9 @@ SEATINGS = {
        for arm in ("act15", "act10", "nohead", "both") for k in (1, 2, 4)},
     # Phase 2b's needs-only arm (minifriend-needs-arm-2026-11-12/DECLARATION.md §6, deviations entry 36): uniform per seed.
     **{f"p2u-needs-s{k}": [f"p2:p2-needs-s{k}"] * 5 for k in (1, 2, 4)},
+    # Phase 2c's true-needs arm (minifriend-true-needs-arm-2026-11-14/DECLARATION.md §6, deviations entry 37): the scout
+    # seed, uniform ONLY — its seat reads the engine's state, a measurement that never shares a roster or is served.
+    "p2u-truth-s1": ["p2:p2-truth-s1"] * 5,
     **{f"p2r-{arm}": [f"p2:p2-{arm}-s2", f"p2:p2-{arm}-s4", "g2:trunk-s6", "g2:trunk-s7",
                       f"p2:p2-{arm}-s1" + ("r" if arm in ("nohead", "act10") else "")]
        for arm in ("act15", "act10", "nohead", "both")},
@@ -656,7 +659,9 @@ def run_one(args):
             for s, fwd in models.items():
                 rows = [i for i, a in enumerate(names) if seat_of[a] == s]
                 if rows:
-                    lg[rows] = np.asarray(fwd(ob[rows], mk[rows]), np.float32)
+                    # a truth-arm seat (heads_online.TRUTH_ARMS) reads the engine's start-of-tick state; no other seat does
+                    kw = {"state": np.asarray(env.state(), np.float32)} if getattr(fwd, "wants_state", False) else {}
+                    lg[rows] = np.asarray(fwd(ob[rows], mk[rows], **kw), np.float32)
             a0 = np.where(mk[:, :n_act], lg[:, :n_act], NEG_INF).argmax(1)
             g0 = np.where(mk[:, n_act:], lg[:, n_act:], NEG_INF).argmax(1)
             acts = {a: (int(a0[i]), int(g0[i])) for i, a in enumerate(names)}

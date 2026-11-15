@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Guards g0–g10 of DECLARATION.md §9; each red on record via scripts/mutate.sh --expect before any seed trains.
 g13: Phase 2b's needs-only arm (minifriend-needs-arm-2026-11-12/DECLARATION.md §9, deviations entry 36).
+g14a–g14e: Phase 2c's true-needs arm (minifriend-true-needs-arm-2026-11-14/DECLARATION.md §9, deviations entry 37).
 
     VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B test_phase2.py [g0a g0b ...]
 
@@ -319,9 +320,10 @@ def g9():
 
 
 def g10():
-    """seeds and slots: the slots map to run indices 107–123 inside the claimed bands by the stripe formula; the needs
-    slots (Phase 2b, entry 36) are 121–123, above every Phase 2 stripe; grafts pair s_k with trunk-s_k; the head named
-    per arm is the median-validation seed by the stores' done.json."""
+    """seeds and slots: the slots map to run indices 107–124 inside the claimed bands by the stripe formula, no index
+    claimed twice; the needs slots (Phase 2b, entry 36) are 121–123 and the truth slot (Phase 2c, entry 37) 124, each
+    above every stripe claimed before it; grafts pair s_k with trunk-s_k; the head named per arm is the
+    median-validation seed by the stores' done.json; the truth arm seats uniformly only."""
     import json as _j
     import train_ppo_p2 as P
     import heads_online as HO
@@ -329,11 +331,14 @@ def g10():
     import cert_harness_fog as H
     idx = sorted(P.SLOTS[s][2] for s in P.SLOTS)
     # 107–115 declared + 116 (entry 25) + 117–119 (entry 27, the `both` canary) + 120 (entry 26, the act10 s1 replacement)
-    # + 121–123 (entry 36, Phase 2b's needs-only arm)
-    assert idx == list(range(107, 124)), idx
+    # + 121–123 (entry 36, Phase 2b's needs-only arm) + 124 (entry 37, Phase 2c's true-needs scout)
+    dup = sorted({i for i in idx if idx.count(i) > 1})
+    assert not dup, f"run index {dup} is claimed by two slots"
+    assert idx == list(range(107, 125)), idx
     lo = min(P.T.seed_stripe(i)[0] for i in idx)
     hi = max(P.T.seed_stripe(i)[1] for i in idx)
-    assert (lo, hi) == (2_240_000_000, 2_579_999_999), (lo, hi)
+    assert (lo, hi) == (2_240_000_000, 2_599_999_999), (lo, hi)
+    assert P.SLOTS["p2-truth-s1"] == ("truth", 1, 124) and P.T.seed_stripe(124)[0] > max(P.T.seed_stripe(i)[1] for i in idx if i != 124), P.SLOTS["p2-truth-s1"]
     replacements = {"p2-nohead-s1r": ("nohead", 1, 116), "p2-act10-s1r": ("act10", 1, 120)}
     for slot, (arm, k, i) in P.SLOTS.items():
         assert k in C.TRUNK_SEEDS, slot
@@ -341,8 +346,11 @@ def g10():
             assert (arm, k, i) == replacements[slot], (slot, arm, k, i)
             continue
         assert slot == f"p2-{arm}-s{k}", slot
-        assert {"act15": 107, "act10": 110, "nohead": 113, "both": 117, "needs": 121}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
-    assert {P.SLOTS[s][0] for s in P.SLOTS} == set(HO.ARMS) == {"act15", "act10", "nohead", "both", "needs"}, set(HO.ARMS)
+        assert {"act15": 107, "act10": 110, "nohead": 113, "both": 117, "needs": 121, "truth": 124}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
+    assert {P.SLOTS[s][0] for s in P.SLOTS} == set(HO.ARMS) == {"act15", "act10", "nohead", "both", "needs", "truth"}, set(HO.ARMS)
+    # entry 37: the truth arm is a measurement — one uniform seating, in no roster-shaped one
+    truth_seatings = sorted(n for n, v in H.SEATINGS.items() if any("truth" in s for s in v))
+    assert truth_seatings == ["p2u-truth-s1"] and H.SEATINGS["p2u-truth-s1"] == ["p2:p2-truth-s1"] * 5, truth_seatings
     # entries 25 / 26: the halted p2-nohead-s1 and p2-act10-s1 seat nowhere; each replacement takes its arm's s1 seat
     # in both seatings, and the trainer refuses each halted slot by name with its entry and its replacement
     assert P.HALTED_SLOTS == {"p2-nohead-s1": "p2-nohead-s1r", "p2-act10-s1": "p2-act10-s1r"}, P.HALTED_SLOTS
@@ -711,7 +719,191 @@ def g13():
     assert probes[1]["needs_trigger"]["by_version"]["all"]["n_common"] == total, "cumulative != sum of probes"
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11, "g12": g12, "g13": g13}
+def _truth_world(ticks=5_000):
+    """The first `ticks` ticks of a recorded leg world replayed with observations: the needs scout's 40x40 world
+    905012 (its eat streak makes friends GRAVE from tick 4,341, so the flag cell is exercised). Recorded acts only."""
+    import replay as RP
+    out = []
+    for rec in RP.replay(RP.acts_path("p2u-needs-s1", 40, 905_012), C.LEG_TOML[40], want_obs=True):
+        out.append({"obs": rec["obs"], "needs": rec["pre"][0], "hap": rec["pre"][1], "state": rec["state"]})
+        if len(out) == ticks:
+            break
+    return out
+
+
+def g14a():
+    """Phase 2c's truth cells (DECLARATION §9): on a recorded world, cells 0–7 of observer k's row for friend j equal
+    the engine state's five hidden needs / 100, happiness / 100, bath / 100 and the strata GRAVE flag OF FRIEND j on
+    every tick (reference built here from replay.kitty_truth and count_strata.friend_row, never from the builder);
+    the flag is up on some rows and down on others; cell 8 is ticks-since-live (the no-head arm's cell)."""
+    import heads_online as HO
+    sys.path.insert(0, str(C.EXPTS / "minifriend-phase1-2026-10-22"))
+    import strata as S
+    from count_strata import friend_row
+    recs = _truth_world()
+    heads, nohead = HO.OnlineHeads("truth", C.ROSTER), HO.OnlineHeads("nohead", C.ROSTER)
+    assert heads.cells == 9, heads.cells
+    flags = 0
+    for t, r in enumerate(recs):
+        cells = heads.step(r["obs"], r["state"])
+        assert cells.shape == (C.ROSTER, C.N_ROWS, 9) and cells.dtype == np.float32, (cells.shape, cells.dtype)
+        grave = S.stratum(r["needs"], r["hap"]) == S.GRAVE
+        for k in range(C.ROSTER):
+            for j in range(C.ROSTER):
+                if j == k:
+                    continue
+                want = np.concatenate([r["needs"][j, :5] / 100, [r["hap"][j] / 100, r["needs"][j, 5] / 100, float(grave[j])]])
+                got = cells[k, friend_row(k, j), :8]
+                assert np.abs(got - want).max() < 1e-6, f"truth cells differ from the engine state's at tick {t}, observer {k}, friend {j}: {got.round(4).tolist()} against {want.round(4).tolist()}"
+        flags += int(grave.sum())
+        assert np.array_equal(cells[..., 8], nohead.step(r["obs"])[..., 0]), f"the truth arm's ninth cell is not ticks-since-live at tick {t}"
+    assert 0 < flags < len(recs) * C.ROSTER, f"the GRAVE flag is never exercised: {flags} grave kitty-ticks of {len(recs) * C.ROSTER}"
+
+
+def g14b():
+    """The truth cells are the START-of-tick state, the tick of the observation they ride with, anchored on the
+    observation itself (a cat's self block carries its own needs and happiness, docs/encodings.md): (i) on the replay
+    path every reader uses, friend j's cells in every observer's row equal j's own self-block needs, happiness and
+    bath in the SAME tick's observation; (ii) in the trainer's runner (two worlds, first-legal acts, no policy) each
+    world's appended cells equal that world's own observations' self blocks at every tick."""
+    import heads_online as HO
+    import train_ppo_p2 as P
+    recs = _truth_world(1_500)
+    heads = HO.OnlineHeads("truth", C.ROSTER)
+    fr = [[j for j in range(C.ROSTER) if j != k] for k in range(C.ROSTER)]
+
+    def own(obs):                                           # (R, 4, 7): what each friend's OWN observation says of her
+        return np.stack([np.concatenate([obs[f, 0:5], obs[f, 6:7], obs[f, 5:6]], 1) for f in fr])
+    cells = np.stack([heads.step(r["obs"], r["state"])[..., :7] for r in recs])
+    ref = np.stack([own(r["obs"]) for r in recs])
+    assert np.abs(ref[1:] - ref[:-1]).max() > 1e-4, "the anchor does not move from tick to tick"
+    if np.abs(cells - ref).max() >= 1e-6:
+        lead = np.abs(cells[:-1] - ref[1:]).max() < 1e-6
+        raise AssertionError("truth cells lead the observation by a tick" if lead else
+                             f"truth cells differ from the observation's own needs by {np.abs(cells - ref).max()}")
+    # (ii) the runner: seeds inside the arm's own stripe, a segment no run reaches
+    runner = P.P2VecRunner("truth", str(C.TRUNK_TOML), 2, P.T.seed_stripe(124)[0] + 999_000, horizon=100)
+    obs_dim, mask_dim = runner.dims
+    for t in range(150):                                    # crosses an episode boundary (horizon 100)
+        wide, mask, valid = runner.flat_obs(obs_dim, mask_dim)
+        assert valid.all()
+        for w in range(2):
+            got = wide[w, :, C.OBS_DIM:].reshape(C.ROSTER, C.N_ROWS, 9)[..., :7]
+            d = float(np.abs(got - own(wide[w, :, :C.OBS_DIM])).max())
+            assert d < 1e-6, f"the runner's truth cells differ from world {w}'s own observations at tick {t} by {d}"
+        acts = np.stack([mask[..., :P.N_ACTIONS].argmax(-1), mask[..., P.N_ACTIONS:].argmax(-1)], -1)
+        runner.step(acts)
+
+
+def g14c():
+    """A truth step loads no head and refuses to run without a state; a truth seat holds all five kitties; every
+    other arm's step takes no state and its actor does not ask for one."""
+    import graft as G
+    import heads_online as HO
+    r = _truth_world(1)[0]
+    h = HO.OnlineHeads("truth", C.ROSTER)
+    assert (h.cells, h.head, h.needs, h.truth) == (9, None, None, True), (h.cells, h.head, h.needs, h.truth)
+    try:
+        h.step(r["obs"])
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("truth step ran without a state")
+    try:
+        HO.OnlineHeads("truth", 3)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("a truth seat of three rows was built")
+    for arm in ("nohead", "needs"):
+        o = HO.OnlineHeads(arm, C.ROSTER)
+        assert not o.truth, arm
+        try:
+            o.step(r["obs"], r["state"])
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(f"a {arm} step took an engine state")
+    for arm, want in (("truth", True), ("nohead", False), ("needs", False), ("both", False), ("act15", False)):
+        p2, _trunk, _ck = G.graft(1, HO.ARMS[arm]["cells"])
+        assert HO.P2Actor(p2, arm=arm).wants_state is want, f"{arm} actor wants_state is not {want}"
+    assert HO.P2Actor(G.graft(1, 9)[0], h).wants_state is True, "an actor built on truth heads does not ask for the state"
+
+
+def g14d():
+    """`p2u-truth-s1` seats `p2:p2-truth-s1` in all five seats, and the harness's seat on a truth artifact (live cell
+    columns) equals the trainer-side forward fed the start-of-tick state at every tick of a recorded 300-tick leg."""
+    import cloudkitty
+    import cert_harness_fog as H
+    import heads_online as HO
+    assert H.SEATINGS["p2u-truth-s1"] == ["p2:p2-truth-s1"] * 5, H.SEATINGS["p2u-truth-s1"]
+    art = _scratch_artifact("p2-truth-s1", arm="truth", live_cells=True)
+    H.P2_ARC = SCRATCH
+    rec_dir = SCRATCH / "rec-truth"
+    H.run_one(("p2u-truth-s1", 905_001, 300, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(rec_dir)))
+    acts = np.load(rec_dir / "acts-905001.npz")["acts"]
+    actor, ck = HO.actor_from_artifact(art, n_obs=5)
+    assert ck["arm"] == "truth" and actor.wants_state, ck["arm"]
+    env = cloudkitty.ParallelEnv(str(C.TRUNK_TOML), horizon=300)
+    ob_d, infos = env.reset(seed=905_001)
+    names = list(env.possible_agents)
+    actor.reset()
+    moved = 0
+    for t in range(300):
+        ob = np.stack([np.asarray(ob_d[a], np.float32) for a in names])
+        mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
+        st = np.asarray(env.state(), np.float32)
+        lg = actor.logits(ob, st)
+        a0 = np.where(mk[:, :35], lg[:, :35], -np.inf).argmax(1)
+        m0 = np.where(mk[:, 35:], lg[:, 35:], -np.inf).argmax(1)
+        assert np.array_equal(a0, acts[t, :, 0]) and np.array_equal(m0, acts[t, :, 1]), f"harness seat and trainer forward disagree at tick {t} (truth arm)"
+        x0 = np.concatenate([ob, np.zeros((5, 4 * 9), np.float32)], 1)
+        with __import__("torch").no_grad():
+            z0 = actor.policy(__import__("torch").from_numpy(x0)).numpy()
+        moved += int((np.where(mk[:, :35], z0[:, :35], -np.inf).argmax(1) != a0).sum())
+        ob_d, _r, _te, _tr, infos = env.step({a: (int(acts[t, i, 0]), int(acts[t, i, 1])) for i, a in enumerate(names)})
+    assert moved > 0, "the scratch policy ignores its cells: the equality says nothing about the state"
+
+
+def g14e():
+    """A smoke run of p2-truth-s1 (scratch out-dir): the final names the arm; 9 cells, run index 124 on its own stripe,
+    no head and no needs head in the manifest, the truth cells named; no act trigger, no needs read, no world fork."""
+    import json as _j
+    import shutil
+    import torch
+    import train_ppo_p2 as P
+    out = SCRATCH / "smoke-g14"
+    if out.exists():
+        shutil.rmtree(out)
+    argv = sys.argv
+    sys.argv = ["train_ppo_p2.py", "--slot", "p2-truth-s1", "--smoke", "--n-worlds", "2", "--horizon", "200", "--total-ticks", "2048",
+                "--fragment", "64", "--probe-every", "8", "--probe-ticks", "40", "--bin-ticks", "1024", "--floor-ticks", "1024", "--out-dir", str(out)]
+    try:
+        P.main()
+    finally:
+        sys.argv = argv
+    man = _j.loads((out / "run-manifest.json").read_text())
+    fin = torch.load(out / "policy-final.pt", map_location="cpu", weights_only=True)
+    assert fin["arm"] == "truth", f"the final names arm {fin['arm']}"
+    got = {"arm": man["arm"], "cells": man["cells"], "run_index": man["run_index"], "seed_base": man["seed_base"], "head": man["head"],
+           "needs_head": man["needs_head"], "truth_named": bool(man["truth_cells"]), "act_trigger": man["stops"]["demotion_trigger"],
+           "needs_trigger": man["stops"]["needs_trigger"], "final": (fin["cells"], fin["stop_reason"])}
+    want = {"arm": "truth", "cells": 9, "run_index": 124, "seed_base": 2_580_000_000, "head": None, "needs_head": None, "truth_named": True,
+            "act_trigger": None, "needs_trigger": None, "final": (9, "cap")}
+    assert got == want, f"the truth smoke's manifest and final read {got}"
+    rows = [_j.loads(l) for l in (out / "metrics.jsonl").read_text().splitlines()]
+    probes = [r for r in rows if r.get("probe")]
+    assert len(probes) == 2, len(probes)
+    for r in probes:
+        side = (r["trigger"], r["monitors"], r["passive"], r["branches"], r["forks"], r["needs_trigger"], r["needs_bias_probe"])
+        assert side == (None, None, None, 0, 0, None, None), f"a truth probe read a head or forked the world: {side}"
+    z = np.load(out / "probe-u15.npz")
+    own = np.stack([z["obs"][i * 5:(i + 1) * 5][[j for j in range(5) if j != k], :5] for i in range(len(z["obs"]) // 5) for k in range(5)])
+    assert np.abs(z["cells"].reshape(-1, 4, 9)[..., :5] - own).max() < 1e-6, "the probe's dumped truth cells are not the friends' own needs"
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11, "g12": g12, "g13": g13,
+          "g14a": g14a, "g14b": g14b, "g14c": g14c, "g14d": g14d, "g14e": g14e}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]
