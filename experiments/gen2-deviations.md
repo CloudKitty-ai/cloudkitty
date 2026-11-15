@@ -3324,5 +3324,12 @@ scratch directories, on the arm's own stripe). Owed before its first
 read, with its own red: the reader of §6 and its refusal of a leg
 whose header names another file.
 
-Status: DECLARED 2026-11-14; instruments red-proven; NOT LAUNCHED,
-the launch asked of her — OPEN.
+HER WORD ON THE LAUNCH, 2026-11-15, on the session's "Launch the
+re-anchor scout now alongside the true-needs run (about 20M covered
+cat-ticks, both runs somewhat slower), or queue it behind that run":
+"1) now". The arm launches beside `p2-truth-s1` (entry 37), which
+shares the machine's cores with it; neither run's ticks or schedules
+depend on wall time.
+
+Status: DECLARED 2026-11-14; instruments red-proven; launch RULED
+2026-11-15 — OPEN.

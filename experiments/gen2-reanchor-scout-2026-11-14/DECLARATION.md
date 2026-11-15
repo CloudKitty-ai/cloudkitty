@@ -6,7 +6,8 @@ commit (§7's predictions registered, §9's mutants and predicted reds
 written here, before any number); a change to them is a
 `gen2-deviations.md` entry on her word. Run index 125 is claimed in
 `SEED-BANDS.md`; the record is deviations entry 38. **The arm's launch
-is a separate word**, asked for once the reds are on record.
+is a separate word**, asked for once the reds are on record. That word
+was given 2026-11-15 ("1) now", §0); the launch is recorded in entry 38.
 
 ## 0. Her words, verbatim and in order
 
@@ -24,6 +25,9 @@ is a separate word**, asked for once the reds are on record.
 - 2026-11-14, on the session's "Re-anchor scout, which seed … I
   recommend keeping seed 1 … Your word here declares that scout": "4)
   keep".
+- 2026-11-15, on the session's "Launch the re-anchor scout now
+  alongside the true-needs run (about 20M covered cat-ticks, both runs
+  somewhat slower), or queue it behind that run": "1) now".
 
 The session's reading, hers to correct: the direction covers (a) no
 ticks past a plateau under a pinned anchor, (b) staged training, the
@@ -300,7 +304,8 @@ radius solvable eat? Deadlock? Should we discard and replace? Yes to
 the rest". Calls 1, 2, 4, 5 and 6 RULED as recommended; her question
 on call 3 answered in §2.4 and entry 31's investigation. **Call 3
 RULED 2026-11-14, "4) keep": seed 1.** All six ruled; the arc is
-declared.
+declared. **Launch RULED 2026-11-15, "1) now"**: the arm trains
+beside the true-needs scout.
 
 1. **Declare this** (after her edits). Recommended.
 2. **One arm first, the anchor alone.** The entropy and optimiser arms
