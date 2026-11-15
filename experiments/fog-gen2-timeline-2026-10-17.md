@@ -1305,6 +1305,11 @@ consent BC comparison ride the trunk.
   measurement: never seated, served or a teacher.
   Instruments red-proven (g14a–g14e, g10; eight reds as predicted);
   the scout `p2-truth-s1` LAUNCHED 2026-11-15T05:42Z.
+  The scripted-rescue probe DRAFTED on her "Scripted use probe
+  first." (`scripted-rescue-probe-2026-11-14/DECLARATION.md`: a
+  hand-written rescue laid over the no-head final at evaluation, with
+  a placebo; 13.2–16.5M covered cat-ticks; five calls with her,
+  nothing declared).
 
 ## Flagged follow-ups (owner's word to start)
 
