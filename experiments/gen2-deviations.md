@@ -3375,9 +3375,29 @@ FIRST READ 2026-11-15 (not gated; `minifriend-true-needs-arm-2026-11-14/reads/`)
   905029: seat 3 in drink distress for 1,000 ticks from tick 299 with
   no drink tick, seat 0 for 909. The other 29 worlds read streak 0.
 
-Status: DECLARED 2026-11-14; scout ended clean at 15.0M; legs run and
-first-read: T1, T2, T4 met, §8 LEVEL; the stopped no-head 12M leg and
-§8's consequence with her; RESULTS and its gate owed — OPEN.
+A replay look at the stopped world (`diag_lost.world` called from a
+scratch script on `r6-nohead-s1-u3906` 20×20 world 905029; zero
+covered cost; no file kept, so it scores and supports nothing): seats
+0 and 3 sit at thirst 99.9 / 99.8 through their streaks (ticks
+225–1,133 and 300–1,298), 1.4 and 2.2 tiles from the nearest friend
+with a friend in sight on 0.985 / 0.856 of ticks, inside a 6×5 and a
+3×3 tile box, never on water; drink is legal on 0.002 / 0.000 of their
+free-choice ticks; they move on 0.292 / 0.191 of ticks and propose a
+partner act on 0.640 / 0.676 of the ticks one is legal. Two thirsty
+cats keep each other company and do not go looking for water.
+
+RESULTS GATED 2026-11-15: `minifriend-true-needs-arm-2026-11-14/RESULTS.md`,
+accuracy gate PASS in one round (fresh subagent, Read fence only; one
+WEAK sentence named in the stamp, not rewritten; raw-dir hash
+v1:73ea859f9a835ed2). The gate noted, outside the document: the tail
+replay's longest any-flag run on the needs scout's 40×40 world 905012
+is 984 ticks where the harness row's `max_distress_age` is 908. The
+two count different things (any own flag against the harness's streak)
+and agree on which worlds hold a 300+ streak; unexamined further.
+
+Status: DECLARED 2026-11-14; scout ended clean at 15.0M; legs run;
+T1, T2, T4 met, §8 LEVEL; RESULTS gated; §8's consequence and the
+stopped no-head 12M leg with her — OPEN.
 
 ## 38. The re-anchor scout: declared (2026-11-14)
 

@@ -2145,3 +2145,30 @@ Lessons:
 122. **A WEAK sentence can be disclosed instead of rewritten.** Naming
     it in the stamp keeps the gated text gated and costs no third
     round; rewrite only when the sentence would mislead a decision.
+
+## 2026-11-15 — true-needs arm RESULTS (Experiments; the whole document, one section)
+
+`experiments/minifriend-true-needs-arm-2026-11-14/RESULTS.md`,
+deviations entry 37. One round, a fresh subagent, the Read fence only
+(three readers, greps of the training log and leg logs, two one-line
+dumps of leg rows; about 9 minutes). Fresh outputs identical to the
+recorded reads.
+
+- Round 1: **PASS**. About 135 arithmetic, 12 threshold, 27
+  characterisation (1 WEAK, outside Decision rules: "the nine cells …
+  hold her true five hidden needs, happiness, bath and grave flag"
+  names eight values for nine cells), 0 undecidable, 24 provenance.
+  The WEAK sentence was left as gated and named in the stamp (lesson
+  122). Raw-dir hash v1:73ea859f9a835ed2.
+
+Lessons:
+
+123. **Give the gate a Read line for every row the document quotes
+    from a raw file no reader prints.** The scout rows and the stopped
+    world's row were two one-line dumps in the Read fence; without
+    them those table cells would have been undecidable (the re-anchor
+    run's one undecidable was exactly this).
+124. **The gate can surface an instrument disagreement the document
+    never cites.** Here: a replay's any-flag streak (984) against the
+    harness row's streak (908) on a comparator world. Record it where
+    the instruments live; it is not a verdict input.
