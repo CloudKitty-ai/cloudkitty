@@ -1295,6 +1295,14 @@ consent BC comparison ride the trunk.
   below the no-head arm (−0.235, −0.442; 0 of 30 worlds at each; N1,
   N2 NOT MET); its 100×100 scout missed (two of three worlds aborted
   on cuddle streaks), the leg unrun and with her.
+- 2026-11-14: the needs scout's long streaks diagnosed by replay
+  (entry 36, `diag_lost.py`): each cuddle streak is one cat far from
+  friends whose places it hears; the eat streak a cat drinking without
+  thirst. The true-needs arm DECLARED on her "Yes as drafted." (entry
+  37; `minifriend-true-needs-arm-2026-11-14/`, run index 124): the
+  needs arm's nine cells holding the engine's true needs, the scout
+  seed only, read at equal length against the needs scout. A
+  measurement: never seated, served or a teacher.
 
 ## Flagged follow-ups (owner's word to start)
 

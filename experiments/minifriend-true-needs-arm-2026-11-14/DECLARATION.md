@@ -1,12 +1,9 @@
-# Mini-friend Phase 2c: the true-needs arm (DRAFT 2026-11-14; nothing built, nothing trained)
+# Mini-friend Phase 2c: the true-needs arm (DECLARED 2026-11-14)
 
-Status: **DRAFT 2026-11-14**, written on her direction "I like that
-training run with the true needs fed in as well, let's test that".
-Nothing here is declared, built or run. §12 holds the calls; her word
-on them declares it, and the scout's launch is a separate word after
-the guards are red (or one given with the declaring word, §12 call 7).
-No seed-band row is claimed and no deviations entry is opened until
-then. The arc is the needs-only arm (`minifriend-needs-arm-2026-11-12/
+Status: **DECLARED 2026-11-14** on her word "Yes as drafted." (§0, §12).
+§3–§9 are frozen as drafted from this commit; a change to them is a
+`gen2-deviations.md` entry on her word. Run index 124 is claimed in
+`SEED-BANDS.md`; the record is deviations entry 37. The arc is the needs-only arm (`minifriend-needs-arm-2026-11-12/
 DECLARATION.md`, frozen 84b3a3ec) with one thing changed: what the nine
 cells hold. Every text of Phase 2 and of that declaration it does not
 restate stands as written.
@@ -26,6 +23,11 @@ restate stands as written.
   second hypothesis from the others: feed the true needs in place of
   the head's estimates": "I like that training run with the true needs
   fed in as well, let's test that".
+- 2026-11-14, on the seven calls of §12 as put to her ("'Yes as
+  drafted' declares calls 1–6 as recommended; say so if you also want
+  call 7"): "Yes as drafted.", and in the same message: "While that
+  runs, what options do we have to improve model utilization of the
+  heads data, assuming for the moment that that's the issue?"
 
 ## 1. What is being asked
 
@@ -224,6 +226,13 @@ needed to train; each is built before its first read with its own red.
   read for the tail only.
 - Uniform five-copy seatings are stress reads; the contrast holds, the
   level does not.
+- Found at the build: the graft pads a friend's row when its 58
+  observed cells are all zero (Phase 2's tokenizer rule, unchanged), so
+  the truth cells of a friend neither seen nor heard in the digest
+  window are computed and never reach the policy. Such rows are 0.4% of
+  rows on the two leg worlds read (905001 at 20×20, 905012 at 40×40,
+  6,000 ticks each). Every head's cells are inert on the same rows, so
+  the arm is still the ceiling of a needs head under this graft.
 - The grafted trunk never saw these cells (as in every Phase 2 arm);
   BELOW would not separate "cannot learn to use them" from "this graft
   at this budget does not".
@@ -249,6 +258,12 @@ needed to train; each is built before its first read with its own red.
 - Rules 2, 3, 4, 6: moved nothing.
 
 ## 12. Owner calls (recommendation first; her word rules)
+
+**RULED 2026-11-14, "Yes as drafted.": calls 1–6 as recommended.**
+Call 7: her message goes on "While that runs, …". The session reads
+that as her word that the scout runs once §9's reds are on record (the
+session's reading, labelled as such and told to her at the launch; the
+run stops on her word at any time).
 
 1. **Declare this** (after her edits). Recommended.
 2. **A covered mind trained on facts it could not have under fog**, as

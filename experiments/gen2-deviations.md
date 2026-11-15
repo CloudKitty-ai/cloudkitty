@@ -3139,3 +3139,53 @@ TRAINED; legs at 20 and 40 RECORDED; R-1, the trigger and the block
 read READ (N1, N2 NOT MET; N3 holds and N4 MET on the sizes read);
 100×100 STOPPED at its scout, with her; §8's reading with her; the
 streaks DIAGNOSED; the gated write-up owed — OPEN.
+
+## 37. Mini-friend Phase 2c, the true-needs arm: declared (2026-11-14)
+
+The needs-only arm with one thing changed is declared as its own arc,
+`minifriend-true-needs-arm-2026-11-14/DECLARATION.md`: the nine cells
+hold each friend's true needs, happiness, bath and GRAVE flag (the
+engine's start-of-tick state) in place of the needs head's estimates.
+Slot `p2-truth-s1`, the scout seed only, run index 124 (stripe
+2,580,000,000–2,599,999,999, `SEED-BANDS.md`), Phase 2's recipe and
+stop rule, read at the 12M checkpoint against the needs scout. Her
+words, verbatim: 2026-11-14 "I like that training run with the true
+needs fed in as well, let's test that" (the draft); 2026-11-14 "Yes as
+drafted." on its seven calls, calls 1–6 as recommended (declared; a
+mind trained on facts no cat under fog has, as a measurement only,
+never seated; the truth for every friend on every tick; the
+equal-length read primary; the no-head 12M checkpoint's 20×20 leg; a
+100×100 scout only). Call 7 (launch on the guards): the same message
+goes on "While that runs, …", read by the session as her word that the
+scout runs once the reds are on record; the reading is the session's,
+told to her at the launch. §3–§9 frozen at the declaring commit.
+
+Welfare-cost line (DECLARATION §5): about 69–91M covered cat-ticks
+expected, about 117M at the cap, plus 3.0M for call 5's leg.
+
+Found at the build, none changing a frozen section:
+
+- **Silent rows.** The graft pads a friend's row whose 58 observed
+  cells are all zero (Phase 2's rule), so truth cells on a friend
+  neither seen nor heard never reach the policy. 0.4% of rows on the
+  two leg worlds read (905001 at 20×20, 905012 at 40×40, 6,000 ticks
+  each). Recorded in §10; every head's cells are inert on the same
+  rows.
+- **The seed-band row followed one guard run.** g14e's first smoke run
+  (2,048 ticks of an untrained graft, scratch out-dir, the stripe's
+  first seeds) ran minutes before the row was written. The ledger's
+  last row ended at 2,579,999,999 and no other arc claims above it.
+  Every declared run follows the row.
+- **g14b's anchor.** A cat's own observation carries its own needs and
+  happiness, so the guard checks friend j's truth cells against j's own
+  self block in the same tick's observation, on the replay path the
+  readers use and in the trainer's runner. The truth cells equal the
+  self blocks exactly (difference 0.0 over 6,000 ticks of two worlds).
+  §9's mutant for it (the state read after the step) lives in
+  `replay.py`; the runner half gets a mutant of its own.
+
+Rule 6 sort, predicted before the run: with the instruments edited and
+the guards not yet touched, g10 alone goes red (the slot table's run
+indices end at 123); every other Phase 2 guard and the needs arm's
+n1–n6 stay green. Observed: g10 red on
+`AssertionError: [107, …, 123, 124]`; the rest recorded below.
