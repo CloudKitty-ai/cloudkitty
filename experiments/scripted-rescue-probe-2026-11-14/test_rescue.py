@@ -37,7 +37,8 @@ def run(seating):
     """One harness run of `seating` on the recorded world: (the row, the acts file's arrays, the replayed ticks)."""
     SCRATCH.mkdir(parents=True, exist_ok=True)
     out = Path(tempfile.mkdtemp(prefix=f"{seating}-", dir=SCRATCH))
-    row = H.run_one((seating, SEED, TICKS, str(C.LEG_TOML[SIZE]), None, None, "served", None, None, None, str(out)))
+    # the job tuple as the harness's own main() builds it (the seat list passed explicitly), the F-053 abort armed
+    row = H.run_one((seating, SEED, TICKS, str(C.LEG_TOML[SIZE]), list(H.SEATINGS[seating]), None, "served", None, None, 1000, str(out)))
     z = dict(np.load(out / f"acts-{SEED}.npz"))
     return row, z, list(RP.replay(out / f"acts-{SEED}.npz", C.LEG_TOML[SIZE], want_obs=True))
 

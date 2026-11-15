@@ -662,7 +662,7 @@ def run_one(args):
         sys.path.insert(0, str(RESCUE_ARC))
         import rescue
         overlay = rescue.make(seating_name, cfg, ticks)
-        assert overlay is not None and not seats_override and len(names) == roster, "an overlay runs its own uniform seating only"
+        assert overlay is not None and seats == SEATINGS[seating_name] and len(names) == roster, "an overlay runs its own uniform seating only"
 
     for _t in range(ticks):
         acts = {}

@@ -3486,5 +3486,19 @@ its 3-world scout first: T at 100×100, P at 100×100, T at 40×40, P at
 goes to her. Owed before the first read, with its own red: the reader
 of §6.
 
-Status: DECLARED 2026-11-15; instruments red-proven; legs RUNNING —
-OPEN.
+FIRST START FAILED, NO TICK RUN (2026-11-15T08:07Z). All five legs
+stopped at their scouts' first line on an assert of the hook's own
+("an overlay runs its own uniform seating only"): the harness's
+command line always passes the seat list explicitly and the assert
+read any passed list as a swap. The guards had called the harness
+without the list, so they never took the command line's path (rule 5:
+the wrong layer). No world was stepped; the five scout files hold a
+header row and nothing else. Fixed: the assert compares the seats with
+the seating's own, and the guards now build the job exactly as the
+command line does, with the F-053 abort armed. The six guards are
+green on it, a 260-tick run through the command line itself completes,
+and the twelve mutants are re-run on the changed files before the legs
+restart.
+
+Status: DECLARED 2026-11-15; the hook fixed, reds re-running; no leg
+run — OPEN.
