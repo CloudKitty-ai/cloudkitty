@@ -3456,5 +3456,35 @@ own red:
 | s6 (added) | O's refusal of a state removed | `the observation rule took the engine state without refusing` |
 | g10 (re-red) | the rung seating resolved to the final | `the truth arm's equal-length seating seats` |
 
-Status: DECLARED 2026-11-15; instruments built, reds owed; no leg run
-— OPEN.
+REDS ON RECORD 2026-11-15, all twelve as predicted, each `RED
+CONFIRMED · baseline == restored`:
+
+| guard | red observed |
+|---|---|
+| s1 | `the bare harness differs from the recorded leg (seating p2u-nohead-s1, first at tick 0)` |
+| s1 (added) | `… (overlay T with no mission open, first at tick 0; its first mission opens at 129)` |
+| s2 | `the rescuer is not the nearest free cat (built world: missions {2: 0}, the 30-tile cat is seat 1)` |
+| s3 | `an overridden act is illegal (tick 129, seat 1: rest_with_kitty_3)` |
+| s3 (added) | `the message half is not the policy's (tick 0: sent [0, 0, 0, 0, 0], the policy's [0, 0, 12, 0, 10])` |
+| s4 | `the placebo walked to the lost cat (tick 130: move_west, walk 22 -> 21)` |
+| s4 (added) | `the placebo's missions differ from the rescue's on one stream` (P sent seat 3, T seat 1) |
+| s5 | `a rescuer in distress stayed on its mission` |
+| s6 | `the observation rule read the engine state` |
+| s6 (added) | `the observation rule's call place is not the row's (tick 130, seat 1: [-8, 3] against the row's [-16, 6])` |
+| s6 (added) | `the observation rule took the engine state without refusing` |
+| g10 (re-red) | `the truth arm's equal-length seating seats …/p2-truth-s1/policy-final.pt` |
+
+Guard cost, outside §5's line: about 0.1M covered cat-ticks (the
+no-head final's five copies over 260-tick and 600-tick runs on world
+905002 at 100×100, in scratch: the build's pilots, the suite, and
+three runs a mutation cycle).
+
+LEGS START on her call 5 ("yes, legs can start"), in §4's order, each
+its 3-world scout first: T at 100×100, P at 100×100, T at 40×40, P at
+40×40, O at 100×100 (`run_legs_rescue.sh`, raws under the arc's
+`results-raw/legs/<seating>/`). A scout abort stops that leg only and
+goes to her. Owed before the first read, with its own red: the reader
+of §6.
+
+Status: DECLARED 2026-11-15; instruments red-proven; legs RUNNING —
+OPEN.
