@@ -3344,3 +3344,36 @@ first probe (update 2,649): no distress streak.
 
 Status: DECLARED 2026-11-14; instruments red-proven; the arm TRAINING
 since 2026-11-15T07:46Z — OPEN.
+
+## 39. The scripted-rescue probe: declared (2026-11-15)
+
+`experiments/scripted-rescue-probe-2026-11-14/DECLARATION.md`, drafted
+2026-11-14 on her "Scripted use probe first." (commit 3ea6de8d), is
+DECLARED on her word of 2026-11-15, "2) yes, legs can start", given
+on the session's "The scripted-rescue probe's five calls ("yes as
+drafted" takes all my recommendations at 16.5M), plus whether its legs
+may start once its guards are red". The session's reading, hers to
+correct: calls 1–4 as recommended (declare; the no-head final as the
+one base at 100×100 and 40×40; the placebo legs; the observation-only
+rescue at 100×100) and call 5 given (legs start when §9's reds are on
+record, scouts first, with no further word).
+
+What it is: no training. A hand-written rule is laid over the no-head
+arm's seed-1 final at evaluation and may replace a seat's act with one
+legal act; the message half stays the policy's. Three overlays: T (a
+free cat walks to a lost friend and takes a partner act, on the
+engine's facts), P (the same triggers, an equal walk away) and O (the
+rescue on the cat's own observation only). The overlaid rosters are a
+measurement: never seated, served or a teacher.
+
+Frozen at this commit: §3–§9, with predictions S1–S5 and the guards'
+mutants and predicted reds (s1–s6) as drafted, before any number.
+Welfare-cost line: 16.5M covered cat-ticks (legs 1–5 and their scouts)
+on the no-head final's five copies; no seed band claimed (the worlds
+are the battery's g2cmp 905001–905030).
+
+Owed before a leg: the overlay and its hook in the harness, guards
+s1–s6, every red on record. The harness is not edited while a leg
+runs; none runs now (two trainers do, and neither imports it).
+
+Status: DECLARED 2026-11-15; nothing built, nothing run — OPEN.

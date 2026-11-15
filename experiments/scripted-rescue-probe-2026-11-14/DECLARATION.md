@@ -1,9 +1,13 @@
-# The scripted-rescue probe (DRAFT 2026-11-14; nothing built, nothing run)
+# The scripted-rescue probe (DECLARED 2026-11-15)
 
-Status: **DRAFT 2026-11-14**, written on her word "Scripted use probe
-first." Nothing here is declared, built or run. §12 holds the calls; her
-word on them declares it. No training happens in this arc: a trained
-policy is evaluated with a hand-written rule laid over it.
+Status: **DECLARED 2026-11-15** on her "2) yes, legs can start" (§0,
+§12), from the draft of 2026-11-14 written on her word "Scripted use
+probe first." §3–§9 are frozen from this commit as drafted (§7's
+predictions registered, §9's mutants and predicted reds written here,
+before any number); a change to them is a `gen2-deviations.md` entry
+on her word. The record is deviations entry 39. No training happens in
+this arc: a trained policy is evaluated with a hand-written rule laid
+over it.
 
 ## 0. Her words, verbatim and in order
 
@@ -17,6 +21,10 @@ policy is evaluated with a hand-written rule laid over it.
   the issue?"
 - 2026-11-14, on the session's five options with "run option 1 first"
   (a scripted-use probe, no training): "Scripted use probe first."
+- 2026-11-15, on the session's "The scripted-rescue probe's five calls
+  ("yes as drafted" takes all my recommendations at 16.5M), plus
+  whether its legs may start once its guards are red": "2) yes, legs
+  can start".
 
 ## 1. What is being asked
 
@@ -231,6 +239,12 @@ The harness's kept guards re-run on the edited file; new, each through
 - Rules 1, 2, 3, 4, 9, 11: moved nothing.
 
 ## 12. Owner calls (recommendation first; her word rules)
+
+Her word 2026-11-15: "2) yes, legs can start". Calls 1–4 RULED as
+recommended (the session's reading of "yes", against a question that
+named "yes as drafted" as taking every recommendation at 16.5M; hers
+to correct). **Call 5 GIVEN**: the legs start when §9's reds are on
+record, scouts first, without a further word.
 
 1. **Declare this** (after her edits). Recommended.
 2. **The no-head final as the one base, at 100×100 and 40×40.**

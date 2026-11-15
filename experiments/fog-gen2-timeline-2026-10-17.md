@@ -1316,6 +1316,12 @@ consent BC comparison ride the trunk.
   reads (entry 36); seed 1 kept for the re-anchor scout, which is
   DECLARED (entry 38; `gen2-reanchor-scout-2026-11-14/`, run index
   125). Its launch is a separate word.
+- 2026-11-15: her words "1) now 2) yes, legs can start". The
+  re-anchor scout `reanchor-s1` LAUNCHED 07:46Z beside the true-needs
+  scout (entry 38; first-row KL to the new anchor 0.0049). The
+  scripted-rescue probe DECLARED (entry 39): five calls as
+  recommended, 16.5M covered cat-ticks, legs to start on the guards'
+  reds, scouts first.
 
 ## Flagged follow-ups (owner's word to start)
 
