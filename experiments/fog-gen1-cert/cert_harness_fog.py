@@ -93,6 +93,7 @@ CONT_ARC = EXPTS / "gen2-trunk-continuation-2026-11-10"
 # The re-anchor scout's final (`g2:reanchor-s1`, gen2-reanchor-scout-2026-11-14/DECLARATION.md §6 R-B): the trunk's
 # policy class and seat kind, the artifact under that arc.
 REANCHOR_ARC = EXPTS / "gen2-reanchor-scout-2026-11-14"
+RESCUE_ARC = EXPTS / "scripted-rescue-probe-2026-11-14"
 V6_KINDS = ("g2:", "p2:")
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
 
@@ -183,6 +184,10 @@ SEATINGS = {
     # R-6's checkpoint ladder (gen2-deviations.md entry 34): one bin checkpoint of a run in all five seats, at 40x40.
     # u651 (2,002,944 ticks): the re-anchor scout's call 5 (gen2-reanchor-scout-2026-11-14 §6 R-B, deviations entry 38).
     **{f"r6-nohead-s1-u{u}": [f"p2:p2-nohead-s1r@u{u}"] * 5 for u in (651, 1302, 2604, 3906)},
+    # The scripted-rescue probe (scripted-rescue-probe-2026-11-14/DECLARATION.md §3, deviations entry 39): the no-head
+    # final in all five seats under an eval-time overlay (rescue.py: T facts, P placebo, O observation-only). A
+    # measurement: never seated, served or a teacher. The seating NAME carries the overlay (rescue.SEATINGS).
+    **{f"rescue-{kind}": ["p2:p2-nohead-s1r"] * 5 for kind in ("T", "P", "O")},
     # The re-anchor scout (entry 38): its final in all five seats.
     "reanchor-s1": ["g2:reanchor-s1"] * 5,
     **{f"r6-cont-s1-u{u}": [f"g2:cont-s1@u{u}"] * 5 for u in (3255, 3906, 4557, 5208, 5859)},
@@ -651,6 +656,13 @@ def run_one(args):
     # record_dir (Phase 2 legs): every policy seat's chosen (act, msg) per tick, so a leg is replayable by its
     # recorded actions for the after-the-fact reads (minifriend-phase2 R-2..R-5); nothing else is recorded here.
     rec_acts = np.zeros((ticks, len(names), 2), np.int16) if record_dir else None
+    # the scripted-rescue probe's overlay (entry 39): None for every seating but rescue-T / -P / -O
+    overlay = None
+    if seating_name.startswith("rescue-"):
+        sys.path.insert(0, str(RESCUE_ARC))
+        import rescue
+        overlay = rescue.make(seating_name, cfg, ticks)
+        assert overlay is not None and not seats_override and len(names) == roster, "an overlay runs its own uniform seating only"
 
     for _t in range(ticks):
         acts = {}
@@ -674,6 +686,10 @@ def run_one(args):
                     lg[rows] = np.asarray(fwd(ob[rows], mk[rows], **kw), np.float32)
             a0 = np.where(mk[:, :n_act], lg[:, :n_act], NEG_INF).argmax(1)
             g0 = np.where(mk[:, n_act:], lg[:, n_act:], NEG_INF).argmax(1)
+            if overlay is not None:
+                # the rule may replace a seat's ACT with one legal act; the message half (g0) is never handed to it,
+                # and the observation-only rule is never handed the engine's state
+                a0 = overlay.act(np.asarray(env.state(), np.float32) if overlay.wants_state else None, ob, mk, a0)
             acts = {a: (int(a0[i]), int(g0[i])) for i, a in enumerate(names)}
             for i, a in enumerate(names):
                 msg_counts[a][int(g0[i])] += 1
@@ -728,10 +744,12 @@ def run_one(args):
     if rec_acts is not None:
         Path(record_dir).mkdir(parents=True, exist_ok=True)
         np.savez_compressed(Path(record_dir) / f"acts-{seed}.npz", acts=rec_acts[:n_ticks], names=np.array(names),
-                            seats=np.array(seats), seed=seed, ticks=n_ticks, config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest())
+                            seats=np.array(seats), seed=seed, ticks=n_ticks, config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest(),
+                            **(overlay.arrays() if overlay is not None else {}))
     return {
         **({"aborted_streak": {"limit": abort_streak, "at_tick": aborted_at}}
            if aborted_at is not None else {}),
+        **({"overlay": overlay.report()} if overlay is not None else {}),
         "play": plays_acc,
         "needs": needs_hist,
         "beam": beams_acc,

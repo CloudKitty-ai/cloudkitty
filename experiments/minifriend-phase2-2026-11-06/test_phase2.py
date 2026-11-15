@@ -353,7 +353,8 @@ def g10():
     truth_seatings = sorted(n for n, v in H.SEATINGS.items() if any("truth" in s for s in v))
     assert truth_seatings == ["p2u-truth-s1", "p2u-truth-s1-u3906"] and H.SEATINGS["p2u-truth-s1"] == ["p2:p2-truth-s1"] * 5, truth_seatings
     rung = H.SEATINGS["p2u-truth-s1-u3906"]
-    assert rung == ["p2:p2-truth-s1@u3906"] * 5 and H.artifact_path(rung[0]) == HERE / "artifacts" / "p2-truth-s1" / "ckpt-u3906.pt" \
+    # the leaf and its run directory, not the root: earlier guards leave the harness's Phase 2 root on the scratch
+    assert rung == ["p2:p2-truth-s1@u3906"] * 5 and H.artifact_path(rung[0]).parts[-2:] == ("p2-truth-s1", "ckpt-u3906.pt") \
         and (3906 + 1) * 3072 == 12_002_304, f"the truth arm's equal-length seating seats {H.artifact_path(rung[0])}"
     # entries 25 / 26: the halted p2-nohead-s1 and p2-act10-s1 seat nowhere; each replacement takes its arm's s1 seat
     # in both seatings, and the trainer refuses each halted slot by name with its entry and its replacement

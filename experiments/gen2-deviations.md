@@ -3376,4 +3376,85 @@ Owed before a leg: the overlay and its hook in the harness, guards
 s1–s6, every red on record. The harness is not edited while a leg
 runs; none runs now (two trainers do, and neither imports it).
 
-Status: DECLARED 2026-11-15; nothing built, nothing run — OPEN.
+INSTRUMENTS BUILT 2026-11-15 (no leg run): `rescue.py` (the three
+overlays), a hook in `fog-gen1-cert/cert_harness_fog.py`, guards
+`test_rescue.py` (s1–s6), the leg runner `run_legs_rescue.sh`.
+
+- The hook. Seatings `rescue-T`, `rescue-P`, `rescue-O` seat the
+  no-head final in all five seats; the seating's name carries the
+  overlay. After the policy's act is chosen the rule may set a mission
+  seat's act. The message half is never handed to the rule, and the
+  observation rule is never handed the engine's state (it refuses
+  one). The leg's acts file gains three arrays (the policy's own act,
+  the mission's target, whether the rule set the act); the row gains
+  the mission log.
+- The guards' worlds. s2's assignment line and s5 run on state vectors
+  built in the test: no engine, no mind. The declared s2 world ("one
+  free cat") cannot red its own mutant (the farthest of one cat is the
+  nearest), so the built world holds two free cats. s1, s2's mission
+  lines, s3, s4 and s6 run on a recorded moment in place of a
+  hand-built engine world (rule 5: record real payloads): g2cmp 905002
+  at 100×100, where the baseline leg's first lost cat appears at tick
+  129, a 22-tile walk from the nearest free cat. The harness runs 260
+  ticks under each overlay in scratch; the test replays the recorded
+  acts and reads the engine's states.
+
+Build findings, none changing §3–§9:
+
+1. Sight is a Euclidean disc (dx² + dy² ≤ r²); the frozen lost line is
+   Manhattan. A friend at a diagonal offset such as (4, 4) under radius
+   6 is in sight and still counts as out of radius, so T's "lost" is a
+   little wider than "no friend in sight". The read names it.
+2. "The lost cat is never overridden" is built as: a mission's target
+   is not free.
+3. O, where the frozen text is silent: among several callers a cat
+   takes the nearest call place (ties to the lower row); "the call
+   leaves the window" is the row's want-cuddle intensity at zero or
+   the row carrying no place.
+4. Numbers seen after DECLARED and before any leg, all from the build:
+   a replay scan of the recorded baseline (no mind decides) counts
+   273 / 632 / 63 lost cat-ticks of 100,000 on worlds 905001–905003 at
+   100×100 and none on four 40×40 worlds, so S1's 30% is a cut of a
+   small number; four 600-tick pilot runs on world 905002 at 100×100
+   (bare, T, P, O) showed T's first mission closing partnered after 19
+   ticks, P's rescuers held away for 90–140 ticks with a worst
+   distress streak of 165 inside 600 ticks, and O sending all four
+   friends to one caller. Predictions S1–S5 stand as registered.
+5. Phase 2's g10 line for entry 37's rung seating compared a full path
+   and failed in the full-suite order: earlier guards leave the
+   harness's Phase 2 root on the scratch. The line now asserts the run
+   directory and leaf. It is re-redded below with entry 38's mutant.
+6. Three Gen 1 suites that import the harness are red on today's
+   binding before they reach the hook (`beam-world-screen` test_harness_msg
+   and `fog-deafening` test_deafen_mask on the observation width 399
+   against the v5 schema's 408; `enrichment-bonus-screen`
+   test_welfare_stops on an unset `CERT_ARTS`). Reported, not fixed.
+
+Rule 6, sorted before any run. Must go red, each by its mutant: s1–s6.
+Must stay green on the edited harness, and read: `test_g2_battery`,
+`test_seating_g2`, `test_cert_state_key`, `test_run_legs`,
+`test_reanchor` a6, `test_cont` (18), `test_phase2` (the full suite).
+None asserts the whole seating set; g10's truth-seating line holds
+because no rescue seating names a truth seat.
+
+Predicted reds, written before any mutant runs. The six declared
+mutants, and five more so that every assertion the guards add has its
+own red:
+
+| guard | mutant | predicted red |
+|---|---|---|
+| s1 | harness: seat 0's act replaced with no overlay at all | `the bare harness differs from the recorded leg (seating p2u-nohead-s1` |
+| s1 (added) | rule: seat 0's act replaced with no mission open | `the bare harness differs from the recorded leg (overlay T with no mission open` |
+| s2 | the farthest free cat assigned | `the rescuer is not the nearest free cat (built world` |
+| s3 | the mask not consulted for the partner act | `an overridden act is illegal` |
+| s3 (added) | harness: overlay seats silenced | `the message half is not the policy's` |
+| s4 | P's decoy set to the target's tile | `the placebo walked to the lost cat` |
+| s4 (added) | P assigns the farthest free cat | `the placebo's missions differ from the rescue's on one stream` |
+| s5 | the release line read at 100 | `a rescuer in distress stayed on its mission` |
+| s6 | harness: O handed the engine's state | `the observation rule read the engine state` |
+| s6 (added) | O's place halved | `the observation rule's call place is not the row's` |
+| s6 (added) | O's refusal of a state removed | `the observation rule took the engine state without refusing` |
+| g10 (re-red) | the rung seating resolved to the final | `the truth arm's equal-length seating seats` |
+
+Status: DECLARED 2026-11-15; instruments built, reds owed; no leg run
+— OPEN.
