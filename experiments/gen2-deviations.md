@@ -3363,8 +3363,19 @@ another file`; u2 `A1 scores … as [True, True, False, False]`; u3 `A2
 scores its four cases as [True, True, False, False]`; u3 (A3) `A3 does
 not read half of the no-head gain`.
 
-Status: DECLARED 2026-11-14; instruments and reader red-proven; the
-arm TRAINING since 2026-11-15T07:46Z — OPEN.
+THE ARM ENDED CLEAN 2026-11-15T08:38Z at its declared end: update
+3,255 inclusive, 10,002,432 lineage ticks, segment 1, no harm stop.
+`policy-final.pt` sha256 c765f216f23891e5…, `ckpt-u2929.pt` and
+`ckpt-u3255.pt` at the two closed bins. Thirteen probes (every 50
+updates): worst distress streak 13 (update 2,999), every other 0. The
+two bins as the trainer closed them: return 0.8931 with KL to the
+anchor 0.237, then 0.8956 with 0.281; neither flat. Scored by the
+reader, not here. Next under her launch word (§13 step 3): the legs at
+20×20 then 40×40 (scout first), and the no-head arm's 2M checkpoint
+leg at 40×40 (call 5).
+
+Status: DECLARED 2026-11-14; the arm trained to its end; legs RUNNING
+— OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 
