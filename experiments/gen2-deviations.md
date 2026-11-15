@@ -3500,5 +3500,9 @@ green on it, a 260-tick run through the command line itself completes,
 and the twelve mutants are re-run on the changed files before the legs
 restart.
 
-Status: DECLARED 2026-11-15; the hook fixed, reds re-running; no leg
-run — OPEN.
+Re-run 2026-11-15 on the fixed files: all twelve reds again as
+predicted, each `RED CONFIRMED · baseline == restored`. The legs
+restart at HEAD of this commit, in §4's order, scouts first.
+
+Status: DECLARED 2026-11-15; instruments red-proven; legs RUNNING —
+OPEN.
