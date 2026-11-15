@@ -3395,9 +3395,39 @@ is 984 ticks where the harness row's `max_distress_age` is 908. The
 two count different things (any own flag against the harness's streak)
 and agree on which worlds hold a 300+ streak; unexamined further.
 
+HER QUESTION 2026-11-15 (after the gated read, verbatim): "What about
+trying a quick run with needs meow information masked to see if that's
+what's preventing the needs head from being useful?" A scratch replay
+look answered the first half (session scratch, no file in the repo,
+UNGUARDED, nothing covered ran; not a result to cite). Every want-call
+stamps the caller's grounding need /100 (`action.rs`, spec 028) and a
+friend's row carries the freshest stamp per want-kind inside the digest
+window (`ROW_INTENSITY`, six cells, seen or heard). Counted per
+(observer, friend, hidden need) row at the start of each tick: is the
+want-intensity cell of that need live (> 0) while the friend's true
+need is high? No-head final (`p2u-nohead-s1`), recorded 40×40 leg,
+worlds 905001–905012 (4,800,000 rows, 0.863 with any live want): need
+>= 90: 1,992 rows, 1.000 live (eat 312, cuddle 1,680; mean abs error
+1.3 / 0.7 points); need >= 50: 29,832 rows, 0.990 live (eat 0.998,
+sleep 0.974, cuddle 0.985; error about 3 points). Needs arm
+(`p2u-needs-s1`), 100×100 scout worlds 905001–905003 (896,880 rows):
+need >= 90: 45,224 rows, 0.887 live (eat 0.879, cuddle 0.897, sleep 0
+of 312); need >= 50: 113,888 rows, 0.818 live (eat 0.842, cuddle
+0.917, sleep 0.103, play 0 of 2,832, drink 0 of 244). So the calls
+already hand a listener a friend's high eat and cuddle need nearly
+exactly, which fits §8's LEVEL. The harness's `--deaf` mask refuses
+Gen 2 seats (schema-5 offsets), and F-052 read want-deafening
+welfare-null on Gen 1 minds (−0.020, 15 of 30). PUT TO HER, no word
+yet: a frozen-minds want-masked test (hearer-side, want cells zeroed)
+on the no-head final and the truth final (both 15.0M) at 40×40, scouts
+first, about 6.6M covered cat-ticks; it needs a Gen 2 want-mask with
+its red and its own short declaration. A retrain without want-words is
+the slower question (two arms at 12–15M plus legs). My recommendation
+to close the needs-head line stands either way.
+
 Status: DECLARED 2026-11-14; scout ended clean at 15.0M; legs run;
-T1, T2, T4 met, §8 LEVEL; RESULTS gated; §8's consequence and the
-stopped no-head 12M leg with her — OPEN.
+T1, T2, T4 met, §8 LEVEL; RESULTS gated; §8's consequence, the stopped
+no-head 12M leg and the want-masked test with her — OPEN.
 
 ## 38. The re-anchor scout: declared (2026-11-14)
 
