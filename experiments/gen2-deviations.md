@@ -3399,11 +3399,25 @@ not yet gated, no RESULTS written):
   seed. One seed; put to her: seeds 2 and 4 of this arm, then the
   second-restart scout.
 
-Owed: R-C and R-D (dump-only, they score nothing), RESULTS and its
-gate, the recipe question to her with R-C.
+R-C AND R-D READ 2026-11-15 (`read_rc.py`, `read_rd.py`; replays and
+dumps, no covered cost; they score nothing; `reads/rc.md`,
+`reads/rd.md`):
 
-Status: DECLARED 2026-11-14; trained, legs run and first-read: A1–A3
-MET; R-C, R-D and the gated RESULTS owed — OPEN.
+- R-C, on 150,000 recorded rows of the no-head arm's seed 1 20×20
+  leg. KL to the BC clone: trunk s1's final 0.467, the continued final
+  0.381, this arm's final 0.900, the no-head final 1.112. Top act
+  differing from the clone's: 0.115, 0.104, 0.204, 0.231. In 2M ticks
+  the re-anchored arm moved about as far from the clone as the full
+  restart did in 15M; that is the cost side of §2.5.
+- R-D, on the three 40×40 legs. Foodless with eat need at 50 or more,
+  a move proposed when one was legal: this arm 0.916, the no-head
+  final 0.756, the continued final 0.711. Longest run without chow in
+  sight or memory: 246, 268, 1,214. No lock on this arm's leg.
+
+Owed: RESULTS and its gate; the recipe question to her with R-C.
+
+Status: DECLARED 2026-11-14; trained, legs run, R-A to R-D read:
+A1–A3 MET; the gated RESULTS owed — OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 
