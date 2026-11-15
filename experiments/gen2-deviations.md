@@ -3256,7 +3256,7 @@ Manifest: arm `truth`, 9 cells, no head, run index 124, seed base
 2,580,000,000. Update 0 as expected of a graft with zero cell weights:
 KL 0.0000, cells 0.000.
 
-SCOUT ENDED CLEAN 2026-11-15 (about 11:50Z): `PLATEAU: 3 flat
+SCOUT ENDED CLEAN 2026-11-15 (11:55Z): `PLATEAU: 3 flat
 1000000-tick bins after the floor at 15000576 ticks`, update 4,882
 inclusive, no harm stop. 97 probes; the worst distress streak is 199
 (line 300), the next 134 and 116. `policy-final.pt` sha256 begins
@@ -3276,7 +3276,7 @@ here: the final's 40×40 leg gets its own 3-world scout (scouts-first on
 a displaced size), 0.3M covered that the table's 6.0M row does not
 carry. Covered so far: training 75.0M, probes 2.9M.
 
-LEGS RUN 2026-11-15 (about 12:20–12:50Z), every row on disk:
+LEGS RUN 2026-11-15 (11:58–12:04Z), every row on disk:
 
 | seating | size | verdict |
 |---|---|---|
@@ -3328,9 +3328,56 @@ Predictions for the readers' reds, written before any mutant ran
 | w7 | under 0.70 loosened to at most 0.70 (`read_tail_truth.py`) | `T4 scores its three cases as [True, True, None]` |
 | w8 | closing moves counted from the hearing column (`diag_lost.py`) | `closing moves differ` |
 
-Status: DECLARED 2026-11-14; instruments red-proven; the scout ended
-clean at 15.0M; legs run (one comparator leg stopped, with her);
-readers' reds and the reads owed — OPEN.
+READERS' REDS ON RECORD 2026-11-15, all eight as predicted, each `RED
+CONFIRMED · baseline == restored`:
+
+| guard | red observed |
+|---|---|
+| w1 | `the equal-length leg is not the 12M checkpoint's: its header names {'e33b7698…'}` (the final's sha256) |
+| w2 | `§8 reads […, ((0.326, 0.325), 'ABOVE'), ((-0.326, -0.325), 'BELOW')]` |
+| w3 | `an aborted world was paired: 30 worlds` |
+| w4 | `grave rows differ from the engine's: the read flags 28, the state says 208` |
+| w5 | `a partial leg was scored` |
+| w6 | `T3 scores its five cases as [True, False, True, None, False]` |
+| w7 | `T4 scores its three cases as [True, True, None]` |
+| w8 | `closing moves differ: the read counts 5192 of 5225, the replay here 2979 of 5225` |
+
+A ninth, found and not predicted: w8's first run on the unfixed
+`diag_lost.py` (2,982 against 2,979, above). The needs arc's
+`reads/diag-lost.json` re-read after the fix: two cells of the needs
+100×100 world 905001 move by 0.001 (0.572 to 0.571, 0.556 to 0.555);
+nothing else changes.
+
+FIRST READ 2026-11-15 (not gated; `minifriend-true-needs-arm-2026-11-14/reads/`):
+
+- **R-1, equal length (the 12M checkpoint).** truth − needs +0.069 at
+  20×20 (22 of 30 worlds), −0.129 at 40×40 (7 of 30); edges 0.326 /
+  0.325. truth − no-head 12M: +0.212 (27 of 29 whole worlds) / −0.097
+  (3 of 30). truth − dual-head: −0.174 (1 of 30) / −0.597 (0 of 30).
+  **T1 MET, T2 MET; §8 reads LEVEL.**
+- **The final** (15,000,576 ticks, the no-head final's own length, so
+  the read §6 labels unequal is an equal-length one against no-head):
+  truth − no-head final −0.128 (1 of 30) / −0.272 (0 of 30); over its
+  own 12M checkpoint +0.038 / +0.299 (30 of 30 at 40×40).
+- **The block read.** Zeroing the truth cells changes 0.0383 / 0.0422
+  of acts; on grave rows at 40×40 0.1045 against 0.0420 on others
+  (7,514 grave rows). At 20×20 the leg holds 84 grave rows, under the
+  reader's 200-row minimum (19 of the 84 change). T3's first half met;
+  its second met at 40×40 and left unscored by the reader at 20×20.
+- **The tail read.** Unpartnered friends' moves close on a lost cat on
+  0.557 at 40×40 (1,889 moves) and 0.532 on the 100×100 scout (13,005).
+  **T4 MET.** Lost cat-ticks at 40×40: 1,529 against the needs scout's
+  7,256 on the same worlds. The unscored expectation (no change in
+  300+ streaks against the needs scout) did not hold at 40×40: no
+  world against three; on the 100×100 scout seven seat-streaks against
+  eight, one of three worlds aborted against two.
+- **The stopped comparator leg.** `r6-nohead-s1-u3906` at 20×20, world
+  905029: seat 3 in drink distress for 1,000 ticks from tick 299 with
+  no drink tick, seat 0 for 909. The other 29 worlds read streak 0.
+
+Status: DECLARED 2026-11-14; scout ended clean at 15.0M; legs run and
+first-read: T1, T2, T4 met, §8 LEVEL; the stopped no-head 12M leg and
+§8's consequence with her; RESULTS and its gate owed — OPEN.
 
 ## 38. The re-anchor scout: declared (2026-11-14)
 

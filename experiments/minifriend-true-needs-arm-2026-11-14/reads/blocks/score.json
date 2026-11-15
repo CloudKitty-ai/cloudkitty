@@ -1,0 +1,114 @@
+{
+ "legs": {
+  "20": {
+   "size": 20,
+   "worlds": 30,
+   "rows": 3000000,
+   "free_rows": 1709140,
+   "grave_rows": 84,
+   "ties": 0,
+   "share": {
+    "zero/truth": {
+     "all_rows": 0.03828666666666666,
+     "free_choice": 0.06720338883883123,
+     "grave": null,
+     "others": 0.03828140521267929,
+     "grave_changed": 19
+    },
+    "zero/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "grave": null,
+     "others": 0.0,
+     "grave_changed": 0
+    },
+    "zero/all": {
+     "all_rows": 0.03828666666666666,
+     "free_choice": 0.06720338883883123,
+     "grave": null,
+     "others": 0.03828140521267929,
+     "grave_changed": 19
+    },
+    "perm/truth": {
+     "all_rows": 0.047825,
+     "free_choice": 0.0839457270908176,
+     "grave": null,
+     "others": 0.04781967228415729,
+     "grave_changed": 20
+    },
+    "perm/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "grave": null,
+     "others": 0.0,
+     "grave_changed": 0
+    },
+    "perm/all": {
+     "all_rows": 0.047882,
+     "free_choice": 0.08404577740852125,
+     "grave": null,
+     "others": 0.04787667388020198,
+     "grave_changed": 20
+    }
+   }
+  },
+  "40": {
+   "size": 40,
+   "worlds": 30,
+   "rows": 3000000,
+   "free_rows": 1862525,
+   "grave_rows": 7514,
+   "ties": 1,
+   "share": {
+    "zero/truth": {
+     "all_rows": 0.042157,
+     "free_choice": 0.06790298116803802,
+     "grave": 0.1044716529145595,
+     "others": 0.042000530662465924,
+     "grave_changed": 785
+    },
+    "zero/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "grave": 0.0,
+     "others": 0.0,
+     "grave_changed": 0
+    },
+    "zero/all": {
+     "all_rows": 0.042157,
+     "free_choice": 0.06790298116803802,
+     "grave": 0.1044716529145595,
+     "others": 0.042000530662465924,
+     "grave_changed": 785
+    },
+    "perm/truth": {
+     "all_rows": 0.04973933333333334,
+     "free_choice": 0.08011597159769668,
+     "grave": 0.11139206813947299,
+     "others": 0.04958452604289544,
+     "grave_changed": 837
+    },
+    "perm/tsl": {
+     "all_rows": 0.0,
+     "free_choice": 0.0,
+     "grave": 0.0,
+     "others": 0.0,
+     "grave_changed": 0
+    },
+    "perm/all": {
+     "all_rows": 0.049565333333333336,
+     "free_choice": 0.07983570690326304,
+     "grave": 0.11099281341495874,
+     "others": 0.049411091647546555,
+     "grave_changed": 834
+    }
+   }
+  }
+ },
+ "missing": [],
+ "T3": {
+  "a_share_at_least_0.025": true,
+  "b_grave_above_others": null,
+  "met": null
+ }
+}

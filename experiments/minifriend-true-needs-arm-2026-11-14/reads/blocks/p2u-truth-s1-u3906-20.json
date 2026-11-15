@@ -1,0 +1,1100 @@
+{
+ "seating": "p2u-truth-s1-u3906",
+ "size": 20,
+ "blocks": {
+  "truth": [
+   0,
+   8
+  ],
+  "tsl": [
+   8,
+   9
+  ],
+  "all": [
+   0,
+   9
+  ]
+ },
+ "worlds": [
+  {
+   "seed": 905001,
+   "rows": 100000,
+   "free_rows": 57410,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 4013,
+   "zero": {
+    "truth": {
+     "changed": 4013,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4013,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4940,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4927,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905002,
+   "rows": 100000,
+   "free_rows": 57115,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3686,
+   "zero": {
+    "truth": {
+     "changed": 3686,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3686,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4657,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4688,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905003,
+   "rows": 100000,
+   "free_rows": 57808,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3871,
+   "zero": {
+    "truth": {
+     "changed": 3871,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3871,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4921,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 5015,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905004,
+   "rows": 100000,
+   "free_rows": 56889,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3838,
+   "zero": {
+    "truth": {
+     "changed": 3838,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3838,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4683,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4730,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905005,
+   "rows": 100000,
+   "free_rows": 57277,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3887,
+   "zero": {
+    "truth": {
+     "changed": 3887,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3887,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4928,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4810,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905006,
+   "rows": 100000,
+   "free_rows": 57387,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3963,
+   "zero": {
+    "truth": {
+     "changed": 3963,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3963,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 5029,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 5121,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905007,
+   "rows": 100000,
+   "free_rows": 56888,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3886,
+   "zero": {
+    "truth": {
+     "changed": 3886,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3886,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4720,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4746,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905008,
+   "rows": 100000,
+   "free_rows": 57018,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3741,
+   "zero": {
+    "truth": {
+     "changed": 3741,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3741,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4733,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4811,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905009,
+   "rows": 100000,
+   "free_rows": 56798,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3818,
+   "zero": {
+    "truth": {
+     "changed": 3818,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3818,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4750,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4834,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905010,
+   "rows": 100000,
+   "free_rows": 56619,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3946,
+   "zero": {
+    "truth": {
+     "changed": 3946,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3946,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4896,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4986,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905011,
+   "rows": 100000,
+   "free_rows": 56201,
+   "grave_rows": 24,
+   "ties": 0,
+   "trainer_changed": 3744,
+   "zero": {
+    "truth": {
+     "changed": 3744,
+     "changed_grave": 3
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3744,
+     "changed_grave": 3
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4588,
+     "changed_grave": 3
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4737,
+     "changed_grave": 3
+    }
+   }
+  },
+  {
+   "seed": 905012,
+   "rows": 100000,
+   "free_rows": 56873,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3821,
+   "zero": {
+    "truth": {
+     "changed": 3821,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3821,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4718,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4690,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905013,
+   "rows": 100000,
+   "free_rows": 56686,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3786,
+   "zero": {
+    "truth": {
+     "changed": 3786,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3786,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4804,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4724,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905014,
+   "rows": 100000,
+   "free_rows": 56658,
+   "grave_rows": 24,
+   "ties": 0,
+   "trainer_changed": 3838,
+   "zero": {
+    "truth": {
+     "changed": 3838,
+     "changed_grave": 5
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3838,
+     "changed_grave": 5
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4842,
+     "changed_grave": 7
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4847,
+     "changed_grave": 6
+    }
+   }
+  },
+  {
+   "seed": 905015,
+   "rows": 100000,
+   "free_rows": 56823,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3635,
+   "zero": {
+    "truth": {
+     "changed": 3635,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3635,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4513,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4496,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905016,
+   "rows": 100000,
+   "free_rows": 56658,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3805,
+   "zero": {
+    "truth": {
+     "changed": 3805,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3805,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4871,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4730,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905017,
+   "rows": 100000,
+   "free_rows": 57227,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3873,
+   "zero": {
+    "truth": {
+     "changed": 3873,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3873,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4826,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4761,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905018,
+   "rows": 100000,
+   "free_rows": 57248,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3840,
+   "zero": {
+    "truth": {
+     "changed": 3840,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3840,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4891,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4961,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905019,
+   "rows": 100000,
+   "free_rows": 57173,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3646,
+   "zero": {
+    "truth": {
+     "changed": 3646,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3646,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4572,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4524,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905020,
+   "rows": 100000,
+   "free_rows": 56984,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3800,
+   "zero": {
+    "truth": {
+     "changed": 3800,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3800,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4707,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4670,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905021,
+   "rows": 100000,
+   "free_rows": 56950,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3887,
+   "zero": {
+    "truth": {
+     "changed": 3887,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3887,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4831,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4802,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905022,
+   "rows": 100000,
+   "free_rows": 56724,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3779,
+   "zero": {
+    "truth": {
+     "changed": 3779,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3779,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4795,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4843,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905023,
+   "rows": 100000,
+   "free_rows": 56547,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3786,
+   "zero": {
+    "truth": {
+     "changed": 3786,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3786,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4716,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4641,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905024,
+   "rows": 100000,
+   "free_rows": 56969,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3695,
+   "zero": {
+    "truth": {
+     "changed": 3695,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3695,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4566,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4607,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905025,
+   "rows": 100000,
+   "free_rows": 57347,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3876,
+   "zero": {
+    "truth": {
+     "changed": 3876,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3876,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4813,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4825,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905026,
+   "rows": 100000,
+   "free_rows": 57578,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3940,
+   "zero": {
+    "truth": {
+     "changed": 3940,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3940,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4805,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4790,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905027,
+   "rows": 100000,
+   "free_rows": 56840,
+   "grave_rows": 36,
+   "ties": 0,
+   "trainer_changed": 3801,
+   "zero": {
+    "truth": {
+     "changed": 3801,
+     "changed_grave": 11
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3801,
+     "changed_grave": 11
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4722,
+     "changed_grave": 10
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4796,
+     "changed_grave": 11
+    }
+   }
+  },
+  {
+   "seed": 905028,
+   "rows": 100000,
+   "free_rows": 56897,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3931,
+   "zero": {
+    "truth": {
+     "changed": 3931,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3931,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4903,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 5000,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905029,
+   "rows": 100000,
+   "free_rows": 56960,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3811,
+   "zero": {
+    "truth": {
+     "changed": 3811,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3811,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4781,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4701,
+     "changed_grave": 0
+    }
+   }
+  },
+  {
+   "seed": 905030,
+   "rows": 100000,
+   "free_rows": 56588,
+   "grave_rows": 0,
+   "ties": 0,
+   "trainer_changed": 3917,
+   "zero": {
+    "truth": {
+     "changed": 3917,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 3917,
+     "changed_grave": 0
+    }
+   },
+   "perm": {
+    "truth": {
+     "changed": 4954,
+     "changed_grave": 0
+    },
+    "tsl": {
+     "changed": 0,
+     "changed_grave": 0
+    },
+    "all": {
+     "changed": 4833,
+     "changed_grave": 0
+    }
+   }
+  }
+ ]
+}

@@ -107,7 +107,7 @@ def score(d, seating=SEATING, raw=R1T.RAW):
         for m in RB.MODES:
             for b in BLOCKS:
                 ch = sum(w[m][b]["changed"] for w in ws.values()); cg = sum(w[m][b]["changed_grave"] for w in ws.values())
-                leg_["share"][f"{m}/{b}"] = {"all_rows": ch / n, "free_choice": ch / free, "grave": cg / gr if gr >= RB.MIN_N else None, "others": (ch - cg) / (n - gr)}
+                leg_["share"][f"{m}/{b}"] = {"all_rows": ch / n, "free_choice": ch / free, "grave": cg / gr if gr >= RB.MIN_N else None, "others": (ch - cg) / (n - gr), "grave_changed": cg}
         res["legs"][str(size)] = leg_
     if not res["missing"]:
         res["T3"] = t3({z: res["legs"][str(z)]["share"]["zero/truth"] for z in SIZES})
@@ -125,8 +125,8 @@ def md(res):
         for key, s in v["share"].items():
             m, b = key.split("/")
             out.append(f"| {size}×{size} | {m} | {b} | {s['all_rows']:.4f} | {s['free_choice']:.4f} | {f(s['grave'])} | {s['others']:.4f} |")
-    out += ["", "| size | rows | free-choice rows | grave rows | ties |", "|---|---|---|---|---|"]
-    out += [f"| {z}×{z} | {v['rows']:,} | {v['free_rows']:,} | {v['grave_rows']:,} | {v['ties']} |" for z, v in res["legs"].items()]
+    out += ["", "| size | rows | free-choice rows | grave rows | grave rows changed, truth zeroed | ties |", "|---|---|---|---|---|---|"]
+    out += [f"| {z}×{z} | {v['rows']:,} | {v['free_rows']:,} | {v['grave_rows']:,} | {v['share']['zero/truth']['grave_changed']:,} | {v['ties']} |" for z, v in res["legs"].items()]
     if "T3" in res:
         t = res["T3"]
         out += ["", f"**T3 {'UNSCORED (too few grave rows)' if t['met'] is None else 'MET' if t['met'] else 'NOT MET'}** (a: the truth cells drive at least {T3_SHARE} of acts at both sizes: "

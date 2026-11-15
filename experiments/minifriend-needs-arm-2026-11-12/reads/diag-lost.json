@@ -261,7 +261,7 @@
     ],
     "closed_when_hearing": [
      [
-      0.572,
+      0.571,
       5192
      ],
      [
@@ -275,7 +275,7 @@
     ],
     "closed_when_content": [
      [
-      0.556,
+      0.555,
       4216
      ],
      [
@@ -817,6 +817,7 @@
    ],
    "rescue": {
     "friend_moves": 1107,
+    "closed_moves": 597,
     "hears_the_lost_cat": 0.921,
     "closed_when_hearing": [
      0.56,
@@ -988,6 +989,7 @@
    ],
    "rescue": {
     "friend_moves": 627,
+    "closed_moves": 412,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.657,
@@ -1139,6 +1141,7 @@
    ],
    "rescue": {
     "friend_moves": 826,
+    "closed_moves": 497,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.602,
@@ -1530,13 +1533,14 @@
    ],
    "rescue": {
     "friend_moves": 5225,
+    "closed_moves": 2979,
     "hears_the_lost_cat": 0.994,
     "closed_when_hearing": [
-     0.572,
+     0.571,
      5192
     ],
     "closed_when_content": [
-     0.556,
+     0.555,
      4216
     ],
     "lost_cat_ticks": 3797
@@ -1734,6 +1738,7 @@
    ],
    "rescue": {
     "friend_moves": 1980,
+    "closed_moves": 1030,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.52,
@@ -2048,6 +2053,7 @@
    ],
    "rescue": {
     "friend_moves": 3678,
+    "closed_moves": 2250,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.612,
@@ -2104,6 +2110,7 @@
    "runs": [],
    "rescue": {
     "friend_moves": 0,
+    "closed_moves": 0,
     "hears_the_lost_cat": null,
     "closed_when_hearing": null,
     "closed_when_content": null,
@@ -2162,6 +2169,7 @@
    ],
    "rescue": {
     "friend_moves": 36,
+    "closed_moves": 13,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.361,
@@ -2229,6 +2237,7 @@
    ],
    "rescue": {
     "friend_moves": 0,
+    "closed_moves": 0,
     "hears_the_lost_cat": null,
     "closed_when_hearing": null,
     "closed_when_content": null,
@@ -2357,6 +2366,7 @@
    ],
    "rescue": {
     "friend_moves": 432,
+    "closed_moves": 250,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.579,
@@ -2549,6 +2559,7 @@
    ],
    "rescue": {
     "friend_moves": 990,
+    "closed_moves": 527,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.532,
@@ -2681,6 +2692,7 @@
    ],
    "rescue": {
     "friend_moves": 124,
+    "closed_moves": 91,
     "hears_the_lost_cat": 1.0,
     "closed_when_hearing": [
      0.734,

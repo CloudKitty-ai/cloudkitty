@@ -1330,7 +1330,15 @@ consent BC comparison ride the trunk.
   The re-anchor scout ended clean at 10,002,432 lineage ticks; first
   read (not gated): +1.841 over trunk s1 at 40×40 (30 of 30), against
   +0.139 for the same resume under the old anchor and +1.678 for the
-  no-head 2M checkpoint; A1–A3 MET.
+  no-head 2M checkpoint; A1–A3 MET. Its RESULTS gated (PASS, round
+  2) and committed e2f6dcc3.
+- 2026-11-15: the true-needs scout `p2-truth-s1` ended clean on the
+  plateau rule at 15,000,576 ticks (entry 37; worst probe streak 199).
+  Legs run; first read (not gated): truth − needs at the 12M
+  checkpoint +0.069 / −0.129 at 20×20 / 40×40, inside the edges; T1,
+  T2, T4 MET; §8 reads LEVEL. The no-head 12M checkpoint's 20×20 leg
+  (call 5) STOPPED on world 905029 (a 1,000-tick drink streak from
+  tick 299), owner-routed.
 
 ## Flagged follow-ups (owner's word to start)
 

@@ -1,0 +1,344 @@
+{
+ "pooled": {
+  "truth_12M/40": {
+   "worlds": 30,
+   "ticks": [
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000
+   ],
+   "streaks_300": [],
+   "lonely_moves": 14148,
+   "lonely_closed": 0.773,
+   "lonely_closed_by_walk": {
+    "0-10": [
+     0.973,
+     1957
+    ],
+    "10-20": [
+     0.942,
+     4404
+    ],
+    "20-40": [
+     0.63,
+     7016
+    ],
+    "40-70": [
+     0.607,
+     771
+    ],
+    "70+": null
+   },
+   "rescue": {
+    "lost_cat_ticks": 1529,
+    "friend_moves": 1889,
+    "closed_moves": 1053,
+    "closed": 0.557
+   }
+  },
+  "truth_12M/100": {
+   "worlds": 3,
+   "ticks": [
+    20000,
+    20000,
+    18498
+   ],
+   "streaks_300": [
+    {
+     "seed": 905001,
+     "seat": 0,
+     "length": 751,
+     "need": "cuddle",
+     "nearest_friend_mean": 64.9
+    },
+    {
+     "seed": 905001,
+     "seat": 2,
+     "length": 423,
+     "need": "eat",
+     "nearest_friend_mean": 12.6
+    },
+    {
+     "seed": 905001,
+     "seat": 3,
+     "length": 307,
+     "need": "eat",
+     "nearest_friend_mean": 11.3
+    },
+    {
+     "seed": 905002,
+     "seat": 0,
+     "length": 576,
+     "need": "cuddle",
+     "nearest_friend_mean": 45.2
+    },
+    {
+     "seed": 905002,
+     "seat": 2,
+     "length": 496,
+     "need": "cuddle",
+     "nearest_friend_mean": 43.5
+    },
+    {
+     "seed": 905002,
+     "seat": 3,
+     "length": 498,
+     "need": "cuddle",
+     "nearest_friend_mean": 48.6
+    },
+    {
+     "seed": 905003,
+     "seat": 0,
+     "length": 999,
+     "need": "cuddle",
+     "nearest_friend_mean": 86.2
+    }
+   ],
+   "lonely_moves": 16073,
+   "lonely_closed": 0.636,
+   "lonely_closed_by_walk": {
+    "0-10": [
+     0.896,
+     491
+    ],
+    "10-20": [
+     0.852,
+     2705
+    ],
+    "20-40": [
+     0.623,
+     6334
+    ],
+    "40-70": [
+     0.54,
+     5429
+    ],
+    "70+": [
+     0.542,
+     1114
+    ]
+   },
+   "rescue": {
+    "lost_cat_ticks": 8772,
+    "friend_moves": 13005,
+    "closed_moves": 6924,
+    "closed": 0.532
+   }
+  },
+  "needs/40": {
+   "worlds": 30,
+   "ticks": [
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000,
+    20000
+   ],
+   "streaks_300": [
+    {
+     "seed": 905004,
+     "seat": 2,
+     "length": 337,
+     "need": "cuddle",
+     "nearest_friend_mean": 35.1
+    },
+    {
+     "seed": 905012,
+     "seat": 2,
+     "length": 984,
+     "need": "eat",
+     "nearest_friend_mean": 22.7
+    },
+    {
+     "seed": 905030,
+     "seat": 4,
+     "length": 427,
+     "need": "cuddle",
+     "nearest_friend_mean": 34.6
+    }
+   ],
+   "lonely_moves": 24571,
+   "lonely_closed": 0.695,
+   "lonely_closed_by_walk": {
+    "0-10": [
+     0.957,
+     2527
+    ],
+    "10-20": [
+     0.844,
+     7442
+    ],
+    "20-40": [
+     0.574,
+     13479
+    ],
+    "40-70": [
+     0.581,
+     1123
+    ],
+    "70+": null
+   },
+   "rescue": {
+    "lost_cat_ticks": 7256,
+    "friend_moves": 9488,
+    "closed_moves": 5784,
+    "closed": 0.61
+   }
+  },
+  "needs/100": {
+   "worlds": 3,
+   "ticks": [
+    20000,
+    7423,
+    17421
+   ],
+   "streaks_300": [
+    {
+     "seed": 905001,
+     "seat": 1,
+     "length": 910,
+     "need": "cuddle",
+     "nearest_friend_mean": 58.9
+    },
+    {
+     "seed": 905001,
+     "seat": 2,
+     "length": 382,
+     "need": "cuddle",
+     "nearest_friend_mean": 29.0
+    },
+    {
+     "seed": 905001,
+     "seat": 3,
+     "length": 326,
+     "need": "eat",
+     "nearest_friend_mean": 34.3
+    },
+    {
+     "seed": 905002,
+     "seat": 0,
+     "length": 999,
+     "need": "cuddle",
+     "nearest_friend_mean": 71.8
+    },
+    {
+     "seed": 905002,
+     "seat": 1,
+     "length": 415,
+     "need": "cuddle",
+     "nearest_friend_mean": 45.7
+    },
+    {
+     "seed": 905003,
+     "seat": 1,
+     "length": 483,
+     "need": "cuddle",
+     "nearest_friend_mean": 47.1
+    },
+    {
+     "seed": 905003,
+     "seat": 2,
+     "length": 999,
+     "need": "cuddle",
+     "nearest_friend_mean": 55.8
+    },
+    {
+     "seed": 905003,
+     "seat": 3,
+     "length": 627,
+     "need": "cuddle",
+     "nearest_friend_mean": 34.1
+    }
+   ],
+   "lonely_moves": 9913,
+   "lonely_closed": 0.595,
+   "lonely_closed_by_walk": {
+    "0-10": [
+     0.943,
+     279
+    ],
+    "10-20": [
+     0.835,
+     1697
+    ],
+    "20-40": [
+     0.578,
+     4215
+    ],
+    "40-70": [
+     0.487,
+     3075
+    ],
+    "70+": [
+     0.439,
+     647
+    ]
+   },
+   "rescue": {
+    "lost_cat_ticks": 8405,
+    "friend_moves": 10883,
+    "closed_moves": 6259,
+    "closed": 0.575
+   }
+  }
+ },
+ "T4": {
+  "scored": {
+   "40": 0.5574377977766014,
+   "100": 0.5324106113033449
+  },
+  "met": true
+ }
+}
