@@ -1,0 +1,28 @@
+{
+ "seed": 2,
+ "rows": 150000,
+ "worlds": 30,
+ "every": 20,
+ "policies": {
+  "trunk s2 final": {
+   "kl_clone": 0.4819732894700331,
+   "kl_trunk": 0.0,
+   "differ": 0.13615333333333332
+  },
+  "no-head final": {
+   "kl_clone": 1.120388985543667,
+   "kl_trunk": 0.46470304615094016,
+   "differ": 0.2567066666666667
+  },
+  "continued final": {
+   "kl_clone": 0.36898394227639464,
+   "kl_trunk": 0.33771043772927173,
+   "differ": 0.11221333333333333
+  },
+  "re-anchored final": {
+   "kl_clone": 0.9998138967701544,
+   "kl_trunk": 0.34869594744533144,
+   "differ": 0.23062666666666667
+  }
+ }
+}

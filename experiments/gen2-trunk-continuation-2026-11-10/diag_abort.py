@@ -54,6 +54,9 @@ def world(seating, sub, root, seed, samples=6):
     seats = [k for k in range(R) if out["streaks"][str(k)]["length"] >= 300]
     if seats:
         lo, hi = max(out["streaks"][str(k)]["span"][0] for k in seats), min(out["streaks"][str(k)]["span"][1] for k in seats)
+    # the window is the ticks the 300+ streaks SHARE (the pack's lock); seats in streaks that never overlap share none
+    # (first met on reanchor-s4's 40×40 leg, 2026-11-16: separate cats, separate cuddle streaks)
+    if seats and lo <= hi:
         w = slice(lo, hi + 1)
         out["window"] = {"span": [lo, hi], "seats": {str(k): {
             "eat_need_mean": round(float(eat[w, k].mean()), 1), "eat_legal_ticks": int(mask[w, k, G.EAT].sum()),

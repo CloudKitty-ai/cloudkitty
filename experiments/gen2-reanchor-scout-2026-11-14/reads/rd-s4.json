@@ -1,0 +1,41 @@
+{
+ "reanchor-s4": {
+  "worlds": 30,
+  "short_worlds": {
+   "905004": 3913,
+   "905010": 1128
+  },
+  "foodless_eat50": {
+   "cat_ticks": 9985,
+   "move_legal_share": 0.8572746119178769,
+   "move_proposed_when_legal": 0.7913772675971072
+  },
+  "foodless_eat90": {
+   "cat_ticks": 2755,
+   "move_legal_share": 0.9540940108892922,
+   "move_proposed_when_legal": 0.8553878089227853
+  },
+  "longest_foodless_run": {
+   "max": 459,
+   "median_world": 220.5
+  }
+ },
+ "p2u-nohead-s4": {
+  "worlds": 30,
+  "short_worlds": {},
+  "foodless_eat50": {
+   "cat_ticks": 5166,
+   "move_legal_share": 0.8456763453348819,
+   "move_proposed_when_legal": 0.8603824557700988
+  },
+  "foodless_eat90": {
+   "cat_ticks": 365,
+   "move_legal_share": 0.6822876712328767,
+   "move_proposed_when_legal": 0.5664798562451061
+  },
+  "longest_foodless_run": {
+   "max": 279,
+   "median_world": 155.0
+  }
+ }
+}

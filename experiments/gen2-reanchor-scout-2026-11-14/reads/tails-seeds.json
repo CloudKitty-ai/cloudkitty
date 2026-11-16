@@ -1,0 +1,206 @@
+{
+ "2": {
+  "trunk@20": {
+   "worlds": 30,
+   "worst_streak": 1000,
+   "worlds_300": 2,
+   "aborts": {
+    "905008": 18949
+   },
+   "team_mean": 87.257
+  },
+  "trunk@40": {
+   "worlds": 30,
+   "worst_streak": 120,
+   "worlds_300": 0,
+   "aborts": {},
+   "team_mean": 86.012
+  },
+  "nohead_final@40": {
+   "worlds": 30,
+   "worst_streak": 141,
+   "worlds_300": 0,
+   "aborts": {},
+   "team_mean": 89.543
+  },
+  "nohead_2M@40": {
+   "worlds": 30,
+   "worst_streak": 281,
+   "worlds_300": 0,
+   "aborts": {},
+   "team_mean": 88.112
+  },
+  "reanchor@20": {
+   "worlds": 30,
+   "worst_streak": 0,
+   "worlds_300": 0,
+   "aborts": {},
+   "team_mean": 89.338
+  },
+  "reanchor@40": {
+   "worlds": 30,
+   "worst_streak": 398,
+   "worlds_300": 1,
+   "aborts": {},
+   "team_mean": 88.346
+  },
+  "reanchor@40_streaks": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   4,
+   8,
+   23,
+   27,
+   28,
+   38,
+   44,
+   100,
+   120,
+   269,
+   398
+  ],
+  "reanchor@40_streak_median": 0.0,
+  "reanchor@40_aborted": {}
+ },
+ "4": {
+  "trunk@20": {
+   "worlds": 30,
+   "worst_streak": 535,
+   "worlds_300": 1,
+   "aborts": {},
+   "team_mean": 87.746
+  },
+  "trunk@40": {
+   "worlds": 30,
+   "worst_streak": 687,
+   "worlds_300": 3,
+   "aborts": {},
+   "team_mean": 86.499
+  },
+  "nohead_final@40": {
+   "worlds": 30,
+   "worst_streak": 158,
+   "worlds_300": 0,
+   "aborts": {},
+   "team_mean": 89.517
+  },
+  "nohead_2M@40": {
+   "worlds": 30,
+   "worst_streak": 719,
+   "worlds_300": 9,
+   "aborts": {},
+   "team_mean": 89.018
+  },
+  "reanchor@20": {
+   "worlds": 30,
+   "worst_streak": 503,
+   "worlds_300": 1,
+   "aborts": {},
+   "team_mean": 89.974
+  },
+  "reanchor@40": {
+   "worlds": 30,
+   "worst_streak": 1000,
+   "worlds_300": 24,
+   "aborts": {
+    "905004": 3913,
+    "905010": 1128
+   },
+   "team_mean": 88.418
+  },
+  "reanchor@40_streaks": [
+   110,
+   161,
+   168,
+   195,
+   207,
+   220,
+   312,
+   315,
+   323,
+   330,
+   339,
+   339,
+   341,
+   346,
+   410,
+   410,
+   464,
+   465,
+   476,
+   615,
+   639,
+   692,
+   728,
+   754,
+   786,
+   869,
+   890,
+   918,
+   1000,
+   1000
+  ],
+  "reanchor@40_streak_median": 410.0,
+  "reanchor@40_aborted": {
+   "905004": {
+    "ticks": 3913,
+    "streak_by_seat": [
+     153,
+     0,
+     0,
+     1000,
+     0
+    ],
+    "shape": [
+     {
+      "length": 1000,
+      "need": "cuddle",
+      "tending": 0.0,
+      "parked": 0.334,
+      "idle": 0.301,
+      "moving": 0.365,
+      "other": 0.0
+     }
+    ]
+   },
+   "905010": {
+    "ticks": 1128,
+    "streak_by_seat": [
+     0,
+     0,
+     0,
+     0,
+     1000
+    ],
+    "shape": [
+     {
+      "length": 1000,
+      "need": "cuddle",
+      "tending": 0.0,
+      "parked": 0.24,
+      "idle": 0.15,
+      "moving": 0.61,
+      "other": 0.0
+     }
+    ]
+   }
+  }
+ }
+}
