@@ -94,6 +94,9 @@ CONT_ARC = EXPTS / "gen2-trunk-continuation-2026-11-10"
 # policy class and seat kind, the artifact under that arc.
 REANCHOR_ARC = EXPTS / "gen2-reanchor-scout-2026-11-14"
 RESCUE_ARC = EXPTS / "scripted-rescue-probe-2026-11-14"
+# The want-mask screen (want-mask-screen-2026-11-16/DECLARATION.md §3, deviations entry 42): seatings whose NAME starts
+# with this hand every seat an observation with the want-intensity cells zeroed (mask_want_intensity). Schema 6 only.
+WANT_MASK = "wantmask-"
 V6_KINDS = ("g2:", "p2:")
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
 
@@ -190,6 +193,10 @@ SEATINGS = {
     # final in all five seats under an eval-time overlay (rescue.py: T facts, P placebo, O observation-only). A
     # measurement: never seated, served or a teacher. The seating NAME carries the overlay (rescue.SEATINGS).
     **{f"rescue-{kind}": ["p2:p2-nohead-s1r"] * 5 for kind in ("T", "P", "O")},
+    # The want-mask screen (entry 42): the no-head final and the true-needs final (both 15.0M, trunk seed 1), each in
+    # all five seats under the want-intensity mask. A measurement: never seated, served or a teacher.
+    WANT_MASK + "nohead-s1": ["p2:p2-nohead-s1r"] * 5,
+    WANT_MASK + "truth-s1": ["p2:p2-truth-s1"] * 5,
     # The re-anchor arm (entry 38: the scout, seed 1; entry 41: seeds 2 and 4): each seed's final in all five seats.
     **{f"reanchor-s{k}": [f"g2:reanchor-s{k}"] * 5 for k in (1, 2, 4)},
     **{f"r6-cont-s1-u{u}": [f"g2:cont-s1@u{u}"] * 5 for u in (3255, 3906, 4557, 5208, 5859)},
@@ -337,6 +344,17 @@ DEAF_ARMS = {
     # Words and answers-me stay.
     "dir": None,
 }
+
+
+def mask_want_intensity(ob):
+    """Zero, in place, the six want-intensity cells of each of the four kitty rows of schema-6 observations (N, 399):
+    the need a friend's freshest want-call stamped. The call's kind, recency, rate and place stay, and every other
+    cell (want-mask-screen-2026-11-16 §3; hearer-side, evaluation only)."""
+    import obs_layout_v6 as L
+    assert ob.shape[1] == L.OBS_DIM, ob.shape
+    for off, _w in L.BLOCKS[:L.COUNTS["kitty"]]:
+        ob[:, off + L.ROW_INTENSITY:off + L.ROW_INTENSITY + len(L.WANT_KINDS)] = 0.0
+    return ob
 
 
 def deafen(ob, deaf, dims=None):
@@ -665,6 +683,9 @@ def run_one(args):
         import rescue
         overlay = rescue.make(seating_name, cfg, ticks)
         assert overlay is not None and seats == SEATINGS[seating_name] and len(names) == roster, "an overlay runs its own uniform seating only"
+    # the want-mask screen (entry 42): off for every seating but wantmask-*
+    want_mask = seating_name.startswith(WANT_MASK)
+    assert not want_mask or (schema == "v6" and seats == SEATINGS[seating_name]), "the want mask runs its own schema-6 seating only"
 
     for _t in range(ticks):
         acts = {}
@@ -678,6 +699,8 @@ def run_one(args):
                     ob[:, CLOCK_INDEX] = (n_ticks % TRAIN_HORIZON) / TRAIN_HORIZON
             if deaf:
                 deafen(ob, deaf, (width, height, dir_r))
+            if want_mask:
+                mask_want_intensity(ob)
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
             lg = np.zeros((len(names), n_heads), np.float32)
             for s, fwd in models.items():
