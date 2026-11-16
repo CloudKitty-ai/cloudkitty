@@ -4059,8 +4059,21 @@ stripe of run index 126 overlaps a claimed stripe`; a6 on seed 4
 green on seeds 1, 2 and 4. The guards' one-update runs draw the first
 seeds of each stripe (3,072 ticks a seed), as the scout's did.
 
-Status: DECLARED 2026-11-16 on her word; reds on record; the arms
-launch on entry 40's ruling 3 — OPEN.
+LAUNCHED 2026-11-16T06:38Z at 2499a8a5: `reanchor-s2` and
+`reanchor-s4`, side by side (`train_ppo_reanchor.py --seed 2` / `--seed
+4`, logs `artifacts/reanchor-s<k>.log`).
+
+THE READER'S REDS 2026-11-16 (at 456f8c12, each `RED CONFIRMED`), all
+four as predicted: u4 `A2 on a new seed scores its four cases as
+[True, True, False, True]`; u5 `the cross-seed grammar reads …
+(('REPLICATES', 'RETURN ONLY'), 'both replicate')`; u6 `an aborted
+world entered the mean: … 'n': 30 … against 0.005568 over 29`; u7 `a
+run that did not reach the declared end reads as ended`. The scout's
+own read (`read_reanchor.py` without `--seeds`) reproduces
+`reads/reanchor.json` value for value after the change.
+
+Status: DECLARED 2026-11-16 on her word; both arms training; legs and
+reads when they end — OPEN.
 
 ## 42. The want-mask screen: declared (2026-11-16)
 
@@ -4097,5 +4110,18 @@ mutation file. The guards' short runs: 300 ticks of five copies of the
 no-head final a run (1,500 covered cat-ticks), about a dozen runs
 across the cycles, inside §5's standing row.
 
-Status: DECLARED 2026-11-16; reds on record; R-0 next, then the
-scouts and legs under ruling 6 — OPEN.
+R-0 READ 2026-11-16 (`want-mask-screen-2026-11-16/reads/reach.json`,
+`reach.md`; replays of the two recorded unmasked legs, 3,000,000
+decision rows a mind, nothing covered). Zeroing the 24 cells changes
+the greedy act on 0.0227 of the no-head final's rows (68,217) and
+0.0236 of the truth final's (70,924). §4's stop does not fire: the
+scouts and legs run. **W0 NOT MET**: the no-head share is inside its
+band, but the truth final's share is not smaller. Nearly every row
+holds a live want-intensity cell (2,992,799 and 2,990,519 of
+3,000,000), so the "live rows" split says nothing here. R-2's
+unmasked half: zeroing the truth cells changes 0.0469 of the truth
+final's acts (140,808 rows; the 12M checkpoint read 0.0422). Fence:
+0 and 2 ties, no failure.
+
+Status: DECLARED 2026-11-16; reds on record; R-0 read, the stop does
+not fire; scouts and legs next under ruling 6 — OPEN.

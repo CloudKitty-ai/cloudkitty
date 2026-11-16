@@ -1,0 +1,32 @@
+{
+ "nohead": {
+  "worlds": 30,
+  "rows": 3000000,
+  "ties": 0,
+  "live_rows": 2992799,
+  "reach": 68217,
+  "reach_live": 68217,
+  "reach_share": 0.022739,
+  "reach_share_live": 0.022793712507923183,
+  "truth_changed": 0,
+  "truth_share": 0.0
+ },
+ "truth": {
+  "worlds": 30,
+  "rows": 3000000,
+  "ties": 2,
+  "live_rows": 2990519,
+  "reach": 70924,
+  "reach_live": 70924,
+  "reach_share": 0.023641333333333334,
+  "reach_share_live": 0.023716284698408537,
+  "truth_changed": 140808,
+  "truth_share": 0.046936
+ },
+ "stop": false,
+ "W0": {
+  "nohead": 0.022739,
+  "truth": 0.023641333333333334,
+  "met": false
+ }
+}
