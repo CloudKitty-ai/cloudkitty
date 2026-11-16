@@ -4054,3 +4054,24 @@ seeds of each stripe (3,072 ticks a seed), as the scout's did.
 
 Status: DECLARED 2026-11-16 on her word; reds on record; the arms
 launch on entry 40's ruling 3 — OPEN.
+
+## 42. The want-mask screen: declared (2026-11-16)
+
+`experiments/want-mask-screen-2026-11-16/DECLARATION.md` is DECLARED
+on her word of 2026-11-16, "As recommended" (entry 40, ruling 6). The
+session's reading, hers to correct: the frozen-minds screen as put to
+her (the six want-intensity cells of every kitty row zeroed
+hearer-side on the no-head and true-needs finals at 40×40; two
+3-world scouts, then two 30-world legs; about 6.6M covered), with the
+review's conditions: the reading is a differential (the masked truth
+mind's loss minus the masked no-head mind's), a double fall reads
+UNINFORMATIVE, and the truth-cell block read is repeated under the
+mask. Added by the session, on the welfare side: a zero-cost read of
+how many acts the mask changes on the recorded legs comes first, and
+if it is under 1 in 1,000 on both minds the covered legs are not run.
+
+§3–§9 are frozen from this entry's commit. §9's seven guards and
+their predicted reds are in the declaration, written before any
+mutant ran.
+
+Status: DECLARED 2026-11-16; build and reds next — OPEN.
