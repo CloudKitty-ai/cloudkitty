@@ -4036,9 +4036,16 @@ predictions written here first):
 | a5 | 4 | seed 4 given run index 126 | `overlaps a claimed stripe` |
 | a6 | 4 | the `reanchor-s4` seating seats seed 2's final | `reanchor-s4 seats` |
 
-The reader's per-seed and cross-seed extension lands with its own
-reds before its first read; their predictions are added here before
-their mutants run.
+The reader's per-seed and cross-seed extension (`read_reanchor.py`:
+`read_seed`, `word`, `cross`; `test_read_reanchor.py` u4–u7), its
+predictions written here before its mutants run:
+
+| guard | asserts | mutant | predicted red |
+|---|---|---|---|
+| u4 | A2 on a new seed is the trunk clause alone: 25 worlds and a mean beyond the edge; 24 worlds, or a mean at the edge, miss | the worlds line read at 24 | `A2 on a new seed scores` |
+| u5 | each seed's word from (A1, A2, ended, leg run), and the cross-seed line for both, one and neither replicating; a STOPPED or UNSCORED seed does not replicate | RETURN ONLY counted as replicating | `the cross-seed grammar reads` |
+| u6 | on recorded rows (the continued final's 40×40 leg, world 905007 aborted, standing where an arm's leg would, against trunk seed 1): an arm world that aborted counts as not above and is left out of the mean; a comparator's aborted world is unpaired | the arm's aborted world kept in the mean | `an aborted world entered the mean` |
+| u7 | a run reads as ended only if its final records the declared end (`reanchor-end`, update 3,255): the scout's final does, the continued final standing in does not | every final read as ended | `a run that did not reach the declared end reads as ended` |
 
 REDS ON RECORD 2026-11-16 (at 58611d92, each `RED CONFIRMED`, baseline
 equal to restored): all six as predicted. a1 on seed 2 `the resume
@@ -4074,4 +4081,21 @@ if it is under 1 in 1,000 on both minds the covered legs are not run.
 their predicted reds are in the declaration, written before any
 mutant ran.
 
-Status: DECLARED 2026-11-16; build and reds next — OPEN.
+REDS ON RECORD 2026-11-16 (each `RED CONFIRMED`, baseline equal to
+restored), all seven as predicted. The mask and the harness (at
+c37a5960): m1 `the mask changed cells outside the want-intensity block
+or left one live: 8211 outside, 21440 live`; m2 `a recorded act is not
+the masked policy's: 20 of 1500 rows`; m3 `the unmasked seating's acts
+differ from its recorded leg: 1175 cells`. The reader (at 63b075c7):
+m4 `the reader took the unmasked no-head leg as the masked nohead
+leg`; m5 `the grammar reads [((-0.325, 0.0), 'UNINFORMATIVE'), …`; m6
+`an aborted world entered a pair (30 worlds)`; m7 `FENCE:
+wantmask-nohead-s1 world 905001: a recorded act is not a maximiser …
+tick 210 (seat 0)`. m4's first cycle was a no-op (the mutation
+command's quoting matched nothing, exit 5); it was re-run from a
+mutation file. The guards' short runs: 300 ticks of five copies of the
+no-head final a run (1,500 covered cat-ticks), about a dozen runs
+across the cycles, inside §5's standing row.
+
+Status: DECLARED 2026-11-16; reds on record; R-0 next, then the
+scouts and legs under ruling 6 — OPEN.

@@ -4,14 +4,16 @@
 # armed, acts recorded.
 #
 #   experiments/gen2-reanchor-scout-2026-11-14/run_legs_reanchor.sh [--only 20,40] [--workers 6]
+#   REANCHOR_SEED=2 (or 4) experiments/gen2-reanchor-scout-2026-11-14/run_legs_reanchor.sh      (deviations entry 41)
 #
-# Output: results-raw/legs/reanchor-s1/{scouts,legs}/size<N>/ under this arc (gitignored, never deleted).
+# Output: results-raw/legs/reanchor-s<seed>/{scouts,legs}/size<N>/ under this arc (gitignored, never deleted).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 A="$ROOT/experiments/minifriend-phase2-2026-11-06"
 LEGS="$ROOT/experiments/gen2-comparator-legs-2026-10-14"
 R="$ROOT/experiments/gen2-reanchor-scout-2026-11-14"
-SEATING=reanchor-s1
+SEATING="reanchor-s${REANCHOR_SEED:-1}"
+case "$SEATING" in reanchor-s1|reanchor-s2|reanchor-s4) ;; *) echo "not a re-anchor seating: $SEATING" >&2; exit 2 ;; esac
 cd "$ROOT"
 mkdir -p "$R/results-raw/legs/$SEATING"
 LOG="$R/results-raw/legs/$SEATING/run.log"
