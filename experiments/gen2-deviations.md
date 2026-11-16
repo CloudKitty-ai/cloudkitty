@@ -4160,9 +4160,29 @@ FIRST READ 2026-11-16 (`gen2-reanchor-scout-2026-11-14/reads/seeds.json`,
   did not miss; the tail on seed 4 was named only as trunk seed 4's
   harm history.
 
-Status: DECLARED 2026-11-16 on her word; legs run, first-read: both
-REPLICATE by the letter; seed 4's 40×40 leg stopped on two aborts
-and is with her; R-C, R-D and RESULTS owed — OPEN.
+R-C AND R-D PER SEED 2026-11-16 (`reads/rc-s<k>.md`, `rd-s<k>.md`;
+zero covered cost). KL to the BC clone: the re-anchored finals 0.9998
+(seed 2) and 1.0791 (seed 4), their trunk finals 0.4820 and 0.4864,
+the no-head finals 1.1204 and 1.1251. Foodless search on the 40×40
+legs: with eat need at 50 or more a move is proposed when legal on
+0.934 (seed 2) and 0.791 (seed 4) of cat-ticks. `diag_abort.py` raised
+on seed 4's leg (its shared-streak window is empty when a world's
+300+ streaks never overlap); the session's first fix guessed the
+wrong line and was reverted, the second skips the window in that
+case.
+
+RESULTS GATED 2026-11-16: `RESULTS-seeds.md`, PASS in one round (no
+WEAK; raw-dir hash v1:dbc32b1cbdd036a6 over `results-raw-seeds`).
+
+PUT TO HER 2026-11-16 with the first read: (1) extend `reanchor-s4`
+two more bins before any second restart, to see whether the tail
+fades (the session's recommendation); (2) the second-restart scout as
+planned on seed 1, with a tail gate in its declaration; (3) stop here.
+The second-restart declaration (ruling 4) is drafted after her pick.
+
+Status: DECLARED 2026-11-16 on her word; both REPLICATE by the
+letter; seed 4's 40×40 leg stopped on two aborts; RESULTS gated;
+the tail's consequence is with her — OPEN.
 
 ## 42. The want-mask screen: declared (2026-11-16)
 

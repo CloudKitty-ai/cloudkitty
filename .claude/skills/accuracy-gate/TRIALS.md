@@ -2234,3 +2234,28 @@ Lessons:
     The next read of this shape declares what difference counts as
     none.
 
+## 2026-11-16 — re-anchor arm, seeds 2 and 4 RESULTS (Experiments; the whole document, one section)
+
+`experiments/gen2-reanchor-scout-2026-11-14/RESULTS-seeds.md`,
+deviations entry 41: a new file beside the scout's gated `RESULTS.md`,
+which was not edited. One round, a fresh subagent, the Read fence only
+(the seeds read, a tail dump, R-C and R-D per seed, greps of the
+training and leg logs; about 12 minutes). Fresh outputs identical to
+the recorded reads.
+
+- Round 1: **PASS**. About 185 arithmetic, 12 threshold, 16
+  characterisation (none WEAK), 1 undecidable (a regression check of
+  the seed-1 reader, outside the fence), about 30 provenance. Raw-dir
+  hash v1:dbc32b1cbdd036a6.
+
+Lessons:
+
+129. **A replication goes in its own file.** Extending a gated
+    document un-gates it; a sibling file with its own Read fence and
+    its own raw directory keeps both stamps true.
+130. **Declare a cell for every way a leg can end.** The extension
+    priced a training stop and a scout abort and gave a finished leg
+    with aborted worlds only a pairing rule, so the declared word and
+    the tail disagreed. The write-up reports both and folds neither;
+    the next declaration of this shape gives the tail its own word.
+
