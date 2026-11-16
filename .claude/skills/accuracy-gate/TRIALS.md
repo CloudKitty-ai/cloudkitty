@@ -2172,3 +2172,65 @@ Lessons:
     never cites.** Here: a replay's any-flag streak (984) against the
     harness row's streak (908) on a comparator world. Record it where
     the instruments live; it is not a verdict input.
+
+## 2026-11-16 — scripted-rescue probe RESULTS (Experiments; the whole document, one section)
+
+`experiments/scripted-rescue-probe-2026-11-14/RESULTS.md`, deviations
+entries 39 and 40. Two rounds, fresh subagents, the Read fence only
+(one reader, about 2 minutes; three one-line dumps of scout rows, run
+headers and the placebo scout's aborted world). Fresh outputs
+identical to the recorded reads in both rounds.
+
+- Round 1: **FAIL**. Two provenance misses: the document put all four
+  legs at one HEAD where the O leg's run log and raw headers name a
+  later commit (reader-only diff), and it counted twelve mutants for
+  guards s1–s6 where the record holds eleven and a re-run of another
+  arc's guard. It also reported as WEAK "the cat that aborted was
+  never a rescuer in that world: the abort is not attributed to the
+  overlay": the cat was the placebo's target in 8 of 10 missions,
+  seven back to back through its whole streak. The session checked
+  that against the raw row and the baseline's same world, corrected
+  deviations entry 40, and rewrote the section.
+- Round 2: **PASS**. About 151 arithmetic, 9 threshold, 16
+  characterisation (1 WEAK, outside Decision rules: "Team happiness
+  cannot see this mechanism" rests on an unmeasured gap), 1
+  undecidable, 20 provenance. The WEAK sentence was left as gated and
+  named in the stamp (lesson 122). Raw-dir hash v1:30f8458327ec7069.
+
+Lessons:
+
+125. **A true clause can carry a conclusion it does not support.**
+    "Never a rescuer" was correct and came from the record; "so not
+    attributed" needed the other role, the target, which nobody had
+    read. When a sentence clears a mechanism, check every role the
+    mechanism gives a cat, off the raw row.
+126. **A correction taken from a reviewer gets the raw check one's
+    own claim would.** The session had verified the reviewer's fact
+    and adopted its inference; the gate's WEAK was the first read of
+    the row itself.
+127. **Each leg's HEAD comes from its own header.** One "LEGS RUN at
+    HEAD" line for a batch is wrong the moment a commit lands between
+    two legs; quote per leg, from the run log or the raw header.
+
+## 2026-11-16 — want-mask screen RESULTS (Experiments; the whole document, one section)
+
+`experiments/want-mask-screen-2026-11-16/RESULTS.md`, deviations entry
+42. One round, a fresh subagent, the Read fence only (two reader
+commands and a grep of the run logs; about 6 minutes). Fresh outputs
+identical to the recorded reads.
+
+- Round 1: **PASS**. About 86 arithmetic, 10 threshold, 17
+  characterisation (2 WEAK, outside Decision rules: "does not move"
+  and "are not substitutes" read a 1.6% relative rise between two
+  legs as flat, with no noise band), 0 undecidable, 14 provenance.
+  The WEAK sentences were left as gated and named in the stamp
+  (lesson 122). Raw-dir hash v1:07b15bb45990372c.
+
+Lessons:
+
+128. **A "flat" needs its noise band declared with the read.** R-2
+    compared one share on two legs; the declaration gave the sign
+    test (higher, under a factor of two) and no band for "the same".
+    The next read of this shape declares what difference counts as
+    none.
+

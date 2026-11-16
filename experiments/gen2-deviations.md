@@ -3828,9 +3828,15 @@ are unscored.
   against the baseline at 100×100; cat-ticks with any distress flag
   16,497 for T against 25,604.
 
-Status: DECLARED 2026-11-15; four legs run and first-read; the P leg
-at 100×100 RULED NOT RUN 2026-11-16 (entry 40, ruling 5: S1, S2, S4
-and §8 UNSCORED); RESULTS and its gate owed — OPEN.
+RESULTS GATED 2026-11-16: PASS in round 2 (round 1 failed on the O
+leg's HEAD, which is 85ad65ca and not the c876745e of "LEGS RUN …
+at HEAD c876745e" above, and on a mutant count; it also surfaced the
+placebo scout's target account: entry 40's CORRECTION). Raw-dir hash
+v1:30f8458327ec7069.
+
+Status: DECLARED 2026-11-15; four legs run; the P leg at 100×100
+RULED NOT RUN 2026-11-16 (entry 40, ruling 5: S1, S2, S4 and §8
+UNSCORED); RESULTS gated — CLOSED.
 
 ## 40. Her rulings on the six open decisions (2026-11-16)
 
@@ -4169,5 +4175,8 @@ whole in all four legs:
   The unscored expectation (lost time rises under the mask on the
   no-head final) did not hold: it fell.
 
-Status: DECLARED 2026-11-16; legs run and first-read: NOT
-LOAD-BEARING; RESULTS and its gate owed — OPEN.
+RESULTS GATED 2026-11-16: PASS in one round (two WEAK sentences
+named in the stamp; raw-dir hash v1:07b15bb45990372c).
+
+Status: DECLARED 2026-11-16; legs run; §8 NOT LOAD-BEARING; RESULTS
+gated; the consequence is hers — OPEN.
