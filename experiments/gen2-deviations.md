@@ -4040,4 +4040,17 @@ The reader's per-seed and cross-seed extension lands with its own
 reds before its first read; their predictions are added here before
 their mutants run.
 
-Status: DECLARED 2026-11-16 on her word; build and reds next — OPEN.
+REDS ON RECORD 2026-11-16 (at 58611d92, each `RED CONFIRMED`, baseline
+equal to restored): all six as predicted. a1 on seed 2 `the resume
+record differs from cont-s2's` (seven fields differ); a2 on seed 4
+`the anchor is not trunk seed 4's final` (the anchor equals the
+clone); a3 on seed 4 `the first update's schedule differs from
+cont-s4's` (entropy coefficient 0.0028 against 0.0064); a4 on seed 2
+`the run ends at update 2606 after 2 updates`; a5 on seed 4 `the
+stripe of run index 126 overlaps a claimed stripe`; a6 on seed 4
+`reanchor-s4 seats …/reanchor-s2/policy-final.pt`. The six guards run
+green on seeds 1, 2 and 4. The guards' one-update runs draw the first
+seeds of each stripe (3,072 ticks a seed), as the scout's did.
+
+Status: DECLARED 2026-11-16 on her word; reds on record; the arms
+launch on entry 40's ruling 3 — OPEN.
