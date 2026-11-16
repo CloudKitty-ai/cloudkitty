@@ -1,0 +1,331 @@
+{
+ "seeds": {
+  "2": {
+   "seed": 2,
+   "ended": true,
+   "R-A": {
+    "trunk_last_bin": {
+     "ticks": 8002560,
+     "ret": 0.8789155784733462,
+     "kl": 0.5186247330478913,
+     "ev": 0.6559406550018334,
+     "entropy": 0.9312167218487254,
+     "flat": true,
+     "flat_streak": 3
+    },
+    "reanchor": {
+     "bins": [
+      {
+       "ticks": 9000960,
+       "ret": 0.8911113235768782,
+       "kl": 0.2479432939824863,
+       "ev": 0.6759094028919935,
+       "entropy": 1.0118178534804163,
+       "flat": false,
+       "flat_streak": 0
+      },
+      {
+       "ticks": 10002432,
+       "ret": 0.8940853318400601,
+       "kl": 0.29721211488330107,
+       "ev": 0.6834999769683242,
+       "entropy": 0.9630080850557795,
+       "flat": false,
+       "flat_streak": 0
+      }
+     ],
+     "step": 0.01219574510353194
+    },
+    "cont": {
+     "bins": [
+      {
+       "ticks": 9000960,
+       "ret": 0.8758238952729636,
+       "kl": 0.5037298844640071,
+       "ev": 0.6476756699784444,
+       "entropy": 0.9007038970732202,
+       "flat": true,
+       "flat_streak": 1
+      },
+      {
+       "ticks": 10002432,
+       "ret": 0.8773048881431963,
+       "kl": 0.5211784244097907,
+       "ev": 0.6438372468952935,
+       "entropy": 0.8931885586558352,
+       "flat": true,
+       "flat_streak": 2
+      }
+     ],
+     "step": -0.0030916832003826666
+    },
+    "nohead": {
+     "bins": [
+      {
+       "ticks": 1001472,
+       "ret": 0.8900666921003938,
+       "kl": 0.21057661972050432,
+       "ev": 0.7779197004378025,
+       "entropy": 1.0878754184780246,
+       "flat": false,
+       "flat_streak": 0
+      },
+      {
+       "ticks": 2002944,
+       "ret": 0.893031428644993,
+       "kl": 0.30056734616793923,
+       "ev": 0.7328386114898817,
+       "entropy": 1.056461097526884,
+       "flat": false,
+       "flat_streak": 0
+      }
+     ],
+     "step": 0.01115111362704757
+    }
+   },
+   "R-B": {
+    "reanchor@20": {
+     "worst_streak": 0,
+     "worlds_300": 0,
+     "aborts": {},
+     "team_mean": 89.338144,
+     "vs_trunk": {
+      "mean": 1.9966668965517256,
+      "positive": 29,
+      "n": 29,
+      "arm_aborted": 0,
+      "unpaired": 1
+     },
+     "vs_cont_final": {
+      "mean": 2.098239333333334,
+      "positive": 30,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     }
+    },
+    "reanchor@40": {
+     "worst_streak": 398,
+     "worlds_300": 1,
+     "aborts": {},
+     "team_mean": 88.34632866666668,
+     "vs_trunk": {
+      "mean": 2.3343813333333334,
+      "positive": 30,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     },
+     "vs_nohead_2M": {
+      "mean": 0.23433533333333306,
+      "positive": 29,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     }
+    },
+    "nohead_2M@40": {
+     "worst_streak": 281,
+     "worlds_300": 0,
+     "aborts": {},
+     "team_mean": 88.11199333333334,
+     "vs_trunk": {
+      "mean": 2.1000460000000003,
+      "positive": 30,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     }
+    }
+   },
+   "missing": [],
+   "predictions": {
+    "A1": {
+     "step": 0.01219574510353194,
+     "kl_first_bin": 0.2479432939824863,
+     "met": true
+    },
+    "A3": {
+     "arm_vs_trunk": 2.3343813333333334,
+     "nohead_2M_vs_trunk": 2.1000460000000003,
+     "met": true
+    },
+    "A2": {
+     "positive": 30,
+     "mean_vs_trunk": 2.3343813333333334,
+     "worlds": 30,
+     "arm_aborted": 0,
+     "met": true
+    }
+   },
+   "A3": "MET",
+   "word": "REPLICATES"
+  },
+  "4": {
+   "seed": 4,
+   "ended": true,
+   "R-A": {
+    "trunk_last_bin": {
+     "ticks": 8002560,
+     "ret": 0.8803360170423525,
+     "kl": 0.5327998251579931,
+     "ev": 0.6643922609374201,
+     "entropy": 0.9065686234443889,
+     "flat": true,
+     "flat_streak": 3
+    },
+    "reanchor": {
+     "bins": [
+      {
+       "ticks": 9000960,
+       "ret": 0.8965646159617865,
+       "kl": 0.24645093287060463,
+       "ev": 0.7088883942422959,
+       "entropy": 0.9467448223165523,
+       "flat": false,
+       "flat_streak": 0
+      },
+      {
+       "ticks": 10002432,
+       "ret": 0.9012727114495583,
+       "kl": 0.3135315605204987,
+       "ev": 0.6735924314936063,
+       "entropy": 0.934911365387872,
+       "flat": false,
+       "flat_streak": 0
+      }
+     ],
+     "step": 0.016228598919433956
+    },
+    "cont": {
+     "bins": [
+      {
+       "ticks": 9000960,
+       "ret": 0.8826333469784969,
+       "kl": 0.5491494390253837,
+       "ev": 0.6558780707075046,
+       "entropy": 0.9236590773713452,
+       "flat": true,
+       "flat_streak": 1
+      },
+      {
+       "ticks": 10002432,
+       "ret": 0.8796231438999144,
+       "kl": 0.5264502580626154,
+       "ev": 0.6483639314644999,
+       "entropy": 0.875208195976958,
+       "flat": true,
+       "flat_streak": 2
+      }
+     ],
+     "step": 0.002297329936144399
+    },
+    "nohead": {
+     "bins": [
+      {
+       "ticks": 1001472,
+       "ret": 0.8956535183632219,
+       "kl": 0.2023863244519039,
+       "ev": 0.7458814873697202,
+       "entropy": 1.0172643727620962,
+       "flat": false,
+       "flat_streak": 0
+      },
+      {
+       "ticks": 2002944,
+       "ret": 0.8990113931201718,
+       "kl": 0.3151510543235652,
+       "ev": 0.6611835217000517,
+       "entropy": 1.0411617228436532,
+       "flat": false,
+       "flat_streak": 0
+      }
+     ],
+     "step": 0.015317501320869398
+    }
+   },
+   "R-B": {
+    "reanchor@20": {
+     "worst_streak": 503,
+     "worlds_300": 1,
+     "aborts": {},
+     "team_mean": 89.973682,
+     "vs_trunk": {
+      "mean": 2.227387333333332,
+      "positive": 30,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     },
+     "vs_cont_final": {
+      "mean": 1.9643826666666655,
+      "positive": 30,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     }
+    },
+    "reanchor@40": {
+     "worst_streak": 1000,
+     "worlds_300": 24,
+     "aborts": {
+      "905004": 3913,
+      "905010": 1128
+     },
+     "team_mean": 88.41788199999999,
+     "vs_trunk": {
+      "mean": 2.0926449999999996,
+      "positive": 28,
+      "n": 28,
+      "arm_aborted": 2,
+      "unpaired": 0
+     },
+     "vs_nohead_2M": {
+      "mean": -0.42624714285714255,
+      "positive": 0,
+      "n": 28,
+      "arm_aborted": 2,
+      "unpaired": 0
+     }
+    },
+    "nohead_2M@40": {
+     "worst_streak": 719,
+     "worlds_300": 9,
+     "aborts": {},
+     "team_mean": 89.018462,
+     "vs_trunk": {
+      "mean": 2.5190833333333327,
+      "positive": 30,
+      "n": 30,
+      "arm_aborted": 0,
+      "unpaired": 0
+     }
+    }
+   },
+   "missing": [],
+   "predictions": {
+    "A1": {
+     "step": 0.016228598919433956,
+     "kl_first_bin": 0.24645093287060463,
+     "met": true
+    },
+    "A3": {
+     "arm_vs_trunk": 2.0926449999999996,
+     "nohead_2M_vs_trunk": 2.5190833333333327,
+     "met": true
+    },
+    "A2": {
+     "positive": 28,
+     "mean_vs_trunk": 2.0926449999999996,
+     "worlds": 28,
+     "arm_aborted": 2,
+     "met": true
+    }
+   },
+   "A3": "MET",
+   "word": "REPLICATES"
+  }
+ },
+ "prior": "seed 1: REPLICATES, A3 met (reads/reanchor.md; RESULTS.md, gated)",
+ "cross": "both replicate: the anchor alone is sufficient on three of three trunk seeds"
+}

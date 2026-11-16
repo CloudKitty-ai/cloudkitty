@@ -4107,8 +4107,62 @@ scout) and no-head seed k's 2M checkpoint at 40×40, raws under
 `results-raw-seeds/` (the scout's `results-raw` is hash-stamped) and
 the continuation's `results-raw`.
 
-Status: DECLARED 2026-11-16 on her word; both arms trained clean;
-legs and reads next — OPEN.
+LEGS RUN 2026-11-16T07:36–07:39Z at HEAD 9b3a8f20, the two seeds
+side by side, each arm's legs then its comparator's:
+
+| leg | scout (3 worlds) | leg (30 worlds) |
+|---|---|---|
+| `reanchor-s2`, 20×20 | none at this size | clean, worst streak 0 |
+| `reanchor-s2`, 40×40 | clean, worst 0 | clean, worst 398 |
+| `r6-nohead-s2-u651`, 40×40 | clean, worst 129 | clean, worst 281 |
+| `reanchor-s4`, 20×20 | none at this size | clean, worst 503 |
+| `reanchor-s4`, 40×40 | clean, worst 728 | **LEG STOP: world 905004 ABORTED at tick 3,913, world 905010 at tick 1,128** |
+| `r6-nohead-s4-u651`, 40×40 | clean, worst 342 | clean, worst 719 |
+
+The stop on `reanchor-s4` is owner-routed. It was the seating's last
+leg, so no leg of it went unrun; the comparator's leg (another
+seating) ran after it, as the chain was written.
+
+FIRST READ 2026-11-16 (`gen2-reanchor-scout-2026-11-14/reads/seeds.json`,
+`seeds.md`; not yet gated).
+
+- **Seed 2: REPLICATES, A3 met.** A1: step +0.0122, KL at bin 1
+  0.2479. A2: +2.334 over trunk seed 2 at 40×40, 30 of 30 worlds. A3:
+  +2.334 against the no-head 2M checkpoint's +2.100. At 20×20 +1.997
+  (29 of 29; trunk seed 2's aborted world unpaired). Tail at 40×40:
+  one world with a 300+ streak, worst 398 (trunk seed 2: none, worst
+  120).
+- **Seed 4: REPLICATES by its letter, A3 met, and its 40×40 leg
+  stopped.** A1: step +0.0162, KL 0.2465. A2: +2.093 over trunk seed
+  4 on the 28 worlds run whole, all 28 up; the two aborted worlds
+  count as not above (28 of 30, the line is 25). A3: +2.093 against
+  the no-head 2M checkpoint's +2.519. At 20×20 +2.227 (30 of 30).
+- **Seed 4's tail at 40×40 is the harm on record here.** 24 of 30
+  worlds hold a streak of 300 or more (the 30 worlds' worst streaks
+  run from 110 to 1,000, median 410); two worlds reached the
+  1,000-tick line. Both aborts are one cat's cuddle streak (seat 3 in
+  905004, seat 4 in 905010, tending 0.0 of the streak): a cat alone,
+  not the pack's food lock of declaration §2.4. Beside it at 40×40 on
+  the same seed: trunk seed 4, 3 worlds at 300+, worst 687; the
+  no-head arm's 2M checkpoint, 9 worlds, worst 719; the no-head final
+  (15M), none, worst 158.
+- **Across seeds, by the declared letter: both replicate (three of
+  three).** The unscored expectation (no harm stop in training, no
+  world at the 1,000-tick line on the legs) **did not hold on seed
+  4**. The grammar of this entry prices a training stop and a scout
+  abort; it gives a leg with aborted worlds no cell of its own beyond
+  the pairing rule, so the letter says REPLICATES while the tail says
+  the gain on seed 4 came with a severe lonely-cat tail two million
+  ticks after the anchor moved. That is put to her as it is, not
+  folded into the word.
+- Predictions: both seeds REPLICATE and A3 met on both, as
+  registered. The named likeliest misses (A1's KL band, A2 on seed 4)
+  did not miss; the tail on seed 4 was named only as trunk seed 4's
+  harm history.
+
+Status: DECLARED 2026-11-16 on her word; legs run, first-read: both
+REPLICATE by the letter; seed 4's 40×40 leg stopped on two aborts
+and is with her; R-C, R-D and RESULTS owed — OPEN.
 
 ## 42. The want-mask screen: declared (2026-11-16)
 
