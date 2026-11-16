@@ -4096,8 +4096,19 @@ run that did not reach the declared end reads as ended`. The scout's
 own read (`read_reanchor.py` without `--seeds`) reproduces
 `reads/reanchor.json` value for value after the change.
 
-Status: DECLARED 2026-11-16 on her word; both arms training; legs and
-reads when they end — OPEN.
+BOTH ARMS ENDED CLEAN 2026-11-16T07:35Z, each at update 3,255
+inclusive (10,002,432 lineage ticks), no harm stop. `reanchor-s2`:
+`policy-final.pt` sha256 begins c830d891b0decbbc; thirteen probes,
+twelve with a distress streak of 0 and one of 171 (update 2,699).
+`reanchor-s4`: sha256 begins 1f7c739f73099fe2; thirteen probes, twelve
+at 0 and one of 110 (update 2,749). Both under the 300-tick stop.
+Next, under ruling 3: each seed's legs (20×20, then 40×40 with its
+scout) and no-head seed k's 2M checkpoint at 40×40, raws under
+`results-raw-seeds/` (the scout's `results-raw` is hash-stamped) and
+the continuation's `results-raw`.
+
+Status: DECLARED 2026-11-16 on her word; both arms trained clean;
+legs and reads next — OPEN.
 
 ## 42. The want-mask screen: declared (2026-11-16)
 
