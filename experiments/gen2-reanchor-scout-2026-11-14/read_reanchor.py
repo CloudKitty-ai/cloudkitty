@@ -68,6 +68,8 @@ def grammar(m1, m2, m3):
 
 # --- seeds 2 and 4 (deviations entry 41) ---
 END_REASON, END_UPDATE = "reanchor-end", 3_255
+# the scout's results-raw is hash-stamped (RESULTS.md, v1:1dee3d0f5cdd5fa9) and takes no new file: seeds 2 and 4 write here
+RAW_SEEDS = HERE / "results-raw-seeds"
 
 
 def a2_seed(vs_trunk):
@@ -127,8 +129,8 @@ def read_seed(k):
         out["predictions"]["A1"] = {"step": arm["step"], "kl_first_bin": arm["bins"][0]["kl"], "met": m1}
     legs = {}
     for size in (20, 40):
-        if (RP.legs_dir(name, size, RAW) / f"{name}-g2cmp-30x20000.jsonl").exists():
-            legs[size] = leg(name, size, RAW)
+        if (RP.legs_dir(name, size, RAW_SEEDS) / f"{name}-g2cmp-30x20000.jsonl").exists():
+            legs[size] = leg(name, size, RAW_SEEDS)
             out["R-B"][f"reanchor@{size}"] = {**tail(legs[size]), "vs_trunk": paired_seed(legs[size], C.battery_rows(f"g2-s{k}", size))}
         else:
             out["missing"].append(f"{name}@{size}")
