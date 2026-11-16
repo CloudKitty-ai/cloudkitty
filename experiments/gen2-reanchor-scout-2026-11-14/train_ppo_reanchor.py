@@ -13,7 +13,7 @@ imported modules and undone when the run returns.
      `ckpt-u3255.pt`, as the continuation's checkpoints).
 The harm stops are the trainer's own, armed as written; the plateau stop is off (it cannot fire in two bins).
 
-    VIRTUAL_ENV=$A/.venv caffeinate -s nohup $A/.venv/bin/python3 -B train_ppo_reanchor.py > artifacts/reanchor-s1.log 2>&1 &
+    VIRTUAL_ENV=$A/.venv caffeinate -s nohup $A/.venv/bin/python3 -B train_ppo_reanchor.py [--seed 2|4] > artifacts/reanchor-s<seed>.log 2>&1 &
     (A = experiments/minifriend-phase2-2026-11-06, the declared binding; launched on the owner's word only. An
     interrupted run is re-run with the same command: the trainer's resume rule continues it one segment on.)
     --stop-update N --out-dir <scratch>: the guards' short runs (test_reanchor.py); never a declared run.
@@ -32,11 +32,22 @@ sys.path.insert(0, str(CONT_ARC))
 import train_ppo_cont as D  # noqa: E402
 T = D.T
 
-NAME, TRUNK_SLOT = "reanchor-s1", "trunk-s1"
-RUN_INDEX = 125
 STOP_UPDATE = 3_256                                         # the first update NOT run: the last is 3,255 (two bins)
-ANCHOR = D.TRUNK_ARC / "artifacts" / f"ppo-g2-{TRUNK_SLOT}" / "policy-final.pt"
-ANCHOR_SHA256 = "a22b8713f517f794dd441ffe59a07004953c3e7637166093dbf78dee1f458364"   # p2_common.TRUNK_FINAL_SHA[1]
+# trunk seed -> (run index, the sha256 of that trunk seed's final = p2_common.TRUNK_FINAL_SHA). Seed 1 is the scout
+# (entry 38); seeds 2 and 4 are deviations entry 41 (her word 2026-11-16), run indices claimed in SEED-BANDS.md.
+SEEDS = {1: (125, "a22b8713f517f794dd441ffe59a07004953c3e7637166093dbf78dee1f458364"),
+         2: (126, "4040554abaaa1b4255fce455bbccfcadea65d0d61f3aa0396269c0fc7acba086"),
+         4: (127, "69d7248c7c33395173889ee068dcf86f7a7e9e18ed4dab59dd316f03ed94b690")}
+
+
+def arm(seed):
+    """(name, trunk slot, run index, anchor path, anchor sha256) of the arm on trunk seed `seed`."""
+    index, sha = SEEDS[seed]
+    slot = f"trunk-s{seed}"
+    return f"reanchor-s{seed}", slot, index, D.TRUNK_ARC / "artifacts" / f"ppo-g2-{slot}" / "policy-final.pt", sha
+
+
+NAME, TRUNK_SLOT, RUN_INDEX, ANCHOR, ANCHOR_SHA256 = arm(1)  # the scout's, kept for its guards and readers
 ARGV_TAIL = []                                              # nothing: --total-ticks stays the trainer's 20,000,000
 
 
@@ -44,10 +55,11 @@ class Done(Exception):
     """The declared end: raised before the stop update's first fragment is collected."""
 
 
-def run(out=None, stop=STOP_UPDATE):
+def run(out=None, stop=STOP_UPDATE, seed=1):
+    NAME, TRUNK_SLOT, RUN_INDEX, ANCHOR, ANCHOR_SHA256 = arm(seed)
     out = Path(out) if out else HERE / "artifacts" / NAME
     assert stop == STOP_UPDATE or HERE / "artifacts" not in out.resolve().parents, "a short run never writes under artifacts/"
-    assert T.sha256(ANCHOR) == ANCHOR_SHA256, f"{ANCHOR} is not trunk seed 1's final"
+    assert T.sha256(ANCHOR) == ANCHOR_SHA256, f"{ANCHOR} is not trunk seed {seed}'s final"
     keep = (T.PLATEAU_BINS, T.schedules, T.collect_fragment, sys.argv, T.PINS["init_clone"])
     try:
         D.SLOT[NAME] = TRUNK_SLOT
@@ -95,6 +107,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--out-dir", type=Path, default=None)
     ap.add_argument("--stop-update", type=int, default=STOP_UPDATE)
+    ap.add_argument("--seed", type=int, default=1, choices=sorted(SEEDS))
     a = ap.parse_args()
-    assert (a.out_dir is None) == (a.stop_update == STOP_UPDATE), "a declared run writes artifacts/reanchor-s1 and stops at 3,256; anything else is the guards'"
-    run(a.out_dir, a.stop_update)
+    assert (a.out_dir is None) == (a.stop_update == STOP_UPDATE), "a declared run writes artifacts/reanchor-s<seed> and stops at 3,256; anything else is the guards'"
+    run(a.out_dir, a.stop_update, a.seed)

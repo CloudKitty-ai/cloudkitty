@@ -184,12 +184,14 @@ SEATINGS = {
     # R-6's checkpoint ladder (gen2-deviations.md entry 34): one bin checkpoint of a run in all five seats, at 40x40.
     # u651 (2,002,944 ticks): the re-anchor scout's call 5 (gen2-reanchor-scout-2026-11-14 §6 R-B, deviations entry 38).
     **{f"r6-nohead-s1-u{u}": [f"p2:p2-nohead-s1r@u{u}"] * 5 for u in (651, 1302, 2604, 3906)},
+    # the same 2M rung on no-head seeds 2 and 4: the re-anchor arm's A3 comparator per seed (deviations entry 41).
+    **{f"r6-nohead-s{k}-u651": [f"p2:p2-nohead-s{k}@u651"] * 5 for k in (2, 4)},
     # The scripted-rescue probe (scripted-rescue-probe-2026-11-14/DECLARATION.md §3, deviations entry 39): the no-head
     # final in all five seats under an eval-time overlay (rescue.py: T facts, P placebo, O observation-only). A
     # measurement: never seated, served or a teacher. The seating NAME carries the overlay (rescue.SEATINGS).
     **{f"rescue-{kind}": ["p2:p2-nohead-s1r"] * 5 for kind in ("T", "P", "O")},
-    # The re-anchor scout (entry 38): its final in all five seats.
-    "reanchor-s1": ["g2:reanchor-s1"] * 5,
+    # The re-anchor arm (entry 38: the scout, seed 1; entry 41: seeds 2 and 4): each seed's final in all five seats.
+    **{f"reanchor-s{k}": [f"g2:reanchor-s{k}"] * 5 for k in (1, 2, 4)},
     **{f"r6-cont-s1-u{u}": [f"g2:cont-s1@u{u}"] * 5 for u in (3255, 3906, 4557, 5208, 5859)},
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more

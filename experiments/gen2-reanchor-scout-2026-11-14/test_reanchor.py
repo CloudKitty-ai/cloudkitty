@@ -4,7 +4,9 @@ the arm trains. a1 / a2 / a5 share one ZERO-update resume (the driver stopped be
 reset, none is stepped); a2's KL line, a3 and a4 share one ONE-update run (3,072 ticks, the arm's own stripe). Both
 write to scratch directories only.
 
-    VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B test_reanchor.py [a1 a2 ...]
+    VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B test_reanchor.py [--seed 2|4] [a1 a2 ...]
+The seed's trunk directory, continuation run and anchor hash are derived HERE from the seed (p2_common's table), never
+read back from the driver's own table (deviations entry 41).
 """
 import functools
 import json
@@ -22,8 +24,16 @@ import train_ppo_reanchor as R  # noqa: E402
 D, T = R.D, R.T
 sys.path.insert(0, str(D.HERE))
 from test_cont import same  # noqa: E402  (deep equality over checkpoint records)
-TRUNK_DIR = D.TRUNK_ARC / "artifacts" / f"ppo-g2-{R.TRUNK_SLOT}"
-CONT_S1 = D.HERE / "artifacts" / "cont-s1"
+sys.path.insert(0, str(HERE.parent / "minifriend-phase2-2026-11-06"))
+import p2_common  # noqa: E402
+SEED = int(sys.argv.pop(sys.argv.index("--seed") + 1)) if "--seed" in sys.argv else 1
+if "--seed" in sys.argv:
+    sys.argv.remove("--seed")
+ARM = f"reanchor-s{SEED}"
+ANCHOR_SHA = p2_common.TRUNK_FINAL_SHA[SEED]
+RUN_INDEX = {1: 125, 2: 126, 4: 127}[SEED]
+TRUNK_DIR = D.TRUNK_ARC / "artifacts" / f"ppo-g2-trunk-s{SEED}"
+CONT = D.HERE / "artifacts" / f"cont-s{SEED}"
 
 
 def _run(stop):
@@ -44,7 +54,7 @@ def _run(stop):
     out = Path(tempfile.mkdtemp(prefix="reanchor-"))
     try:
         T.EntityPolicyV6, torch.optim.Adam = policy, Adam
-        R.run(out, stop)
+        R.run(out, stop, SEED)
     finally:
         T.EntityPolicyV6, torch.optim.Adam = keep
     made["out"] = out
@@ -80,12 +90,12 @@ def a1():
     m = dry()
     rk = torch.load(m["out"] / "checkpoint.pt", map_location="cpu", weights_only=False)
     trunk_rk = torch.load(TRUNK_DIR / "checkpoint.pt", map_location="cpu", weights_only=False)
-    cont = json.loads((CONT_S1 / "cont-manifest.json").read_text())
+    cont = json.loads((CONT / "cont-manifest.json").read_text())
     sha = T.sha256(m["out"] / "trunk-checkpoint.pt")
     rest = lambda r: {k: v for k, v in r.items() if k != "flat_streak"}
     diff = [k for k in trunk_rk if k != "flat_streak" and not same(rk.get(k), trunk_rk[k])]
     ok = sha == cont["trunk_checkpoint_sha256"] and rk["flat_streak"] == 0 and rk["update"] == cont["resume_update"] and same(rest(rk), rest(trunk_rk))
-    assert ok, f"the resume record differs from cont-s1's: flat_streak {rk['flat_streak']}, update {rk['update']}, fields {diff}, copy sha {sha[:12]}"
+    assert ok, f"the resume record differs from cont-s{SEED}'s: flat_streak {rk['flat_streak']}, update {rk['update']}, fields {diff}, copy sha {sha[:12]}"
     final = torch.load(TRUNK_DIR / "policy-final.pt", map_location="cpu", weights_only=True)["state_dict"]
     assert same(dict(m["policy"][0].state_dict()), dict(final)), "the resumed policy differs from the trunk final"
     for i, key in enumerate(("opt_pi", "opt_v")):
@@ -101,22 +111,22 @@ def a2():
     clone = torch.load(T.PINS["init_clone"], map_location="cpu", weights_only=True)["state_dict"]
     anchor = dict(m["policy"][1].state_dict())
     assert not same(dict(final), dict(clone)), "the trunk final equals the clone: the guard cannot tell them apart"
-    assert same(anchor, dict(final)) and m["manifest"]["init_sha256"] == R.ANCHOR_SHA256 == T.sha256(TRUNK_DIR / "policy-final.pt"), \
-        f"the anchor is not trunk seed 1's final (manifest init {m['manifest']['init_sha256'][:12]}, anchor equals the clone: {same(anchor, dict(clone))})"
+    assert same(anchor, dict(final)) and m["manifest"]["init_sha256"] == ANCHOR_SHA == T.sha256(TRUNK_DIR / "policy-final.pt"), \
+        f"the anchor is not trunk seed {SEED}'s final (manifest init {m['manifest']['init_sha256'][:12]}, anchor equals the clone: {same(anchor, dict(clone))})"
     kl = one()["rows"][0]["kl_anchor"]
-    cont_kl = json.loads((CONT_S1 / "metrics.jsonl").read_text().splitlines()[0])["kl_anchor"]
-    assert cont_kl > 0.4 and 0.0 <= kl < 0.01, f"KL to the anchor over the first update is {kl} (cont-s1's to the clone: {cont_kl})"
+    cont_kl = json.loads((CONT / "metrics.jsonl").read_text().splitlines()[0])["kl_anchor"]
+    assert cont_kl > 0.4 and 0.0 <= kl < 0.01, f"KL to the anchor over the first update is {kl} (cont-s{SEED}'s to the clone: {cont_kl})"
 
 
 def a3():
     """No restart and no warm-up: the first update's index, segment, entropy coefficient, learning rate and beta equal
     cont-s1's recorded first row."""
     row = one()["rows"][0]
-    cont = json.loads((CONT_S1 / "metrics.jsonl").read_text().splitlines()[0])
+    cont = json.loads((CONT / "metrics.jsonl").read_text().splitlines()[0])
     keys = ("update", "segment", "ent_coef", "lr", "kl_beta")
     got, want = [row[k] for k in keys], [cont[k] for k in keys]
     assert want == [2605, 1, 0.006398617511520737, 0.0003, 0.04], want
-    assert got == want, f"the first update's schedule differs from cont-s1's: {dict(zip(keys, got))} against {dict(zip(keys, want))}"
+    assert got == want, f"the first update's schedule differs from cont-s{SEED}'s: {dict(zip(keys, got))} against {dict(zip(keys, want))}"
 
 
 def a4():
@@ -127,12 +137,12 @@ def a4():
     last = m["rows"][-1]["update"]
     fin = torch.load(m["out"] / "policy-final.pt", map_location="cpu", weights_only=True)
     assert (last, len(m["rows"])) == (D.RESUME_UPDATE, 1), f"the run ends at update {last} after {len(m['rows'])} updates (stop asked: {D.RESUME_UPDATE + 1})"
-    assert (fin["update"], fin["ticks"], fin["arm"], fin["stop_reason"]) == (D.RESUME_UPDATE, (D.RESUME_UPDATE + 1) * D.TPU, "reanchor-s1", "reanchor-end"), fin["update"]
+    assert (fin["update"], fin["ticks"], fin["arm"], fin["stop_reason"]) == (D.RESUME_UPDATE, (D.RESUME_UPDATE + 1) * D.TPU, ARM, "reanchor-end"), fin["update"]
     assert not same(dict(fin["state_dict"]), dict(torch.load(TRUNK_DIR / "policy-final.pt", map_location="cpu", weights_only=True)["state_dict"])), "the one-update final is the trunk final: nothing trained"
     assert R.STOP_UPDATE == 3_256 and R.STOP_UPDATE * D.TPU == 10_002_432 and D.closes_bin(R.STOP_UPDATE - 1), R.STOP_UPDATE
     assert dict(D.bin_checkpoints())[R.STOP_UPDATE - 1] == 10_002_432
     try:
-        R.run(None, D.RESUME_UPDATE + 1)
+        R.run(None, D.RESUME_UPDATE + 1, SEED)
     except AssertionError:
         pass
     else:
@@ -141,15 +151,16 @@ def a4():
 
 def a5():
     """The slot's stripe is its own SEED-BANDS row and overlaps no other claimed row; the run draws from its segment 1."""
-    lo, hi = T.seed_stripe(R.RUN_INDEX)
+    index = R.SEEDS[SEED][0]
+    lo, hi = T.seed_stripe(index)
     bands = _bands()
-    own = [b for b in bands if (b[0], b[1]) == (lo, hi) and "reanchor" in b[2]]
+    own = [b for b in bands if (b[0], b[1]) == (lo, hi) and f"`{ARM}`" in b[2]]
     clash = [(b[0], b[1]) for b in bands if b not in own and b[0] <= hi and lo <= b[1]]
-    assert len(bands) > 20 and not clash, f"the stripe of run index {R.RUN_INDEX} overlaps a claimed stripe: {clash}"
-    assert len(own) == 1, f"run index {R.RUN_INDEX}'s stripe {lo}–{hi} is not a SEED-BANDS row of this arc"
-    assert R.RUN_INDEX not in {i for _s, i in T.SLOTS.values()}, "the run index is a trunk slot's"
+    assert len(bands) > 20 and not clash, f"the stripe of run index {index} overlaps a claimed stripe: {clash}"
+    assert len(own) == 1 and index == RUN_INDEX, f"run index {index}'s stripe {lo}–{hi} is not {ARM}'s SEED-BANDS row"
+    assert index not in {i for _s, i in T.SLOTS.values()}, "the run index is a trunk slot's"
     man = dry()["manifest"]
-    assert (man["run_index"], man["segment"], man["seed_base"]) == (R.RUN_INDEX, 1, lo + 1_000), (man["run_index"], man["segment"], man["seed_base"])
+    assert (man["run_index"], man["segment"], man["seed_base"]) == (index, 1, lo + 1_000), (man["run_index"], man["segment"], man["seed_base"])
 
 
 def a6():
@@ -157,11 +168,11 @@ def a6():
     call 5's rung seating seats the no-head arm's 2M checkpoint."""
     sys.path.insert(0, str(HERE.parent / "fog-gen1-cert"))
     import cert_harness_fog as H
-    p = H.artifact_path("g2:reanchor-s1")
-    assert H.SEATINGS["reanchor-s1"] == ["g2:reanchor-s1"] * 5 and p == HERE / "artifacts" / "reanchor-s1" / "policy-final.pt", f"reanchor-s1 seats {p}"
-    assert H.artifact_path("g2:cont-s1") == D.HERE / "artifacts" / "cont-s1" / "policy-final.pt"
-    rung = H.SEATINGS["r6-nohead-s1-u651"]
-    assert rung == ["p2:p2-nohead-s1r@u651"] * 5 and H.artifact_path(rung[0]).exists() and (651 + 1) * D.TPU == 2_002_944, rung
+    p = H.artifact_path(H.SEATINGS[ARM][0])
+    assert H.SEATINGS[ARM] == [f"g2:{ARM}"] * 5 and p == HERE / "artifacts" / ARM / "policy-final.pt", f"{ARM} seats {p}"
+    assert H.artifact_path(f"g2:cont-s{SEED}") == D.HERE / "artifacts" / f"cont-s{SEED}" / "policy-final.pt"
+    rung = H.SEATINGS[f"r6-nohead-s{SEED}-u651"]
+    assert rung == [f"p2:p2-nohead-s{SEED}{'r' if SEED == 1 else ''}@u651"] * 5 and H.artifact_path(rung[0]).exists() and (651 + 1) * D.TPU == 2_002_944, rung
 
 
 GUARDS = {"a1": a1, "a2": a2, "a3": a3, "a4": a4, "a5": a5, "a6": a6}

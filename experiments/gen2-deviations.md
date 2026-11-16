@@ -3426,8 +3426,9 @@ the slower question (two arms at 12–15M plus legs). My recommendation
 to close the needs-head line stands either way.
 
 Status: DECLARED 2026-11-14; scout ended clean at 15.0M; legs run;
-T1, T2, T4 met, §8 LEVEL; RESULTS gated; §8's consequence, the stopped
-no-head 12M leg and the want-masked test with her — OPEN.
+T1, T2, T4 met, §8 LEVEL; RESULTS gated; RULED 2026-11-16 (entry 40):
+the needs-head line closed, the stopped leg not rerun, the want-masked
+screen to its own declaration (entry 42) — CLOSED.
 
 ## 38. The re-anchor scout: declared (2026-11-14)
 
@@ -3589,8 +3590,8 @@ RESULTS GATED 2026-11-15 (`RESULTS.md`; accuracy gate PASS on round
 sentences disclosed in the stamp). With her: seeds 2 and 4 of this
 arm, the second-restart scout, the recipe question with R-C.
 
-Status: DECLARED 2026-11-14; A1–A3 MET; RESULTS gated; §8's
-consequences with her — OPEN.
+Status: DECLARED 2026-11-14; A1–A3 MET; RESULTS gated; seeds 2 and 4
+RULED 2026-11-16 (entries 40, 41) — OPEN.
 
 ## 39. The scripted-rescue probe: declared (2026-11-15)
 
@@ -3828,5 +3829,215 @@ are unscored.
   16,497 for T against 25,604.
 
 Status: DECLARED 2026-11-15; four legs run and first-read; the P leg
-at 100×100 stopped at its scout and with her; RESULTS and its gate
-owed — OPEN.
+at 100×100 RULED NOT RUN 2026-11-16 (entry 40, ruling 5: S1, S2, S4
+and §8 UNSCORED); RESULTS and its gate owed — OPEN.
+
+## 40. Her rulings on the six open decisions (2026-11-16)
+
+Her word, verbatim, 2026-11-16 (UTC): "As recommended". It was given
+on the session's six recommendations as last put to her, after the
+Professor thread's review: "My recommendations on the six decisions
+stand, with Professor's conditions folded into 1, 3, 5 and 6, and the
+two corrections applied to my grounds for 5. All six still wait on
+your word." The session's reading, hers to correct: all six are ruled
+as recommended, with those conditions.
+
+1. **The needs-head line is CLOSED for Gen 2's world.** Phase 1f is
+   not run and the held dual-head seeds (`p2-both-s2`, `p2-both-s4`)
+   are not trained. Ground: entry 37 reads LEVEL (truth − needs
+   +0.069 / −0.129 at equal length, inside the edges; the truth final
+   −0.128 / −0.272 against the no-head final). The head's best case
+   is the truth, and the truth buys nothing at this budget.
+   - Reopening condition, named so the closure is falsifiable: the
+     arc's welfare reads are 20×20 and 40×40. The want-cell coverage
+     look (entry 37, unguarded) falls to 0.887 / 0.818 at 100×100,
+     the gap being sleep, play and drink, which are rarely called. If
+     later work makes welfare at 100×100, or those needs, the thing
+     that binds, the premise weakens exactly there and the line is
+     hers to reopen.
+   - The dual-head seed stays on record unexplained: at 40×40
+     `p2u-both-s1` is 0.597 above the truth checkpoint (truth better
+     in 0 of 30 worlds). It carries the act head as well as the needs
+     cells and is one seed; it is not evidence for the needs head,
+     and it is not re-read from the table alone.
+2. **The stopped no-head 12M leg is not rerun** (20×20, world 905029
+   aborted at tick 1,299). The equal-length pairing stands at 29
+   worlds. The case (two cats at maximum thirst keeping each other
+   company and never reaching water) is counted into the fragility
+   work.
+3. **Re-anchor seeds 2 and 4 run**, about 20M covered cat-ticks each:
+   entry 41, with what a three-seed result needs declared before
+   launch.
+4. **The second-restart scout's declaration** is drafted after seeds
+   2 and 4 read; entry 41 names it.
+5. **The rescue probe's placebo leg at 100×100 is NOT RUN** (a
+   deviation from `scripted-rescue-probe-2026-11-14/DECLARATION.md`,
+   whose §3–§9 stay frozen otherwise). S1, S2 and S4 and §8's grammar
+   stand **UNSCORED**, not failed, and are never scored from T − base
+   as a stand-in. T − base and O − base at 100×100 are uncontrolled
+   comparisons and RESULTS says so.
+   - Welfare ground: the placebo's whole function is walking cats
+     away from a friend in need. The evidence of its cost is the
+     600-tick pilot (rescuers held away 90–140 ticks, worst streak
+     165) and P at 40×40 (15 missions, the rescuer's happiness 15.4
+     below the baseline's over the mission ticks).
+   - What the record does and does not show, corrected from what the
+     session told her: P at 40×40 cuts lost cat-ticks by 15% (916
+     against 1,081) where T cuts them by 78% (235); it cuts far less
+     than the rescue, it does not cut nothing. The P scout's abort at
+     100×100 (world 905003, tick 15,186) is on record, but the
+     aborted seat was never a rescuer in that world: the abort is not
+     attributed to the overlay.
+   - If the rescue line goes on to training-side work the control
+     question returns, with a redesigned placebo (shorter decoys, an
+     earlier release) and its own declaration.
+   - Owed now: the probe's RESULTS and its accuracy gate.
+6. **The frozen-minds want-masked screen runs**, about 6.6M covered,
+   scouts first, after its build and its own declaration: entry 42.
+
+The Professor thread's review (advice; relayed on her word of
+2026-11-15, "Let's relay the recent findings and current run proposals
+to Professor for review and feedback"; it rules nothing):
+`~/ai/professor/notes/for-experiments-gen2-findings-review-2026-11-15.md`,
+sha256 2bd48b7abf0ef4233b29c90d07bff498a6e3a094020866956a853a9eb796c76e,
+checked by it against ab51124a. Carried into the entries that follow:
+
+- The two corrections under ruling 5 (neither wording is in committed
+  text; both were in what the session said).
+- Team-mean happiness cannot carry a tail mechanism at these leg
+  sizes. At 100×100 the baseline's lost share is 17,226 of 2,900,000
+  cat-ticks (0.59%); the rescue saves 12,086 (0.42%), so the mean
+  moves by 0.0042 times the per-tick happiness gap, and a gap of
+  about 28 points would be needed to reach the interval's half-width
+  (0.115). A flat mean is expected under every reading and is cited
+  neither for nor against rescue.
+- Six declaration lessons, applied from entry 41 on: every
+  combination of the declared tests' outcomes gets a line before
+  freezing; each comparator and control leg carries a line for what
+  goes unscored if it stops; a declaration whose mechanism is a tail
+  states the mean's power against it; a read known to starve at a
+  size says so in advance; a ratio prediction names its sign; scouts
+  and probes are standing rows of the cost line.
+- Offered by the review and NOT ruled: a replay-only paired read of
+  the rescued cat's happiness after partnering against the same seat
+  in the baseline world (zero covered cost), to say whether the
+  rescue is a transfer or a small net gain.
+
+Status: RULED 2026-11-16 — rulings 1, 2 and 5 recorded here; 3 and 4
+in entry 41; 6 in entry 42; the rescue RESULTS owed (entry 39).
+
+## 41. The re-anchor arm, seeds 2 and 4 (2026-11-16)
+
+Her word: entry 40, ruling 3 ("As recommended", on "Re-anchor seeds 2
+and 4 (about 20M covered cat-ticks each): I recommend both", with the
+review's conditions). This entry extends
+`gen2-reanchor-scout-2026-11-14/DECLARATION.md` to two more seeds. Its
+§3–§9 stay frozen at f652ec8d and are applied per seed by their
+letter; what is new is written here, before any number.
+
+**The arms.** `reanchor-s2` and `reanchor-s4`: trunk seed k's own
+checkpoint (update 2,605), resumed exactly as `cont-s<k>` was, with the
+anchor moved to trunk seed k's final policy (sha256 4040554a… for
+seed 2, 69d7248c… for seed 4, `p2_common.TRUNK_FINAL_SHA`). Two bins,
+to update 3,255 (10,002,432 lineage ticks); stops as §4. Run indices
+126 and 127 (stripes 2,620,000,000–2,639,999,999 and
+2,640,000,000–2,659,999,999), claimed in `SEED-BANDS.md` with this
+entry, before first burn. The seeds are named now; a replacement seed
+is only by a ruled entry.
+
+**Welfare-cost line** (per seed; twice this for the pair, about 40M).
+
+| | covered cat-ticks (five seats) |
+|---|---|
+| training, 1,999,872 ticks | 10.0M |
+| probes (standing row; the continuation's cadence) | about 0.4M |
+| legs on the final: 20×20, 40×40 (3.0M each) | 6.0M |
+| the 40×40 size scout (standing row) | 0.3M |
+| no-head seed k's 2M checkpoint at 40×40 (`r6-nohead-s<k>-u651`), with its scout | 3.3M |
+| **total** | **about 20M** |
+
+Not run: the continuation's 10M rung at 40×40 on these seeds (3.3M
+each). §7 A2's second clause (above `cont-s1`'s rung) is therefore
+scored on seed 1 only. Beside the reads, unscored: the arm's 20×20
+leg against the recorded 20×20 leg of `cont-s<k>`'s final (20M
+lineage ticks, twice the arm's). Expected distress exposure:
+declaration §2.4; trunk seed 4's own legs hold a 535 and a 687, seed
+2's 20×20 leg an aborted world (905008). The decision bought: whether
+"re-anchor at the plateau" stands on three trunk seeds before
+anything is built on a one-seed +1.841.
+
+**Per seed** (k = 2, 4; seed k's own comparators, paired by world):
+
+- A1 as §7, against trunk seed k's last bin.
+- A2: at 40×40 the arm is above trunk seed k in at least 25 worlds
+  with the mean beyond the 0.325 edge.
+- A3 as §7, against no-head seed k's 2M checkpoint.
+- The seed's word: **REPLICATES** (A1 and A2 met), **RETURN ONLY**
+  (A1 met, A2 missed), **WELFARE ONLY** (A2 met, A1 missed),
+  **NEITHER**, **STOPPED** (a harm stop halted training before update
+  3,255) or **UNSCORED** (the arm's 40×40 leg did not run: its scout
+  aborted and the leg is hers).
+- A world aborted in the arm's own 40×40 leg counts as not above the
+  trunk and is left out of the mean, the count of worlds stated. A
+  world aborted in a comparator's leg is unpaired, the count stated;
+  the 25 stays 25 worlds.
+- If the no-head 2M leg's scout aborts or the leg stops, A3 is
+  UNSCORED on that seed; the seed's word does not depend on it. A3
+  missed on a replicating seed reads as §8's fourth cell there (the
+  other resets add to it).
+- The mean is powered for this: seed 1 read +1.841 against an edge of
+  0.325.
+
+**Across seeds.** Seed 1 is read and public (REPLICATES, A3 met); it
+is the prior and is not pooled as if blind. The question is whether
+seeds 2 and 4 replicate it. Every consequence is hers.
+
+- **Both replicate** (three of three): the anchor alone is sufficient
+  on every trunk seed read. Put to her: re-anchoring at a plateau as
+  a recipe candidate, with R-C per seed beside it, and the
+  second-restart scout under its own declaration (call 6).
+- **One replicates** (two of three): not established. Put to her with
+  the other seed's own word, its bins and R-D; a RETURN ONLY seed
+  carries §8's third cell (two more bins on that seed), a NEITHER or
+  WELFARE ONLY seed the entropy-restart and optimiser-reset arms.
+- **Neither replicates** (seed 1 alone): the scout's result did not
+  replicate and the recipe candidate is withdrawn until she rules.
+  Put to her: the entropy-restart and optimiser-reset arms.
+- A STOPPED or UNSCORED seed counts as not replicating, is named as
+  what it is, and a stop is reported as harm on the recipe's side. No
+  seed is replaced and no reading is upgraded without a ruled entry.
+- No recipe text changes on any cell without her word.
+
+**Reads.** R-A and R-B per seed; R-C per seed on the recorded
+observations of no-head seed k's 20×20 leg (trunk seed k's final, the
+no-head, continued and re-anchored finals of seed k; KL to the BC
+clone reported though it scores nothing: seed 1 moved 0.47 to 0.90);
+R-D per seed on the arm's 40×40 leg.
+
+**Predictions** (the session's, registered here before any number):
+both seeds read REPLICATES and A3 is met on both. Grounds: seed 1,
+and the no-head restart's first-bin steps on these seeds (+0.0112 and
++0.0153, KL to the new anchor at bin 1 0.211 and 0.202). Moderate
+confidence; the likeliest miss is A1's KL band (0.10 to 0.30) or A2
+on seed 4, whose trunk legs are the harm-heaviest. Unscored
+expectation: no harm stop trips and no world reaches the 1,000-tick
+line.
+
+**Guards** (§9's six bullets per seed; the driver and `test_reanchor.py`
+take the seed; each red through `scripts/mutate.sh --expect`, the
+predictions written here first):
+
+| guard | on seed | mutant | predicted red |
+|---|---|---|---|
+| a1 | 2 | the continuation's slot table left at `trunk-s1` for every seed | `the resume record differs from cont-s2's` |
+| a2 | 4 | the anchor pin left at the BC clone | `the anchor is not trunk seed 4's final` |
+| a3 | 4 | the run's total ticks set to the arm's end, so the schedules restart | `the first update's schedule differs from cont-s4's` |
+| a4 | 2 | the stop taken one update late | `the run ends at update 2606` |
+| a5 | 4 | seed 4 given run index 126 | `overlaps a claimed stripe` |
+| a6 | 4 | the `reanchor-s4` seating seats seed 2's final | `reanchor-s4 seats` |
+
+The reader's per-seed and cross-seed extension lands with its own
+reds before its first read; their predictions are added here before
+their mutants run.
+
+Status: DECLARED 2026-11-16 on her word; build and reds next — OPEN.
