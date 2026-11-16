@@ -3923,6 +3923,24 @@ checked by it against ab51124a. Carried into the entries that follow:
   in the baseline world (zero covered cost), to say whether the
   rescue is a transfer or a small net gain.
 
+CORRECTION 2026-11-16, found by the rescue RESULTS' accuracy gate
+(round 1, FAIL) and checked by the session against the scout's raw
+row. Ruling 5 above says "the aborted seat was never a rescuer in
+that world: the abort is not attributed to the overlay". The first
+half is true and the second does not follow from it. Seat 0 was the
+placebo's TARGET in 8 of world 905003's 10 missions; seven ran back
+to back from tick 14,187 to the abort at 15,186, each walking a free
+cat away from it, six closing on the rescuer's own need. In the
+recorded baseline the same world ran whole and seat 0's worst streak
+was 10 ticks. The runs diverge at the overlay's first act, so this is
+not proof of cause; it is strong enough that the session's first
+wording to her ("the scout showed harm") was nearer the record than
+the correction it accepted from the review. The ruling's welfare
+ground is stronger for it, not weaker. Entry 39's "LEGS RUN … at HEAD
+c876745e" is also wrong for one leg: O at 100×100 ran at 85ad65ca
+(its run log and raw headers); between the two commits only the
+reader and its guards were added.
+
 Status: RULED 2026-11-16 — rulings 1, 2 and 5 recorded here; 3 and 4
 in entry 41; 6 in entry 42; the rescue RESULTS owed (entry 39).
 
