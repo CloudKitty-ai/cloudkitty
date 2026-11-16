@@ -4123,5 +4123,33 @@ unmasked half: zeroing the truth cells changes 0.0469 of the truth
 final's acts (140,808 rows; the 12M checkpoint read 0.0422). Fence:
 0 and 2 ties, no failure.
 
-Status: DECLARED 2026-11-16; reds on record; R-0 read, the stop does
-not fire; scouts and legs next under ruling 6 — OPEN.
+LEGS RUN 2026-11-16T06:50–06:52Z (`run_legs_wantmask.sh`, the
+no-head seating at HEAD 071d704c, the truth seating at 4a24d05d; no
+harness change between them), each its 3-world scout first, raws under
+`want-mask-screen-2026-11-16/results-raw/legs/<seating>/`:
+`wantmask-nohead-s1` scout clean (worst streak 88), leg clean (106);
+`wantmask-truth-s1` scout clean (402), leg clean (509). No abort.
+
+FIRST READ 2026-11-16 (`reads/screen.json`, `reads/screen.md`; not yet
+gated, no RESULTS written). Masked minus unmasked at 40×40, 30 worlds
+whole in all four legs:
+
+- Δ_nohead −0.117 (1 world up, 29 down; interval −0.145 to −0.089).
+  **W1 MET.**
+- Δ_truth −0.098 (5 up, 25 down; −0.141 to −0.058). **W2 MET.**
+- D = Δ_truth − Δ_nohead +0.018 (16 up, 14 down; −0.033 to +0.069).
+- **§8 reads NOT LOAD-BEARING** (Δ_nohead is inside the edge). The
+  loss is small and steady: about a third of the edge, on 29 of 30
+  worlds; and the mind holding the true needs loses as much.
+- R-2: zeroing the truth cells changes 0.0469 of the truth final's
+  acts unmasked and 0.0477 under the mask (ratio 1.02). W3 is met by
+  its letter (higher, by less than a factor of two) and is flat in
+  substance: the cells do not stand in for the masked calls.
+- R-3: lost cat-ticks, unmasked to masked: the no-head final 1,081 to
+  389; the truth final 3,877 to 5,153. Closing share 0.519 to 0.566
+  and 0.623 to 0.568. Worlds with a 300+ streak 0 to 0 and 1 to 5.
+  The unscored expectation (lost time rises under the mask on the
+  no-head final) did not hold: it fell.
+
+Status: DECLARED 2026-11-16; legs run and first-read: NOT
+LOAD-BEARING; RESULTS and its gate owed — OPEN.

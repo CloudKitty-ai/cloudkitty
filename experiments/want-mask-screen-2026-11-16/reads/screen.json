@@ -1,0 +1,231 @@
+{
+ "reach": {
+  "nohead": {
+   "worlds": 30,
+   "rows": 3000000,
+   "ties": 0,
+   "live_rows": 2992799,
+   "reach": 68217,
+   "reach_live": 68217,
+   "reach_share": 0.022739,
+   "reach_share_live": 0.022793712507923183,
+   "truth_changed": 0,
+   "truth_share": 0.0
+  },
+  "truth": {
+   "worlds": 30,
+   "rows": 3000000,
+   "ties": 2,
+   "live_rows": 2990519,
+   "reach": 70924,
+   "reach_live": 70924,
+   "reach_share": 0.023641333333333334,
+   "reach_share_live": 0.023716284698408537,
+   "truth_changed": 140808,
+   "truth_share": 0.046936
+  },
+  "stop": false,
+  "W0": {
+   "nohead": 0.022739,
+   "truth": 0.023641333333333334,
+   "met": false
+  }
+ },
+ "missing": [],
+ "legs": {
+  "nohead/plain": {
+   "worlds": 30,
+   "whole": 30,
+   "team_mean": 89.00736533333335,
+   "worst_streak": 294,
+   "worlds_300": 0,
+   "aborts": {}
+  },
+  "nohead/masked": {
+   "worlds": 30,
+   "whole": 30,
+   "team_mean": 88.89062733333334,
+   "worst_streak": 106,
+   "worlds_300": 0,
+   "aborts": {}
+  },
+  "truth/plain": {
+   "worlds": 30,
+   "whole": 30,
+   "team_mean": 88.73537733333335,
+   "worst_streak": 478,
+   "worlds_300": 1,
+   "aborts": {}
+  },
+  "truth/masked": {
+   "worlds": 30,
+   "whole": 30,
+   "team_mean": 88.63697199999999,
+   "worst_streak": 509,
+   "worlds_300": 5,
+   "aborts": {}
+  }
+ },
+ "R-2": {
+  "unmasked": 0.046936,
+  "masked": 0.047669666666666666,
+  "ratio": 1.0156312141355606,
+  "W3_met": true
+ },
+ "R-3": {
+  "nohead/plain": {
+   "lost_cat_ticks": 1081,
+   "friend_moves": 1344,
+   "closed_moves": 698,
+   "closed": 0.5193452380952381
+  },
+  "nohead/masked": {
+   "lost_cat_ticks": 389,
+   "friend_moves": 452,
+   "closed_moves": 256,
+   "closed": 0.5663716814159292
+  },
+  "truth/plain": {
+   "lost_cat_ticks": 3877,
+   "friend_moves": 4979,
+   "closed_moves": 3101,
+   "closed": 0.622815826471179
+  },
+  "truth/masked": {
+   "lost_cat_ticks": 5153,
+   "friend_moves": 5914,
+   "closed_moves": 3358,
+   "closed": 0.5678052079810619
+  }
+ },
+ "masked_nohead": {
+  "worlds": 30,
+  "rows": 3000000,
+  "ties": 0,
+  "live_rows": 2993127,
+  "reach": 0,
+  "reach_live": 0,
+  "reach_share": 0.0,
+  "reach_share_live": 0.0,
+  "truth_changed": 0,
+  "truth_share": 0.0
+ },
+ "masked_truth": {
+  "worlds": 30,
+  "rows": 3000000,
+  "ties": 1,
+  "live_rows": 2990708,
+  "reach": 0,
+  "reach_live": 0,
+  "reach_share": 0.0,
+  "reach_share_live": 0.0,
+  "truth_changed": 143009,
+  "truth_share": 0.047669666666666666
+ },
+ "R-1": {
+  "delta_nohead": {
+   "worlds": 30,
+   "seeds": [
+    905001,
+    905002,
+    905003,
+    905004,
+    905005,
+    905006,
+    905007,
+    905008,
+    905009,
+    905010,
+    905011,
+    905012,
+    905013,
+    905014,
+    905015,
+    905016,
+    905017,
+    905018,
+    905019,
+    905020,
+    905021,
+    905022,
+    905023,
+    905024,
+    905025,
+    905026,
+    905027,
+    905028,
+    905029,
+    905030
+   ],
+   "positive": 1,
+   "negative": 29,
+   "mean": -0.11673799999999943,
+   "ci95": [
+    -0.14485493333333466,
+    -0.08900548333332921
+   ],
+   "p_positive": 0.9999999990686774,
+   "p_negative": 2.8870999813079834e-08,
+   "left_out": []
+  },
+  "delta_truth": {
+   "worlds": 30,
+   "seeds": [
+    905001,
+    905002,
+    905003,
+    905004,
+    905005,
+    905006,
+    905007,
+    905008,
+    905009,
+    905010,
+    905011,
+    905012,
+    905013,
+    905014,
+    905015,
+    905016,
+    905017,
+    905018,
+    905019,
+    905020,
+    905021,
+    905022,
+    905023,
+    905024,
+    905025,
+    905026,
+    905027,
+    905028,
+    905029,
+    905030
+   ],
+   "positive": 5,
+   "negative": 25,
+   "mean": -0.09840533333333212,
+   "ci95": [
+    -0.14076016666666405,
+    -0.05799251666666641
+   ],
+   "p_positive": 0.99997026193887,
+   "p_negative": 0.00016245711594820023,
+   "left_out": []
+  },
+  "D": {
+   "worlds": 30,
+   "mean": 0.01833266666666731,
+   "positive": 16,
+   "negative": 14,
+   "ci95": [
+    -0.032628550000002074,
+    0.06852680000000291
+   ]
+  }
+ },
+ "W1_met": true,
+ "W2_met": true,
+ "grammar": "NOT LOAD-BEARING",
+ "outside_expectation": false
+}

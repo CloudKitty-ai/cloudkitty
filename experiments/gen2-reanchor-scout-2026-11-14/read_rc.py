@@ -7,6 +7,7 @@ over the act and message heads, on the tick's legal mask), called and not copied
 final, this arm's anchor. Beside each: the share of rows whose top act differs from the clone's.
 
     VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B read_rc.py --out reads/rc.json [--md]     (about 3 minutes)
+    … read_rc.py --seed 2 --out reads/rc-s2.json --md   (entry 41: the same read on trunk seed 2's four policies; 4 likewise)
 """
 import argparse
 import json
@@ -23,11 +24,19 @@ import read_r1_cont as R1C  # noqa: E402  (puts Phase 2's arc, the trainer and t
 import cert_harness_fog as H  # noqa: E402
 C, RP = R1C.C, R1C.RP
 
-POLICIES = {"trunk s1 final": "g2:trunk-s1", "no-head final": "p2:p2-nohead-s1r", "continued final": "g2:cont-s1", "re-anchored final": "g2:reanchor-s1"}
+def policies(k=1):
+    """The four policies of trunk seed k (deviations entry 41 for k = 2, 4; the no-head seed 1 seat is its replacement run)."""
+    return {f"trunk s{k} final": f"g2:trunk-s{k}", "no-head final": f"p2:p2-nohead-s{k}" + ("r" if k == 1 else ""),
+            "continued final": f"g2:cont-s{k}", "re-anchored final": f"g2:reanchor-s{k}"}
+
+
+POLICIES = policies(1)
 SIZE, EVERY, SEEDS = 20, 20, tuple(range(905_001, 905_031))
 
 
-def world(seed):
+def world(job):
+    k, seed = job
+    POLICIES = policies(k)
     import torch
     import train_ppo_g2 as T
     torch.set_num_threads(1)
@@ -35,14 +44,14 @@ def world(seed):
     fwd = {name: H.load_model(spec) for name, spec in POLICIES.items()}
     acc = {name: {"kl_clone": 0.0, "kl_trunk": 0.0, "differ": 0} for name in POLICIES}
     n = 0
-    for rec in RP.replay(RP.acts_path("p2u-nohead-s1", SIZE, seed), C.LEG_TOML[SIZE], want_obs=True):
+    for rec in RP.replay(RP.acts_path(f"p2u-nohead-s{k}", SIZE, seed), C.LEG_TOML[SIZE], want_obs=True):
         if rec["tick"] % EVERY:
             continue
         ob, mk = torch.from_numpy(rec["obs"]), torch.from_numpy(rec["mask"])
         act, msg = torch.from_numpy(rec["acts"][:, 0].astype(np.int64)), torch.from_numpy(rec["acts"][:, 1].astype(np.int64))
         a_clone = T.anchor_log_softmaxes(clone, ob, mk)
         logits = {name: torch.from_numpy(np.asarray(f(rec["obs"], rec["mask"]), np.float32)) for name, f in fwd.items()}
-        a_trunk = torch.cat([torch.where(mk[:, lo:hi], T.masked_log_softmax(logits["trunk s1 final"][:, lo:hi], mk[:, lo:hi]), torch.zeros(1))
+        a_trunk = torch.cat([torch.where(mk[:, lo:hi], T.masked_log_softmax(logits[f"trunk s{k} final"][:, lo:hi], mk[:, lo:hi]), torch.zeros(1))
                              for lo, hi in ((0, T.N_ACTIONS), (T.N_ACTIONS, T.N_ACTIONS + T.N_MSGS))], 1)
         top_clone = clone(ob).detach()[:, :T.N_ACTIONS].masked_fill(~mk[:, :T.N_ACTIONS], -1e9).argmax(1)
         for name, lg in logits.items():
@@ -53,18 +62,19 @@ def world(seed):
     return n, acc
 
 
-def read(workers=6):
+def read(workers=6, seed=1):
     with ProcessPoolExecutor(workers) as ex:
-        res = list(ex.map(world, SEEDS))
+        res = list(ex.map(world, [(seed, s) for s in SEEDS]))
     n = sum(r[0] for r in res)
-    return {"rows": n, "worlds": len(res), "every": EVERY,
-            "policies": {name: {k: sum(r[1][name][k] for r in res) / n for k in ("kl_clone", "kl_trunk", "differ")} for name in POLICIES}}
+    out = {"rows": n, "worlds": len(res), "every": EVERY,
+           "policies": {name: {k: sum(r[1][name][k] for r in res) / n for k in ("kl_clone", "kl_trunk", "differ")} for name in policies(seed)}}
+    return out if seed == 1 else {"seed": seed, **out}
 
 
 def md(out):
     L = ["# R-C: distance from the clone (dump-only; scores nothing)", "",
-         f"{out['rows']} recorded rows: every {out['every']}th tick of the no-head arm's seed 1 20×20 leg, {out['worlds']} worlds.", "",
-         "| policy | KL to the BC clone | KL to trunk s1's final | top act differs from the clone's |", "|---|---|---|---|"]
+         f"{out['rows']} recorded rows: every {out['every']}th tick of the no-head arm's seed {out.get('seed', 1)} 20×20 leg, {out['worlds']} worlds.", "",
+         f"| policy | KL to the BC clone | KL to trunk s{out.get('seed', 1)}'s final | top act differs from the clone's |", "|---|---|---|---|"]
     for name, r in out["policies"].items():
         L.append(f"| {name} | {r['kl_clone']:.4f} | {r['kl_trunk']:.4f} | {r['differ']:.3f} |")
     return "\n".join(L) + "\n"
@@ -74,8 +84,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--md", action="store_true")
+    ap.add_argument("--seed", type=int, default=1, choices=(1, 2, 4))
     a = ap.parse_args()
-    out = read()
+    out = read(seed=a.seed)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1) + "\n")
     if a.md:

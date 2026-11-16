@@ -6,6 +6,7 @@ need at 50 or more / 90 or more, the share of them where a move was legal, the s
 the longest run without chow in sight or memory (the worst seat of the worst world, and the median over worlds).
 
     VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B read_rd.py --out reads/rd.json [--md]     (about 6 minutes, 7 GB a worker)
+    … read_rd.py --seed 2 --out reads/rd-s2.json --md   (entry 41: seed 2's legs; 4 likewise)
 """
 import argparse
 import json
@@ -23,16 +24,23 @@ import diag_abort as DA  # noqa: E402
 LEGS = {"reanchor-s1": HERE / "results-raw", "p2u-nohead-s1": None, "cont-s1": K / "results-raw"}
 
 
+def legs(k=1):
+    """The three legs of trunk seed k. Seeds 2 and 4 (deviations entry 41) write under results-raw-seeds (the scout's
+    results-raw is hash-stamped); a leg with no recorded world (the continued finals of seeds 2 and 4 ran no 40×40
+    leg) is left out by `read`."""
+    return LEGS if k == 1 else {f"reanchor-s{k}": HERE / "results-raw-seeds", f"p2u-nohead-s{k}": None, f"cont-s{k}": K / "results-raw"}
+
+
 def job(a):
-    seating, seed = a
-    w = DA.world(seating, "legs", LEGS[seating], seed)
+    seating, root, seed = a
+    w = DA.world(seating, "legs", root, seed)
     return seating, seed, {"ticks": w["ticks"], "search": w["search"], "longest_foodless_run": w["longest_foodless_run"]}
 
 
-def read(workers=3):
-    jobs = [(s, int(p.stem.split("-")[1])) for s, root in LEGS.items()
+def read(workers=3, seed=1):
+    jobs = [(s, root, int(p.stem.split("-")[1])) for s, root in legs(seed).items()
             for p in sorted(((root or DA.C.RAW) / "legs" / s / "legs" / f"size{DA.SIZE}" / "acts").glob("acts-*.npz"))]
-    per = {s: {} for s in LEGS}
+    per = {s: {} for s in dict.fromkeys(j[0] for j in jobs)}
     with ProcessPoolExecutor(workers, max_tasks_per_child=1) as ex:
         for s, seed, w in ex.map(job, jobs):
             per[s][seed] = w
@@ -67,8 +75,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--md", action="store_true")
+    ap.add_argument("--seed", type=int, default=1, choices=(1, 2, 4))
     a = ap.parse_args()
-    out = read()
+    out = read(seed=a.seed)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1) + "\n")
     if a.md:
