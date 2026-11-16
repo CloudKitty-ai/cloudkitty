@@ -4123,7 +4123,7 @@ unmasked half: zeroing the truth cells changes 0.0469 of the truth
 final's acts (140,808 rows; the 12M checkpoint read 0.0422). Fence:
 0 and 2 ties, no failure.
 
-LEGS RUN 2026-11-16T06:50–06:52Z (`run_legs_wantmask.sh`, the
+LEGS RUN 2026-11-16T06:49–06:52Z (`run_legs_wantmask.sh`, the
 no-head seating at HEAD 071d704c, the truth seating at 4a24d05d; no
 harness change between them), each its 3-world scout first, raws under
 `want-mask-screen-2026-11-16/results-raw/legs/<seating>/`:
